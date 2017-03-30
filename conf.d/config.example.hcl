@@ -1,5 +1,9 @@
 environment "production" {
   application "peakpass" {
+    secret "xx_DATABASE_URL" {
+      value = "production-peakpass-DATABASE_URL"
+    }
+
     secret "DATABASE_URL" {
       value = "production-peakpass-DATABASE_URL"
     }
