@@ -36,6 +36,12 @@ func main() {
 			Usage:  "Debug level (debug, info, warn/warning, error, fatal, panic)",
 			EnvVar: "LOG_LEVEL",
 		},
+		cli.StringFlag{
+			Name:   "environment",
+			Value:  "any",
+			Usage:  "The environment to process for (default any)",
+			EnvVar: "ENVIRONMENT",
+		},
 	}
 	app.Commands = []cli.Command{
 		{

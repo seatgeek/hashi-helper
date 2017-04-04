@@ -50,34 +50,34 @@ func listRemoteSecretsCommand(c *cli.Context) error {
 		log.Fatal("Timeout reached (5m) waiting for remote secret scanner to complete")
 	}
 
-	// paths = filterByEnvironment(paths, c.GlobalString("environment"))
-
+	paths = filterByEnvironment(paths, c.GlobalString("environment"))
 	log.Infof("Scanning complete, found %d secrets", len(paths))
+
 	if c.Bool("detailed") {
 		printDetailedSecrets(paths)
-	} else {
-		log.Println()
-		for _, secret := range paths {
-			log.Infof("%s (%s)", secret.Path, secret.Environment)
-		}
+		return nil
+	}
+
+	log.Println()
+	for _, secret := range paths {
+		log.Infof("%s (%s)", secret.Path, secret.Environment)
 	}
 
 	return nil
 }
 
-func filterByEnvironment(paths SecretList, environment string) (result SecretList) {
+func filterByEnvironment(secrets SecretList, environment string) (result SecretList) {
 	if environment == "" {
-		return paths
+		return secrets
 	}
 
-	// for _, s := range ss {
-	// 	if test(s) {
-	// 		result = append(result, s)
-	// 	}
-	// }
+	for _, s := range secrets {
+		if s.Environment == environment {
+			result = append(result, s)
+		}
+	}
 
-	// return result
-	return paths
+	return result
 }
 
 func printDetailedSecrets(paths SecretList) {
