@@ -12,12 +12,13 @@ import (
 	api "github.com/hashicorp/vault/api"
 )
 
-var environmentMatch = regexp.MustCompile(`^secret/(?P<Environment>.*?)/(?P<Path>.+)$`)
+var environmentMatch = regexp.MustCompile(`^secret/(?P<Environment>.*?)/(?P<Application>.*?)/(?P<Path>.+)$`)
 
 // InternalSecret ...
 type InternalSecret struct {
 	Path        string
 	Environment string
+	Application string
 	Secret      *api.Secret
 }
 
@@ -89,13 +90,13 @@ func remoteSecretReader(readCh chan *InternalSecret, completeCh chan interface{}
 	}
 }
 
-func extraEnvironmentFromPath(path string) (string, error) {
+func extraEnvironmentFromPath(path string) (string, string, error) {
 	match := environmentMatch.FindStringSubmatch(path)
 
-	if len(match) != 3 {
-		return "", fmt.Errorf("Could not parse environment from string")
+	if len(match) != 4 {
+		return "", "", fmt.Errorf("Could not parse environment from string")
 	}
 
-	return match[1], nil
+	return match[1], match[2], nil
 
 }

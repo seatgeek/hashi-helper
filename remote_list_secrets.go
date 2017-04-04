@@ -51,6 +51,7 @@ func listRemoteSecretsCommand(c *cli.Context) error {
 	}
 
 	paths = filterByEnvironment(paths, c.GlobalString("environment"))
+
 	log.Infof("Scanning complete, found %d secrets", len(paths))
 
 	if c.Bool("detailed") {
@@ -60,7 +61,7 @@ func listRemoteSecretsCommand(c *cli.Context) error {
 
 	log.Println()
 	for _, secret := range paths {
-		log.Infof("%s (%s)", secret.Path, secret.Environment)
+		log.Infof("%s @ %s: %s", secret.Application, secret.Environment, secret.Path)
 	}
 
 	return nil
@@ -88,7 +89,7 @@ func printDetailedSecrets(paths SecretList) {
 
 	for _, secret := range secrets {
 		log.Println()
-		log.Infof("%s (%s)", secret.Path, secret.Environment)
+		log.Infof("%s @ %s: %s", secret.Application, secret.Environment, secret.Path)
 
 		for k, v := range secret.Secret.Data {
 			switch vv := v.(type) {
@@ -109,13 +110,13 @@ func remoteSecretIndexerResultProcessor(result *SecretList, resultCh chan string
 		case <-completeCh:
 			return
 		case path := <-resultCh:
-			environment, err := extraEnvironmentFromPath(path)
+			environment, application, err := extraEnvironmentFromPath(path)
 			if err != nil {
 				environment = "unknown"
 				log.Warnf("Could not extract environment from %s", path)
 			}
 
-			*result = append(*result, &InternalSecret{path, environment, nil})
+			*result = append(*result, &InternalSecret{path, environment, application, nil})
 			wg.Done()
 		}
 	}
