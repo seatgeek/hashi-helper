@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 	"sort"
 
 	log "github.com/Sirupsen/logrus"
@@ -10,14 +11,30 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
+var defaultConcurrency int
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "vault-manager"
 	app.Usage = "easily restore / snapshot your secrets"
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
-			Name:  "lint",
-			Usage: "Don't run any Add, Update or Delete operations against Vault",
+			Name:   "lint",
+			Usage:  "Don't run any Add, Update or Delete operations against Vault",
+			EnvVar: "LINT",
+		},
+		cli.IntFlag{
+			Name:        "concurrency",
+			Value:       runtime.NumCPU() * 2,
+			Usage:       "How many parallel requests to run in parallel (2 * CPU Cores)",
+			EnvVar:      "CONCURRENCY",
+			Destination: &defaultConcurrency,
+		},
+		cli.StringFlag{
+			Name:   "log-level",
+			Value:  "info",
+			Usage:  "Debug level (debug, info, warn/warning, error, fatal, panic)",
+			EnvVar: "LOG_LEVEL",
 		},
 	}
 	app.Commands = []cli.Command{
@@ -50,6 +67,17 @@ func main() {
 			},
 		},
 	}
+	app.Before = func(c *cli.Context) error {
+		// convert the human passed log level into logrus levels
+		level, err := log.ParseLevel(c.String("log-level"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.SetLevel(level)
+
+		return nil
+	}
+
 	sort.Sort(cli.FlagsByName(app.Flags))
 	app.Run(os.Args)
 }
