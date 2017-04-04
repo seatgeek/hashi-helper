@@ -72,8 +72,8 @@ func remoteSecretIndexerResultProcessor(result *[]string, resultCh chan string, 
 		}
 	}
 }
-func remoteSecretIndexer(jobCh chan string, outCh chan string, quitCh chan interface{}, wg *sync.WaitGroup, resultWg *sync.WaitGroup, n int) {
-	log.WithField("method", "remoteSecretIndexer").Debugf("Starting worker %d", n)
+func remoteSecretIndexer(indexerCh chan string, resultCh chan string, completeCh chan interface{}, indexerWg *sync.WaitGroup, resultWg *sync.WaitGroup, workerID int) {
+	log.Debugf("Starting worker %d", workerID)
 
 	// Create a new Vault API client for this go-routine
 	client, err := api.NewClient(nil)
@@ -83,23 +83,23 @@ func remoteSecretIndexer(jobCh chan string, outCh chan string, quitCh chan inter
 
 	for {
 		select {
-		case <-quitCh:
-			log.WithField("method", "remoteSecretIndexer").Debugf("Stopping worker %d", n)
+		case <-completeCh:
+			log.Debugf("Stopping worker %d", workerID)
 			return
-		case path := <-jobCh:
-			realPath := fmt.Sprintf("secret/%s", strings.Trim(path, "/"))
-			log.WithField("method", "remoteScanPathRecursive").Debugf("[%d] Scanning path: %s", n, realPath)
+		case path := <-indexerCh:
+			logicalPath := fmt.Sprintf("secret/%s", strings.Trim(path, "/"))
+			log.Debugf("[%d] Scanning path: %s", workerID, logicalPath)
 
-			resp, err := client.Logical().List(realPath)
+			response, err := client.Logical().List(logicalPath)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			if resp.Data == nil {
+			if response.Data == nil {
 				log.Fatal("Response contains no data")
 			}
 
-			rawKeys, ok := resp.Data["keys"]
+			rawKeys, ok := response.Data["keys"]
 			if !ok {
 				log.Fatal("Could not find any keys in the response, server issues?")
 			}
@@ -107,27 +107,30 @@ func remoteSecretIndexer(jobCh chan string, outCh chan string, quitCh chan inter
 			keys := secretsToString(rawKeys)
 
 			if len(keys) == 0 {
-				log.Fatal("No keys found in the vault")
+				log.Fatalf("No keys found in the vault path %s", path)
 			}
 
-			for _, v := range keys {
-				if v[len(v)-1:] == "/" {
-					wg.Add(1)
-					jobCh <- fmt.Sprintf("%s/%s", path, v[0:len(v)-1])
+			for _, keyPath := range keys {
+				// If the path end in a /, it's a "directory" and should be processed recursively
+				if strings.HasSuffix(keyPath, "/") {
+					indexerWg.Add(1)
+					indexerCh <- fmt.Sprintf("%s/%s", path, strings.Trim(keyPath, "/"))
 					continue
 				}
 
+				// Add the found secret to the result
 				resultWg.Add(1)
-				outCh <- fmt.Sprintf("%s/%s", realPath, v)
+				resultCh <- fmt.Sprintf("%s/%s", logicalPath, keyPath)
 			}
 
-			wg.Done()
+			indexerWg.Done()
 		}
 	}
 }
 
 func secretsToString(in interface{}) (out []string) {
 	t := in.([]interface{})
+
 	for _, v := range t {
 		out = append(out, v.(string))
 	}
