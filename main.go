@@ -18,15 +18,15 @@ func main() {
 	app.Name = "vault-manager"
 	app.Usage = "easily restore / snapshot your secrets"
 	app.Flags = []cli.Flag{
-		cli.BoolFlag{
-			Name:   "lint",
-			Usage:  "Don't run any Add, Update or Delete operations against Vault",
-			EnvVar: "LINT",
-		},
+		// cli.BoolFlag{
+		// 	Name:   "lint",
+		// 	Usage:  "Don't run any Add, Update or Delete operations against Vault",
+		// 	EnvVar: "LINT",
+		// },
 		cli.IntFlag{
 			Name:        "concurrency",
 			Value:       runtime.NumCPU() * 2,
-			Usage:       "How many parallel requests to run in parallel (2 * CPU Cores)",
+			Usage:       "How many parallel requests to run in parallel against remote servers (2 * CPU Cores)",
 			EnvVar:      "CONCURRENCY",
 			Destination: &defaultConcurrency,
 		},
@@ -50,6 +50,13 @@ func main() {
 			Usage: "Print a list of remote secrets",
 			Action: func(c *cli.Context) error {
 				return listRemoteSecretsCommand(c)
+			},
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:   "detailed",
+					Usage:  "Only show keys, or also expand and show the secret values (highly sensitive!)",
+					EnvVar: "DETAILED",
+				},
 			},
 		},
 		{
