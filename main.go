@@ -42,21 +42,21 @@ func main() {
 	}
 	app.Commands = []cli.Command{
 		{
-			Name:  "local-list",
+			Name:  "vault-local-list",
 			Usage: "Print a list of local secrets",
 			Action: func(c *cli.Context) error {
 				return vault.LocalSecretsListCommand(c)
 			},
 		},
 		{
-			Name:  "local-write",
+			Name:  "vault-local-write",
 			Usage: "Write remote secrets to local disk",
 			Action: func(c *cli.Context) error {
 				return vault.LocalSecretsWriteCommand(c)
 			},
 		},
 		{
-			Name:  "remote-list",
+			Name:  "vault-remote-list",
 			Usage: "Print a list of remote secrets",
 			Action: func(c *cli.Context) error {
 				return vault.RemoteSecretsListCommand(c)
@@ -70,14 +70,14 @@ func main() {
 			},
 		},
 		{
-			Name:  "remote-write",
+			Name:  "vault-remote-write",
 			Usage: "Write local secrets to remote Vault instance",
 			Action: func(c *cli.Context) error {
 				return vault.RemoteSecretsWriteCommand(c)
 			},
 		},
 		{
-			Name:  "remote-clean",
+			Name:  "vault-remote-clean",
 			Usage: "Delete remote Vault secrets not in the local catalog",
 			Action: func(c *cli.Context) error {
 				return vault.RemoteSecretsDeleteCommand(c)
