@@ -61,7 +61,7 @@ func LocalSecretsWriteCommand(c *cli.Context) error {
 
 			content = content + fmt.Sprintf("}\n\n")
 
-			file := "conf.d/" + _env + "_" + _app + ".hcl"
+			file := c.GlobalString("config-dir") + "/" + _env + "_" + _app + ".hcl"
 			err := ioutil.WriteFile(file, []byte(content), 0644)
 			if err != nil {
 				return err

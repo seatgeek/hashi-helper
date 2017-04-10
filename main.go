@@ -37,6 +37,12 @@ func main() {
 			EnvVar: "LOG_LEVEL",
 		},
 		cli.StringFlag{
+			Name:   "config-dir",
+			Value:  "./conf.d",
+			Usage:  "Config directory to read and write from",
+			EnvVar: "CONFIG_DIR",
+		},
+		cli.StringFlag{
 			Name:   "environment",
 			Usage:  "The environment to process for (default: all env)",
 			EnvVar: "ENVIRONMENT",

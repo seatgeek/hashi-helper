@@ -14,6 +14,8 @@ hashi-helper [--global-flags] command [--command-flags]
 
 `--environment` / `ENVIRONMENT`: The environment to process for (default: all)
 
+`--config-dir` / `CONFIG_DIR`: The conf.d directory to read/write to (default: `./conf.d`)
+
 ## vault
 
 `vault-local-list`: Print a list of local secrets from `conf.d/`

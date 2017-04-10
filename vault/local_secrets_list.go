@@ -8,7 +8,7 @@ import (
 
 // LocalSecretsListCommand ...
 func LocalSecretsListCommand(c *cli.Context) error {
-	config, err := cfg.NewConfigFromDirectory("./conf.d")
+	config, err := cfg.NewConfigFromDirectory(c.GlobalString("config-dir"))
 	if err != nil {
 		return err
 	}
