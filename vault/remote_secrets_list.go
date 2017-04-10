@@ -1,4 +1,4 @@
-package main
+package vault
 
 import (
 	"fmt"
@@ -6,61 +6,21 @@ import (
 
 	"sync"
 
-	"time"
-
 	log "github.com/Sirupsen/logrus"
 	api "github.com/hashicorp/vault/api"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-func listRemoteSecretsCommand(c *cli.Context) error {
-	log.Info("Scanning for remote secrets")
-
-	// Create a WaitGroup so we automatically unblock when all tasks are done
-	var indexerWg sync.WaitGroup
-	indexerCh := make(chan string, defaultConcurrency*2)
-
-	var resultWg sync.WaitGroup
-	resultCh := make(chan string, defaultConcurrency*2)
-
-	// channel for signaling our go routines should stop
-	completeCh := make(chan interface{})
-	defer close(completeCh)
-
-	var paths SecretList
-
-	// Queue our first path to kick off the scanning
-	indexerWg.Add(1)
-	indexerCh <- "/"
-
-	// Start go routines for workers
-	for i := 0; i <= defaultConcurrency; i++ {
-		go remoteSecretIndexer(indexerCh, resultCh, completeCh, &indexerWg, &resultWg, i)
-	}
-
-	go remoteSecretIndexerResultProcessor(&paths, resultCh, completeCh, &resultWg)
-
-	// Wait for all indexers to finish up
-	if waitTimeout(&indexerWg, time.Minute*5) {
-		log.Fatal("Timeout reached (5m) waiting for remote secret scanner to complete")
-	}
-
-	// Wait for all readers to finish up
-	if waitTimeout(&resultWg, time.Minute*1) {
-		log.Fatal("Timeout reached (5m) waiting for remote secret scanner to complete")
-	}
-
-	paths = filterByEnvironment(paths, c.GlobalString("environment"))
-
-	log.Infof("Scanning complete, found %d secrets", len(paths))
+func RemoteSecretsListCommand(c *cli.Context) error {
+	secrets := indexRemoteSecrets(c.GlobalString("environment"))
 
 	if c.Bool("detailed") {
-		printDetailedSecrets(paths)
+		printDetailedSecrets(secrets)
 		return nil
 	}
 
 	log.Println()
-	for _, secret := range paths {
+	for _, secret := range secrets {
 		log.Infof("%s @ %s: %s", secret.Application, secret.Environment, secret.Path)
 	}
 
@@ -110,13 +70,13 @@ func remoteSecretIndexerResultProcessor(result *SecretList, resultCh chan string
 		case <-completeCh:
 			return
 		case path := <-resultCh:
-			environment, application, err := extraEnvironmentFromPath(path)
+			environment, application, key, err := extraEnvironmentFromPath(path)
 			if err != nil {
 				environment = "unknown"
 				log.Warnf("Could not extract environment from %s", path)
 			}
 
-			*result = append(*result, &InternalSecret{path, environment, application, nil})
+			*result = append(*result, &InternalSecret{path, environment, application, key, nil})
 			wg.Done()
 		}
 	}

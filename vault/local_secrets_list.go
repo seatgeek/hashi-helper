@@ -1,4 +1,4 @@
-package main
+package vault
 
 import (
 	log "github.com/Sirupsen/logrus"
@@ -6,7 +6,8 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-func listLocalSecretsCommand(c *cli.Context) error {
+// LocalSecretsListCommand ...
+func LocalSecretsListCommand(c *cli.Context) error {
 	config, err := cfg.NewConfigFromDirectory("./conf.d")
 	if err != nil {
 		return err

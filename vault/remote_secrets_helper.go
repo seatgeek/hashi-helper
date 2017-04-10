@@ -1,7 +1,8 @@
-package main
+package vault
 
 import (
 	"regexp"
+	"sort"
 	"sync"
 
 	"time"
@@ -10,6 +11,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	api "github.com/hashicorp/vault/api"
+	"github.com/seatgeek/vault-restore/config"
+	"github.com/seatgeek/vault-restore/support"
 )
 
 var environmentMatch = regexp.MustCompile(`^secret/(?P<Environment>.*?)/(?P<Application>.*?)/(?P<Path>.+)$`)
@@ -19,11 +22,56 @@ type InternalSecret struct {
 	Path        string
 	Environment string
 	Application string
+	Key         string
 	Secret      *api.Secret
 }
 
 // SecretList ...
 type SecretList []*InternalSecret
+
+func indexRemoteSecrets(environment string) SecretList {
+	log.Info("Scanning for remote secrets")
+
+	// Create a WaitGroup so we automatically unblock when all tasks are done
+	var indexerWg sync.WaitGroup
+	indexerCh := make(chan string, config.DefaultConcurrency*2)
+
+	var resultWg sync.WaitGroup
+	resultCh := make(chan string, config.DefaultConcurrency*2)
+
+	// channel for signaling our go routines should stop
+	completeCh := make(chan interface{})
+	defer close(completeCh)
+
+	var paths SecretList
+
+	// Queue our first path to kick off the scanning
+	indexerWg.Add(1)
+	indexerCh <- "/"
+
+	// Start go routines for workers
+	for i := 0; i <= config.DefaultConcurrency; i++ {
+		go remoteSecretIndexer(indexerCh, resultCh, completeCh, &indexerWg, &resultWg, i)
+	}
+
+	go remoteSecretIndexerResultProcessor(&paths, resultCh, completeCh, &resultWg)
+
+	// Wait for all indexers to finish up
+	if support.WaitTimeout(&indexerWg, time.Minute*5) {
+		log.Fatal("Timeout reached (5m) waiting for remote secret scanner to complete")
+	}
+
+	// Wait for all readers to finish up
+	if support.WaitTimeout(&resultWg, time.Minute*1) {
+		log.Fatal("Timeout reached (5m) waiting for remote secret scanner to complete")
+	}
+
+	paths = filterByEnvironment(paths, environment)
+
+	log.Infof("Scanning complete, found %d secrets", len(paths))
+
+	return paths
+}
 
 // readRemoteSecrets
 // Take an array of secret paths to read
@@ -42,7 +90,7 @@ func readRemoteSecrets(secrets SecretList) (SecretList, error) {
 	readChan := make(chan *InternalSecret, len(secrets))
 
 	// Start go routines for readers
-	for i := 0; i <= defaultConcurrency; i++ {
+	for i := 0; i <= config.DefaultConcurrency; i++ {
 		go remoteSecretReader(readChan, completeCh, &readerWg, i)
 	}
 
@@ -52,7 +100,7 @@ func readRemoteSecrets(secrets SecretList) (SecretList, error) {
 	}
 
 	// Wait for all remote secrets had been read (max 5m)
-	if waitTimeout(&readerWg, time.Minute*5) {
+	if support.WaitTimeout(&readerWg, time.Minute*5) {
 		log.Fatal("Timeout reached (5m) waiting for remote reader to complete")
 	}
 	log.Info("Remote secret reader complete")
@@ -90,13 +138,22 @@ func remoteSecretReader(readCh chan *InternalSecret, completeCh chan interface{}
 	}
 }
 
-func extraEnvironmentFromPath(path string) (string, string, error) {
+func extraEnvironmentFromPath(path string) (string, string, string, error) {
 	match := environmentMatch.FindStringSubmatch(path)
 
 	if len(match) != 4 {
-		return "", "", fmt.Errorf("Could not parse environment from string")
+		return "", "", "", fmt.Errorf("Could not parse environment from string")
 	}
 
-	return match[1], match[2], nil
+	return match[1], match[2], match[3], nil
 
 }
+
+func (p SecretList) Len() int { return len(p) }
+func (p SecretList) Less(i, j int) bool {
+	return p[i].Environment+"_"+p[i].Application+"_"+p[i].Path < p[j].Environment+"_"+p[j].Application+"_"+p[j].Path
+}
+func (p SecretList) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
+// Sort is a convenience method.
+func (p SecretList) Sort() { sort.Sort(p) }

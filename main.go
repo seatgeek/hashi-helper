@@ -8,10 +8,10 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
 	api "github.com/hashicorp/vault/api"
+	"github.com/seatgeek/vault-restore/config"
+	"github.com/seatgeek/vault-restore/vault"
 	cli "gopkg.in/urfave/cli.v1"
 )
-
-var defaultConcurrency int
 
 func main() {
 	app := cli.NewApp()
@@ -28,7 +28,7 @@ func main() {
 			Value:       runtime.NumCPU() * 2,
 			Usage:       "How many parallel requests to run in parallel against remote servers (2 * CPU Cores)",
 			EnvVar:      "CONCURRENCY",
-			Destination: &defaultConcurrency,
+			Destination: &config.DefaultConcurrency,
 		},
 		cli.StringFlag{
 			Name:   "log-level",
@@ -38,24 +38,30 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:   "environment",
-			Value:  "any",
-			Usage:  "The environment to process for (default any)",
+			Usage:  "The environment to process for (default: all env)",
 			EnvVar: "ENVIRONMENT",
 		},
 	}
 	app.Commands = []cli.Command{
 		{
-			Name:  "list-local",
+			Name:  "local-list",
 			Usage: "Print a list of local secrets",
 			Action: func(c *cli.Context) error {
-				return listLocalSecretsCommand(c)
+				return vault.LocalSecretsListCommand(c)
 			},
 		},
 		{
-			Name:  "list-remote",
+			Name:  "local-write",
+			Usage: "Write remote secrets to local disk",
+			Action: func(c *cli.Context) error {
+				return vault.LocalSecretsWriteCommand(c)
+			},
+		},
+		{
+			Name:  "remote-list",
 			Usage: "Print a list of remote secrets",
 			Action: func(c *cli.Context) error {
-				return listRemoteSecretsCommand(c)
+				return vault.RemoteSecretsListCommand(c)
 			},
 			Flags: []cli.Flag{
 				cli.BoolFlag{
@@ -66,17 +72,17 @@ func main() {
 			},
 		},
 		{
-			Name:  "write-remote",
+			Name:  "remote-write",
 			Usage: "Write local secrets to remote Vault instance",
 			Action: func(c *cli.Context) error {
-				return writeRemoteSecretsCommand(c)
+				return vault.RemoteSecretsWriteCommand(c)
 			},
 		},
 		{
-			Name:  "clean-remote",
+			Name:  "remote-clean",
 			Usage: "Delete remote Vault secrets not in the local catalog",
 			Action: func(c *cli.Context) error {
-				return deleteRemoteSecretsCommand(c)
+				return vault.RemoteSecretsDeleteCommand(c)
 			},
 		},
 	}

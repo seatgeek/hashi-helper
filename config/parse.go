@@ -11,6 +11,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+var DefaultConcurrency int
+
 // NewConfigFile will return a Config struct
 func NewConfigFile(file string) (Environments, error) {
 	// Read file
