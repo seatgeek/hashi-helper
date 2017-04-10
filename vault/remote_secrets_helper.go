@@ -11,8 +11,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	api "github.com/hashicorp/vault/api"
-	"github.com/seatgeek/vault-restore/config"
-	"github.com/seatgeek/vault-restore/support"
+	"github.com/seatgeek/hashi-helper/config"
+	"github.com/seatgeek/hashi-helper/support"
 )
 
 var environmentMatch = regexp.MustCompile(`^secret/(?P<Environment>.*?)/(?P<Application>.*?)/(?P<Path>.+)$`)

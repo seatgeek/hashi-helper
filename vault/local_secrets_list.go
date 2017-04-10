@@ -2,7 +2,7 @@ package vault
 
 import (
 	log "github.com/Sirupsen/logrus"
-	cfg "github.com/seatgeek/vault-restore/config"
+	cfg "github.com/seatgeek/hashi-helper/config"
 	cli "gopkg.in/urfave/cli.v1"
 )
 

@@ -6,8 +6,8 @@ import (
 	"sort"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/seatgeek/vault-restore/config"
-	"github.com/seatgeek/vault-restore/vault"
+	"github.com/seatgeek/hashi-helper/config"
+	"github.com/seatgeek/hashi-helper/vault"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -15,6 +15,8 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "vault-manager"
 	app.Usage = "easily restore / snapshot your secrets"
+	app.Version = "0.1"
+
 	app.Flags = []cli.Flag{
 		// cli.BoolFlag{
 		// 	Name:   "lint",
