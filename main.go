@@ -6,8 +6,6 @@ import (
 	"sort"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/davecgh/go-spew/spew"
-	api "github.com/hashicorp/vault/api"
 	"github.com/seatgeek/vault-restore/config"
 	"github.com/seatgeek/vault-restore/vault"
 	cli "gopkg.in/urfave/cli.v1"
@@ -99,31 +97,4 @@ func main() {
 
 	sort.Sort(cli.FlagsByName(app.Flags))
 	app.Run(os.Args)
-}
-
-func merp() {
-	client, err := api.NewClient(nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	l, err := client.Logical().List("secret/")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	spew.Dump(l.Data["keys"])
-
-	m := make(map[string]interface{})
-	m["hello"] = "world"
-
-	s, err := client.Logical().Write("secret/cw/test", m)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	spew.Dump(s)
-
-	// spew.Dump(config)
-	// spew.Dump(err)
 }
