@@ -13,7 +13,7 @@ import (
 	"github.com/seatgeek/hashi-helper/support"
 )
 
-func indexRemoteSecrets(environment string) SecretList {
+func indexRemoteSecrets(environment string) config.SecretList {
 	log.Info("Scanning for remote secrets")
 
 	// Create a WaitGroup so we automatically unblock when all tasks are done
@@ -27,7 +27,7 @@ func indexRemoteSecrets(environment string) SecretList {
 	completeCh := make(chan interface{})
 	defer close(completeCh)
 
-	var paths SecretList
+	var paths config.SecretList
 
 	// Queue our first path to kick off the scanning
 	indexerWg.Add(1)
@@ -59,7 +59,7 @@ func indexRemoteSecrets(environment string) SecretList {
 
 // readRemoteSecrets
 // Take an array of secret paths to read
-func readRemoteSecrets(secrets SecretList) (SecretList, error) {
+func readRemoteSecrets(secrets config.SecretList) (config.SecretList, error) {
 	log.Infof("Going to read %d remote secrets", len(secrets))
 
 	// Create a WaitGroup for the remote reader, so we automatically unblock when all tasks are done
@@ -71,7 +71,7 @@ func readRemoteSecrets(secrets SecretList) (SecretList, error) {
 	defer func() { close(completeCh) }()
 
 	// Vault paths to be read
-	readChan := make(chan *InternalSecret, len(secrets))
+	readChan := make(chan *config.InternalSecret, len(secrets))
 
 	// Start go routines for readers
 	for i := 0; i <= config.DefaultConcurrency; i++ {
@@ -95,7 +95,7 @@ func readRemoteSecrets(secrets SecretList) (SecretList, error) {
 	return secrets, nil
 }
 
-func remoteSecretReader(readCh chan *InternalSecret, completeCh chan interface{}, wg *sync.WaitGroup, workerID int) error {
+func remoteSecretReader(readCh chan *config.InternalSecret, completeCh chan interface{}, wg *sync.WaitGroup, workerID int) error {
 	log.WithField("method", "remoteSecretFetcher").Debugf("Starting worker %d", workerID)
 
 	// Create a new Vault API client for this go-routine

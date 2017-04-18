@@ -2,16 +2,19 @@ package vault
 
 import (
 	log "github.com/Sirupsen/logrus"
-	cfg "github.com/seatgeek/hashi-helper/config"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/seatgeek/hashi-helper/config"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
 // LocalSecretsListCommand ...
 func LocalSecretsListCommand(c *cli.Context) error {
-	config, err := cfg.NewConfigFromDirectory(c.GlobalString("config-dir"))
+	config, err := config.NewConfigFromDirectory(c.GlobalString("config-dir"))
 	if err != nil {
 		return err
 	}
+
+	spew.Dump(config)
 
 	for envName, apps := range config {
 		envLogger := log.WithFields(log.Fields{"env": envName})
@@ -22,7 +25,7 @@ func LocalSecretsListCommand(c *cli.Context) error {
 			for secretKey, secretValues := range app.Secrets {
 				secretLogger := appLogger.WithFields(log.Fields{"secret": secretKey})
 
-				for k, v := range secretValues {
+				for k, v := range secretValues.Secret.Data {
 					secretLogger.Printf("%s = %s", k, v)
 				}
 			}

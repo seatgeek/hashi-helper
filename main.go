@@ -18,11 +18,6 @@ func main() {
 	app.Version = "0.1"
 
 	app.Flags = []cli.Flag{
-		// cli.BoolFlag{
-		// 	Name:   "lint",
-		// 	Usage:  "Don't run any Add, Update or Delete operations against Vault",
-		// 	EnvVar: "LINT",
-		// },
 		cli.IntFlag{
 			Name:        "concurrency",
 			Value:       runtime.NumCPU() * 2,
@@ -43,9 +38,16 @@ func main() {
 			EnvVar: "CONFIG_DIR",
 		},
 		cli.StringFlag{
-			Name:   "environment",
-			Usage:  "The environment to process for (default: all env)",
-			EnvVar: "ENVIRONMENT",
+			Name:        "environment",
+			Usage:       "The environment to process for (default: all env)",
+			EnvVar:      "ENVIRONMENT",
+			Destination: &config.TargetEnvironment,
+		},
+		cli.StringFlag{
+			Name:        "application",
+			Usage:       "The application to process for (default: all applications)",
+			EnvVar:      "APPLICATION",
+			Destination: &config.TargetApplication,
 		},
 	}
 	app.Commands = []cli.Command{
@@ -82,6 +84,13 @@ func main() {
 			Usage: "Write local secrets to remote Vault instance",
 			Action: func(c *cli.Context) error {
 				return vault.RemoteSecretsWriteCommand(c)
+			},
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:   "isolated",
+					Usage:  "Write to the cluster as if its isolated env (e.g. don't encode environment into the path)",
+					EnvVar: "isolated",
+				},
 			},
 		},
 		{

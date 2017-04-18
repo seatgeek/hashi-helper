@@ -8,9 +8,11 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	api "github.com/hashicorp/vault/api"
+	"github.com/seatgeek/hashi-helper/config"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
+// RemoteSecretsListCommand ...
 func RemoteSecretsListCommand(c *cli.Context) error {
 	secrets := indexRemoteSecrets(c.GlobalString("environment"))
 
@@ -27,7 +29,7 @@ func RemoteSecretsListCommand(c *cli.Context) error {
 	return nil
 }
 
-func filterByEnvironment(secrets SecretList, environment string) (result SecretList) {
+func filterByEnvironment(secrets config.SecretList, environment string) (result config.SecretList) {
 	if environment == "" {
 		return secrets
 	}
@@ -41,7 +43,7 @@ func filterByEnvironment(secrets SecretList, environment string) (result SecretL
 	return result
 }
 
-func printDetailedSecrets(paths SecretList) {
+func printDetailedSecrets(paths config.SecretList) {
 	secrets, err := readRemoteSecrets(paths)
 	if err != nil {
 		log.Fatal(err)
@@ -64,7 +66,7 @@ func printDetailedSecrets(paths SecretList) {
 	}
 }
 
-func remoteSecretIndexerResultProcessor(result *SecretList, resultCh chan string, completeCh chan interface{}, wg *sync.WaitGroup) {
+func remoteSecretIndexerResultProcessor(result *config.SecretList, resultCh chan string, completeCh chan interface{}, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-completeCh:
@@ -76,7 +78,12 @@ func remoteSecretIndexerResultProcessor(result *SecretList, resultCh chan string
 				log.Warnf("Could not extract environment from %s", path)
 			}
 
-			*result = append(*result, &InternalSecret{path, environment, application, key, nil})
+			*result = append(*result, &config.InternalSecret{
+				Path:        path,
+				Key:         key,
+				Environment: environment,
+				Application: application,
+			})
 			wg.Done()
 		}
 	}

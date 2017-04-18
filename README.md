@@ -6,6 +6,12 @@
 hashi-helper [--global-flags] command [--command-flags]
 ```
 
+## Expectations
+
+`VAULT_TOKEN` environment variable (preferable a root/admin token)
+
+`VAULT_ADDR` environment variable (example: `http://127.0.0.1:8200`)
+
 ### global flags
 
 `--concurrency` / `CONCURRENCY`: How many parallel requests to run in parallel against remote servers (2 * CPU Cores)

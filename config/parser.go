@@ -8,10 +8,19 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
-	"github.com/mitchellh/mapstructure"
+
+	log "github.com/Sirupsen/logrus"
+	vault "github.com/hashicorp/vault/api"
 )
 
+// DefaultConcurrency ...
 var DefaultConcurrency int
+
+// TargetEnvironment ...
+var TargetEnvironment string
+
+// TargetApplication ...
+var TargetApplication string
 
 // NewConfigFile will return a Config struct
 func NewConfigFile(file string) (Environments, error) {
@@ -81,7 +90,12 @@ func parseEnvironmentStanza(list *ast.ObjectList) (Environments, error) {
 
 		envName := env.Keys[1].Token.Value().(string)
 
-		res, err := parseApplicationStanza(env.Val.(*ast.ObjectType).List)
+		if TargetEnvironment != "" && envName != TargetEnvironment {
+			log.Debugf("Skipping environment %s (%s != %s)", envName, envName, TargetEnvironment)
+			continue
+		}
+
+		res, err := parseApplicationStanza(env.Val.(*ast.ObjectType).List, envName)
 		if err != nil {
 			return nil, err
 		}
@@ -98,7 +112,7 @@ func parseEnvironmentStanza(list *ast.ObjectList) (Environments, error) {
 
 // parseEnvironmentStanza
 // parse out `environment -> application {)` stanza
-func parseApplicationStanza(list *ast.ObjectList) (Environment, error) {
+func parseApplicationStanza(list *ast.ObjectList, envName string) (Environment, error) {
 	valid := []string{"application"}
 	if err := checkHCLKeys(list, valid); err != nil {
 		return nil, err
@@ -117,7 +131,12 @@ func parseApplicationStanza(list *ast.ObjectList) (Environment, error) {
 
 		appName := app.Keys[1].Token.Value().(string)
 
-		res, err := parseSecretStanza(app.Val.(*ast.ObjectType).List)
+		if TargetApplication != "" && appName != TargetApplication {
+			log.Debugf("Skipping application %s (%s != %s)", appName, appName, TargetApplication)
+			continue
+		}
+
+		res, err := parseSecretStanza(app.Val.(*ast.ObjectType).List, envName, appName)
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +155,7 @@ func parseApplicationStanza(list *ast.ObjectList) (Environment, error) {
 
 // parseSecretStanza
 // parse out `environment -> application -> secret {}` stanza
-func parseSecretStanza(list *ast.ObjectList) (Secrets, error) {
+func parseSecretStanza(list *ast.ObjectList, envName, appName string) (Secrets, error) {
 	// Check for invalid or unknown root keys
 	valid := []string{"secret"}
 	if err := checkHCLKeys(list, valid); err != nil {
@@ -151,21 +170,26 @@ func parseSecretStanza(list *ast.ObjectList) (Secrets, error) {
 
 	secrets := make(Secrets)
 
-	for _, secret := range list.Items {
-		if len(secret.Keys) != 2 {
-			return nil, fmt.Errorf("Missing secret name in line %+v", secret.Keys[0].Pos())
+	for _, secretData := range list.Items {
+		if len(secretData.Keys) != 2 {
+			return nil, fmt.Errorf("Missing secret name in line %+v", secretData.Keys[0].Pos())
 		}
 
-		secretName := secret.Keys[1].Token.Value().(string)
+		secretName := secretData.Keys[1].Token.Value().(string)
 
 		var m map[string]interface{}
-		if err := hcl.DecodeObject(&m, secret.Val); err != nil {
+		if err := hcl.DecodeObject(&m, secretData.Val); err != nil {
 			return nil, err
 		}
 
-		var secret Secret
-		if err := mapstructure.WeakDecode(m, &secret); err != nil {
-			return nil, err
+		secret := InternalSecret{
+			Path:        secretName,
+			Environment: envName,
+			Application: appName,
+			Key:         secretName,
+			Secret: &vault.Secret{
+				Data: m,
+			},
 		}
 
 		secrets[secretName] = secret
