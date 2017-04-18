@@ -52,21 +52,21 @@ func main() {
 	}
 	app.Commands = []cli.Command{
 		{
-			Name:  "vault-local-list",
+			Name:  "vault-local-list-secrets",
 			Usage: "Print a list of local secrets",
 			Action: func(c *cli.Context) error {
 				return vault.LocalSecretsListCommand(c)
 			},
 		},
 		{
-			Name:  "vault-local-write",
+			Name:  "vault-local-write-secrets",
 			Usage: "Write remote secrets to local disk",
 			Action: func(c *cli.Context) error {
 				return vault.LocalSecretsWriteCommand(c)
 			},
 		},
 		{
-			Name:  "vault-remote-list",
+			Name:  "vault-remote-list-secrets",
 			Usage: "Print a list of remote secrets",
 			Action: func(c *cli.Context) error {
 				return vault.RemoteSecretsListCommand(c)
@@ -80,7 +80,7 @@ func main() {
 			},
 		},
 		{
-			Name:  "vault-remote-write",
+			Name:  "vault-remote-write-secrets",
 			Usage: "Write local secrets to remote Vault instance",
 			Action: func(c *cli.Context) error {
 				return vault.RemoteSecretsWriteCommand(c)
@@ -94,10 +94,17 @@ func main() {
 			},
 		},
 		{
-			Name:  "vault-remote-clean",
-			Usage: "Delete remote Vault secrets not in the local catalog",
+			Name:  "vault-remote-write-policies",
+			Usage: "Write application read-only policies to remote Vault instance",
 			Action: func(c *cli.Context) error {
-				return vault.RemoteSecretsDeleteCommand(c)
+				return vault.RemotePoliciesWriteCommand(c)
+			},
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:   "isolated",
+					Usage:  "Write to the cluster as if its isolated env (e.g. don't encode environment into the path)",
+					EnvVar: "isolated",
+				},
 			},
 		},
 	}
