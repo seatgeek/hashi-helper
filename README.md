@@ -18,9 +18,11 @@ hashi-helper [--global-flags] command [--command-flags]
 
 `--log-level` / `LOG_LEVEL`: Debug level (debug, info, warn/warning, error, fatal, panic)
 
+`--config-dir` / `CONFIG_DIR`: The conf.d directory to read/write to (default: `./conf.d`)
+
 `--environment` / `ENVIRONMENT`: The environment to process for (default: all)
 
-`--config-dir` / `CONFIG_DIR`: The conf.d directory to read/write to (default: `./conf.d`)
+`--application` / `APPLICATION`: The application to process for (default: all)
 
 ## vault
 
