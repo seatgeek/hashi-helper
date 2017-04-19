@@ -1,10 +1,10 @@
 package config
 
 // Environment struct
-// contains a list of applications found in config file(s)
 type Environment struct {
-	Applications map[string]Application
-	// Policies     map[string]Policy
+	Name         string
+	Applications Applications
+	Policies     Policies
 }
 
 func (currentEnvironment Environment) merge(newEnv Environment) {

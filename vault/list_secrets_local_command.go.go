@@ -2,7 +2,6 @@ package vault
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/seatgeek/hashi-helper/config"
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -13,8 +12,6 @@ func ListSecretsLocalCommand(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-
-	spew.Dump(config)
 
 	for envName, env := range config {
 		envLogger := log.WithFields(log.Fields{"env": envName})

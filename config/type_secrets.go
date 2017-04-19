@@ -1,6 +1,8 @@
 package config
 
 // Secrets struct
+//
+// environment -> application
 type Secrets map[string]InternalSecret
 
 func (currentSecrets Secrets) merge(newSecrets Secrets) {

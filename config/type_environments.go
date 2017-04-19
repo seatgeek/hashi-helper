@@ -3,7 +3,6 @@ package config
 import "fmt"
 
 // Environments struct
-// contain a entry for each Environment found in config file(s)
 type Environments map[string]Environment
 
 // Get ...

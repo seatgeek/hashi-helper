@@ -49,10 +49,10 @@
 			"revisionTime": "2016-05-03T14:34:40Z"
 		},
 		{
-			"checksumSHA1": "Ok3Csn6Voou7pQT6Dv2mkwpqFtw=",
+			"checksumSHA1": "8OPDk+bKyRGJoKcS4QNw9F7dpE8=",
 			"path": "github.com/hashicorp/hcl",
-			"revision": "630949a3c5fa3c613328e1b8256052cbc2327c9b",
-			"revisionTime": "2017-02-17T16:47:38Z"
+			"revision": "c3e054bfd4dcf77b9965ed2b79b22afa2f41d4eb",
+			"revisionTime": "2016-11-12T23:52:43Z"
 		},
 		{
 			"checksumSHA1": "XQmjDva9JCGGkIecOgwtBEMCJhU=",
@@ -63,6 +63,12 @@
 		{
 			"checksumSHA1": "MGYzZActhzSs9AnCx3wrEYVbKFg=",
 			"path": "github.com/hashicorp/hcl/hcl/parser",
+			"revision": "630949a3c5fa3c613328e1b8256052cbc2327c9b",
+			"revisionTime": "2017-02-17T16:47:38Z"
+		},
+		{
+			"checksumSHA1": "gKCHLG3j2CNs2iADkvSKSNkni+8=",
+			"path": "github.com/hashicorp/hcl/hcl/printer",
 			"revision": "630949a3c5fa3c613328e1b8256052cbc2327c9b",
 			"revisionTime": "2017-02-17T16:47:38Z"
 		},
@@ -119,6 +125,12 @@
 			"path": "github.com/hashicorp/vault/helper/jsonutil",
 			"revision": "db86d87c8ee403625d7c732f9a190891bf1abf59",
 			"revisionTime": "2017-03-30T01:39:48Z"
+		},
+		{
+			"checksumSHA1": "GGveKvOwScWGZAAnupzpyw+0Jko=",
+			"path": "github.com/hashicorp/vault/helper/parseutil",
+			"revision": "6b55ab5db0b3e07b49c5aefe6d98242ae7c3c48d",
+			"revisionTime": "2017-04-18T21:49:59Z"
 		},
 		{
 			"checksumSHA1": "V/quM7+em2ByJbWBLOsEwnY3j/Q=",

@@ -1,9 +1,11 @@
 package config
 
 // Application struct
-// contains a list of secrets found in config file(s)
+//
+// environment
 type Application struct {
-	Secrets Secrets
+	Secrets  Secrets
+	Policies Policies
 }
 
 func (currentApplication Application) merge(newApp Application) {
