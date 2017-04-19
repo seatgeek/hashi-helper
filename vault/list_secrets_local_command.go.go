@@ -16,10 +16,10 @@ func ListSecretsLocalCommand(c *cli.Context) error {
 
 	spew.Dump(config)
 
-	for envName, apps := range config {
+	for envName, env := range config {
 		envLogger := log.WithFields(log.Fields{"env": envName})
 
-		for appName, app := range apps {
+		for appName, app := range env.Applications {
 			appLogger := envLogger.WithFields(log.Fields{"app": appName})
 
 			for secretKey, secretValues := range app.Secrets {

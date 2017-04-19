@@ -32,8 +32,8 @@ func PushPoliciesCommand(c *cli.Context) error {
 		}
 	}
 
-	for envName, apps := range config {
-		for appName := range apps {
+	for envName, env := range config {
+		for appName := range env.Applications {
 			var policyPath, policyName string
 
 			if c.Bool("isolated") {

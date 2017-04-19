@@ -6,11 +6,13 @@ import "fmt"
 // contain a entry for each Environment found in config file(s)
 type Environments map[string]Environment
 
+// Get ...
 func (e Environments) Get(env string) (Environment, error) {
 	if val, ok := e[env]; ok {
 		return val, nil
 	}
-	return nil, fmt.Errorf("Could not find environment %s", env)
+
+	return Environment{}, fmt.Errorf("Could not find environment %s", env)
 }
 
 // Contains ...
@@ -21,13 +23,13 @@ func (e Environments) Contains(env string) bool {
 	return false
 }
 
-func (currentEnvironments Environments) merge(newEnvs Environments) {
+func (e Environments) merge(newEnvs Environments) {
 	for environmentName, environment := range newEnvs {
-		if _, ok := currentEnvironments[environmentName]; !ok {
-			currentEnvironments[environmentName] = environment
+		if _, ok := e[environmentName]; !ok {
+			e[environmentName] = environment
 			continue
 		}
 
-		currentEnvironments[environmentName].merge(environment)
+		e[environmentName].merge(environment)
 	}
 }

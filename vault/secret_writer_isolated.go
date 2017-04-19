@@ -14,8 +14,8 @@ type IsolatedSecretWriter struct {
 }
 
 func (w IsolatedSecretWriter) writeEnvironment(name string, e config.Environment) error {
-	for _, application := range e {
-		err := w.writeApplication(application)
+	for _, app := range e.Applications {
+		err := w.writeApplication(app)
 		if err != nil {
 			return err
 		}

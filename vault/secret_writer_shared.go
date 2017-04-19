@@ -15,7 +15,7 @@ type SharedSecretWriter struct {
 }
 
 func (w SharedSecretWriter) writeEnvironment(name string, e config.Environment) error {
-	for _, application := range e {
+	for _, application := range e.Applications {
 		err := w.writeApplication(application)
 		if err != nil {
 			return err

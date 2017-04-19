@@ -115,18 +115,21 @@ func parseEnvironmentStanza(list *ast.ObjectList) (Environments, error) {
 func parseApplicationStanza(list *ast.ObjectList, envName string) (Environment, error) {
 	valid := []string{"application"}
 	if err := checkHCLKeys(list, valid); err != nil {
-		return nil, err
+		return Environment{}, err
 	}
 
 	matches := list.Filter("application")
 	if len(matches.Items) == 0 {
-		return nil, fmt.Errorf("no 'application' stanza found")
+		return Environment{}, fmt.Errorf("no 'application' stanza found")
 	}
 
-	env := make(Environment)
+	env := Environment{
+		Applications: make(map[string]Application),
+	}
+
 	for _, app := range list.Items {
 		if len(app.Keys) != 2 {
-			return nil, fmt.Errorf("Missing application name in line %+v", app.Keys[0].Pos())
+			return Environment{}, fmt.Errorf("Missing application name in line %+v", app.Keys[0].Pos())
 		}
 
 		appName := app.Keys[1].Token.Value().(string)
@@ -138,15 +141,15 @@ func parseApplicationStanza(list *ast.ObjectList, envName string) (Environment, 
 
 		res, err := parseSecretStanza(app.Val.(*ast.ObjectType).List, envName, appName)
 		if err != nil {
-			return nil, err
+			return Environment{}, err
 		}
 
-		if _, ok := env[appName]; !ok {
-			z := env[appName]
+		if _, ok := env.Applications[appName]; !ok {
+			z := env.Applications[appName]
 			z.Secrets = res
-			env[appName] = z
+			env.Applications[appName] = z
 		} else {
-			env[appName].Secrets.merge(res)
+			env.Applications[appName].Secrets.merge(res)
 		}
 	}
 
