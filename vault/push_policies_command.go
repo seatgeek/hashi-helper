@@ -9,8 +9,8 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// RemotePoliciesWriteCommand ...
-func RemotePoliciesWriteCommand(c *cli.Context) error {
+// PushPoliciesCommand ...
+func PushPoliciesCommand(c *cli.Context) error {
 	config, err := config.NewConfigFromDirectory(c.GlobalString("config-dir"))
 	if err != nil {
 		return err

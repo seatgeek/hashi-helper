@@ -7,8 +7,8 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// LocalSecretsListCommand ...
-func LocalSecretsListCommand(c *cli.Context) error {
+// ListSecretsLocalCommand ...
+func ListSecretsLocalCommand(c *cli.Context) error {
 	config, err := config.NewConfigFromDirectory(c.GlobalString("config-dir"))
 	if err != nil {
 		return err

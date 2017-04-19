@@ -24,12 +24,10 @@ hashi-helper [--global-flags] command [--command-flags]
 
 ## vault
 
-`vault-local-list-secrets`: Print a list of local secrets from `conf.d/`
+`vault-list-secrets`: Print a list of local from `conf.d/` (default) or remote secrets from Vault (`--remote`). Add `--detailed` / `DETAILED` to show secret data rather than just the key names.
 
-`vault-local-write-secrets`: Write remote Vault secrets to local disk in `conf.d/`
+`vault-pull-secrets`: Write remote Vault secrets to local disk in `conf.d/`
 
-`vault-remote-list-secrets`: Print a list of remote secrets. Add `--detailed` / `DETAILED` to show the secret data, other than just a list of keys
+`vault-push-secrets`: Write local secrets to remote Vault instance
 
-`vault-remote-write-secrets`: Write local secrets to remote Vault instance
-
-`vault-remote-write-policies`: Write a Vault read-only policy for each env + application combo that exist in `conf.d`
+`vault-push-policies`: Write a Vault read-only policy for each env + application combo that exist in `conf.d/`

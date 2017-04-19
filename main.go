@@ -52,26 +52,21 @@ func main() {
 	}
 	app.Commands = []cli.Command{
 		{
-			Name:  "vault-local-list-secrets",
-			Usage: "Print a list of local secrets",
+			Name:  "vault-list-secrets",
+			Usage: "Print a list of local or remote secrets",
 			Action: func(c *cli.Context) error {
-				return vault.LocalSecretsListCommand(c)
-			},
-		},
-		{
-			Name:  "vault-local-write-secrets",
-			Usage: "Write remote secrets to local disk",
-			Action: func(c *cli.Context) error {
-				return vault.LocalSecretsWriteCommand(c)
-			},
-		},
-		{
-			Name:  "vault-remote-list-secrets",
-			Usage: "Print a list of remote secrets",
-			Action: func(c *cli.Context) error {
-				return vault.RemoteSecretsListCommand(c)
+				if c.Bool("remote") {
+					return vault.ListSecretsRemoteCommand(c)
+				}
+
+				return vault.ListSecretsLocalCommand(c)
 			},
 			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:   "remote",
+					Usage:  "Target remote Vault instance instead of local secret stash",
+					EnvVar: "REMOTE",
+				},
 				cli.BoolFlag{
 					Name:   "detailed",
 					Usage:  "Only show keys, or also expand and show the secret values (highly sensitive!)",
@@ -80,10 +75,17 @@ func main() {
 			},
 		},
 		{
-			Name:  "vault-remote-write-secrets",
+			Name:  "vault-pull-secrets",
+			Usage: "Write remote secrets to local disk",
+			Action: func(c *cli.Context) error {
+				return vault.PullSecretsCommand(c)
+			},
+		},
+		{
+			Name:  "vault-push-secrets",
 			Usage: "Write local secrets to remote Vault instance",
 			Action: func(c *cli.Context) error {
-				return vault.RemoteSecretsWriteCommand(c)
+				return vault.PushSecretsCommand(c)
 			},
 			Flags: []cli.Flag{
 				cli.BoolFlag{
@@ -94,10 +96,10 @@ func main() {
 			},
 		},
 		{
-			Name:  "vault-remote-write-policies",
+			Name:  "vault-push-policies",
 			Usage: "Write application read-only policies to remote Vault instance",
 			Action: func(c *cli.Context) error {
-				return vault.RemotePoliciesWriteCommand(c)
+				return vault.PushPoliciesCommand(c)
 			},
 			Flags: []cli.Flag{
 				cli.BoolFlag{

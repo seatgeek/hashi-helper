@@ -12,8 +12,8 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// LocalSecretsWriteCommand ...
-func LocalSecretsWriteCommand(c *cli.Context) error {
+// PullSecretsCommand ...
+func PullSecretsCommand(c *cli.Context) error {
 	secrets := indexRemoteSecrets(c.GlobalString("environment"))
 
 	secrets, err := readRemoteSecrets(secrets)

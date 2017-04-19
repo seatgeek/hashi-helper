@@ -8,8 +8,8 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// RemoteSecretsWriteCommand ...
-func RemoteSecretsWriteCommand(c *cli.Context) error {
+// PushSecretsCommand ...
+func PushSecretsCommand(c *cli.Context) error {
 	config, err := config.NewConfigFromDirectory(c.GlobalString("config-dir"))
 	if err != nil {
 		return err
