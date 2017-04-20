@@ -54,7 +54,7 @@ func processEnvironments(list *ast.ObjectList) (*Environments, error) {
 // parseEnvironment
 // parse out `environment -> application {)` stanza
 func parseEnvironment(list *ast.ObjectList, envName string) (*Environment, error) {
-	valid := []string{"application", "policy"}
+	valid := []string{"application", "policy", "mount"}
 	if err := checkHCLKeys(list, valid); err != nil {
 		return nil, err
 	}

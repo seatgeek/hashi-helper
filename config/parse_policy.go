@@ -12,9 +12,8 @@ import (
 func processPolicies(list *ast.ObjectList) (Policies, error) {
 	policies := Policies{}
 
-	policiesAst := list.Filter("policy")
-	if len(policiesAst.Items) > 0 {
-		for _, policyAST := range policiesAst.Items {
+	if len(list.Items) > 0 {
+		for _, policyAST := range list.Items {
 			policyName := policyAST.Keys[0].Token.Value().(string)
 
 			parsedPolicy, err := parsePolicy(policyAST.Val.(*ast.ObjectType).List)

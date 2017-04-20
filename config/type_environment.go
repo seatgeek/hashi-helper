@@ -7,12 +7,12 @@ type Environment struct {
 	Policies     Policies
 }
 
-func (currentEnvironment Environment) merge(newEnv Environment) {
+func (e Environment) merge(newEnv Environment) {
 	for applicationName, application := range newEnv.Applications {
-		if _, ok := currentEnvironment.Applications[applicationName]; !ok {
-			currentEnvironment.Applications[applicationName] = application
+		if _, ok := e.Applications[applicationName]; !ok {
+			e.Applications[applicationName] = application
 		} else {
-			currentEnvironment.Applications[applicationName].merge(application)
+			e.Applications[applicationName].merge(application)
 		}
 	}
 }

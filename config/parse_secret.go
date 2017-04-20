@@ -26,7 +26,7 @@ func parseSecretStanza(list *ast.ObjectList, envName, appName string) (Secrets, 
 			return nil, err
 		}
 
-		secret := InternalSecret{
+		secret := Secret{
 			Path:        secretName,
 			Environment: envName,
 			Application: appName,

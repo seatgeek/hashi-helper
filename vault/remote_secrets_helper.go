@@ -71,7 +71,7 @@ func readRemoteSecrets(secrets config.SecretList) (config.SecretList, error) {
 	defer func() { close(completeCh) }()
 
 	// Vault paths to be read
-	readChan := make(chan *config.InternalSecret, len(secrets))
+	readChan := make(chan *config.Secret, len(secrets))
 
 	// Start go routines for readers
 	for i := 0; i <= config.DefaultConcurrency; i++ {
@@ -95,7 +95,7 @@ func readRemoteSecrets(secrets config.SecretList) (config.SecretList, error) {
 	return secrets, nil
 }
 
-func remoteSecretReader(readCh chan *config.InternalSecret, completeCh chan interface{}, wg *sync.WaitGroup, workerID int) error {
+func remoteSecretReader(readCh chan *config.Secret, completeCh chan interface{}, wg *sync.WaitGroup, workerID int) error {
 	log.WithField("method", "remoteSecretFetcher").Debugf("Starting worker %d", workerID)
 
 	// Create a new Vault API client for this go-routine

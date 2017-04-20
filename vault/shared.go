@@ -11,7 +11,7 @@ var environmentMatch = regexp.MustCompile(`^secret/(?P<Environment>.*?)/(?P<Appl
 
 // SecretWriter ...
 type SecretWriter interface {
-	writeSecret(secret config.InternalSecret) error
+	writeSecret(secret config.Secret) error
 	writeEnvironment(name string, environment config.Environment) error
 	getClient() *api.Client
 }

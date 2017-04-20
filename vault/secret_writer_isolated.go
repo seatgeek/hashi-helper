@@ -34,7 +34,7 @@ func (w IsolatedSecretWriter) writeApplication(application config.Application) e
 	return nil
 }
 
-func (w IsolatedSecretWriter) writeSecret(secret config.InternalSecret) error {
+func (w IsolatedSecretWriter) writeSecret(secret config.Secret) error {
 	path := fmt.Sprintf("secret/%s/%s", secret.Application, secret.Path)
 	log.Info(path)
 

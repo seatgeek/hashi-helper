@@ -8,8 +8,8 @@ type Application struct {
 	Policies Policies
 }
 
-func (currentApplication Application) merge(newApp Application) {
-	currentApplicationSecrets := currentApplication.Secrets
+func (a Application) merge(newApp Application) {
+	currentApplicationSecrets := a.Secrets
 
 	for secretName, secret := range newApp.Secrets {
 		if _, ok := currentApplicationSecrets[secretName]; !ok {
@@ -20,3 +20,6 @@ func (currentApplication Application) merge(newApp Application) {
 		currentApplicationSecrets[secretName].merge(secret)
 	}
 }
+
+// Applications struct
+type Applications map[string]Application

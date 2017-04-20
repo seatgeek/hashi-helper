@@ -78,7 +78,7 @@ func remoteSecretIndexerResultProcessor(result *config.SecretList, resultCh chan
 				log.Warnf("Could not extract environment from %s", path)
 			}
 
-			*result = append(*result, &config.InternalSecret{
+			*result = append(*result, &config.Secret{
 				Path:        path,
 				Key:         key,
 				Environment: environment,
