@@ -74,5 +74,11 @@ func parseEnvironment(list *ast.ObjectList, envName string) (*Environment, error
 	}
 	env.Policies = policies
 
+	mounts, err := processMounts(list.Filter("mount"), env)
+	if err != nil {
+		return nil, err
+	}
+	env.Mounts = mounts
+
 	return &env, nil
 }

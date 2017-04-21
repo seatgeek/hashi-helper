@@ -1,3 +1,3 @@
 vendor/
 !vendor/vendor.json
-conf.d/*.hcl
+conf.d/

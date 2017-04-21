@@ -5,6 +5,7 @@ type Environment struct {
 	Name         string
 	Applications Applications
 	Policies     Policies
+	Mounts       Mounts
 }
 
 func (e Environment) merge(newEnv Environment) {

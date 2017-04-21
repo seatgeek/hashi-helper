@@ -4,8 +4,8 @@ package config
 type Mount struct {
 	Name   string
 	Type   string
-	Config []MountConfig
-	Roles  []MountRole
+	Config []*MountConfig
+	Roles  []*MountRole
 }
 
 // Mounts struct
@@ -14,7 +14,13 @@ type Mount struct {
 type Mounts map[string]Mount
 
 // MountConfig ...
-type MountConfig map[string]string
+type MountConfig struct {
+	Name string
+	Data map[string]string
+}
 
 // MountRole ...
-type MountRole map[string]string
+type MountRole struct {
+	Name string
+	Data map[string]string
+}
