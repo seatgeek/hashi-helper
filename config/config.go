@@ -65,6 +65,15 @@ func NewConfigFromDirectory(dirname string) (Environments, error) {
 
 			root.merge(*c)
 		}
+
+		if fi.IsDir() {
+			sub, e := NewConfigFromDirectory(dirname + "/" + fi.Name())
+			if err != nil {
+				return nil, e
+			}
+
+			root.merge(sub)
+		}
 	}
 
 	return root, nil
