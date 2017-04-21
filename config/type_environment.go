@@ -1,52 +1,55 @@
 package config
 
-import "fmt"
-
 // Environment struct
 type Environment struct {
 	Name         string
 	Applications Applications
-	Policies     Policies
-	Mounts       Mounts
 }
 
-func (e Environment) merge(newEnv Environment) {
-	for applicationName, application := range newEnv.Applications {
-		if _, ok := e.Applications[applicationName]; !ok {
-			e.Applications[applicationName] = application
-		} else {
-			e.Applications[applicationName].merge(application)
-		}
-	}
+// Equal ...
+func (e *Environment) Equal(o *Environment) bool {
+	return e.Name == o.Name
 }
 
 // Environments struct
-type Environments map[string]Environment
+type Environments []*Environment
 
-// Get ...
-func (e Environments) Get(env string) (Environment, error) {
-	if val, ok := e[env]; ok {
-		return val, nil
+// Add ...
+func (e *Environments) Add(environment *Environment) {
+	if !e.Exists(environment) {
+		*e = append(*e, environment)
 	}
-
-	return Environment{}, fmt.Errorf("Could not find environment %s", env)
 }
 
-// Contains ...
-func (e Environments) Contains(env string) bool {
-	if _, ok := e[env]; ok {
-		return ok
+// Exists ...
+func (e *Environments) Exists(environment *Environment) bool {
+	for _, existing := range *e {
+		if environment.Equal(existing) {
+			return true
+		}
 	}
+
 	return false
 }
 
-func (e Environments) merge(newEnvs Environments) {
-	for environmentName, environment := range newEnvs {
-		if _, ok := e[environmentName]; !ok {
-			e[environmentName] = environment
-			continue
+// Get ...
+func (e *Environments) Get(environment *Environment) *Environment {
+	for _, existing := range *e {
+		if environment.Equal(existing) {
+			return existing
 		}
-
-		e[environmentName].merge(environment)
 	}
+
+	return nil
+}
+
+// GetOrSet ...
+func (e *Environments) GetOrSet(environment *Environment) *Environment {
+	existing := e.Get(environment)
+	if existing != nil {
+		return existing
+	}
+
+	e.Add(environment)
+	return environment
 }

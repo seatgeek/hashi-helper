@@ -1,25 +1,63 @@
 package config
 
-// Application struct
-//
-// environment
+// Application ...
 type Application struct {
-	Secrets  Secrets
-	Policies Policies
+	Name        string
+	Environment *Environment
 }
 
-func (a Application) merge(newApp Application) {
-	currentApplicationSecrets := a.Secrets
+// Equal ...
+func (a *Application) Equal(o *Application) bool {
+	if a.Name != o.Name {
+		return false
+	}
 
-	for secretName, secret := range newApp.Secrets {
-		if _, ok := currentApplicationSecrets[secretName]; !ok {
-			currentApplicationSecrets[secretName] = secret
-			continue
-		}
+	if !a.Environment.Equal(o.Environment) {
+		return false
+	}
 
-		currentApplicationSecrets[secretName].merge(secret)
+	return true
+}
+
+// Applications ...
+type Applications []*Application
+
+// Add ...
+func (a *Applications) Add(application *Application) {
+	if !a.Exists(application) {
+		*a = append(*a, application)
 	}
 }
 
-// Applications struct
-type Applications map[string]Application
+// Exists ...
+func (a *Applications) Exists(application *Application) bool {
+	for _, existing := range *a {
+		if application.Equal(existing) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Get ...
+func (a *Applications) Get(application *Application) *Application {
+	for _, existing := range *a {
+		if application.Equal(existing) {
+			return existing
+		}
+	}
+
+	return nil
+}
+
+// GetOrSet ...
+func (a *Applications) GetOrSet(application *Application) *Application {
+	existing := a.Get(application)
+	if existing != nil {
+		return existing
+	}
+
+	a.Add(application)
+	return application
+}

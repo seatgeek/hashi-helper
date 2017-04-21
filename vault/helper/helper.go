@@ -17,15 +17,8 @@ import (
 
 var environmentMatch = regexp.MustCompile(`^secret/(?P<Environment>.*?)/(?P<Application>.*?)/(?P<Path>.+)$`)
 
-// SecretWriter ...
-type SecretWriter interface {
-	WriteSecret(secret config.Secret) error
-	WriteEnvironment(name string, environment config.Environment) error
-	getClient() *api.Client
-}
-
 // IndexRemoteSecrets ...
-func IndexRemoteSecrets(environment string) config.SecretList {
+func IndexRemoteSecrets(environment string) config.Secrets {
 	log.Info("Scanning for remote secrets")
 
 	// Create a WaitGroup so we automatically unblock when all tasks are done
@@ -39,7 +32,7 @@ func IndexRemoteSecrets(environment string) config.SecretList {
 	completeCh := make(chan interface{})
 	defer close(completeCh)
 
-	var paths config.SecretList
+	var paths config.Secrets
 
 	// Queue our first path to kick off the scanning
 	indexerWg.Add(1)
@@ -71,7 +64,7 @@ func IndexRemoteSecrets(environment string) config.SecretList {
 
 // readRemoteSecrets
 // Take an array of secret paths to read
-func ReadRemoteSecrets(secrets config.SecretList) (config.SecretList, error) {
+func ReadRemoteSecrets(secrets config.Secrets) (config.Secrets, error) {
 	log.Infof("Going to read %d remote secrets", len(secrets))
 
 	// Create a WaitGroup for the remote reader, so we automatically unblock when all tasks are done
@@ -144,13 +137,13 @@ func extraEnvironmentFromPath(path string) (string, string, string, error) {
 	return match[1], match[2], match[3], nil
 }
 
-func filterByEnvironment(secrets config.SecretList, environment string) (result config.SecretList) {
+func filterByEnvironment(secrets config.Secrets, environment string) (result config.Secrets) {
 	if environment == "" {
 		return secrets
 	}
 
 	for _, s := range secrets {
-		if s.Environment == environment {
+		if s.Application.Environment.Name == environment {
 			result = append(result, s)
 		}
 	}
@@ -158,7 +151,10 @@ func filterByEnvironment(secrets config.SecretList, environment string) (result 
 	return result
 }
 
-func remoteSecretIndexerResultProcessor(result *config.SecretList, resultCh chan string, completeCh chan interface{}, wg *sync.WaitGroup) {
+func remoteSecretIndexerResultProcessor(result *config.Secrets, resultCh chan string, completeCh chan interface{}, wg *sync.WaitGroup) {
+	apps := make(map[string]*config.Application)
+	envs := make(map[string]*config.Environment)
+
 	for {
 		select {
 		case <-completeCh:
@@ -170,11 +166,19 @@ func remoteSecretIndexerResultProcessor(result *config.SecretList, resultCh chan
 				log.Warnf("Could not extract environment from %s", path)
 			}
 
+			if _, ok := apps[application]; !ok {
+				apps[application] = &config.Application{Name: application}
+			}
+
+			if _, ok := envs[environment]; !ok {
+				envs[environment] = &config.Environment{Name: environment}
+			}
+
 			*result = append(*result, &config.Secret{
 				Path:        path,
 				Key:         key,
-				Environment: environment,
-				Application: application,
+				Environment: envs[environment],
+				Application: apps[application],
 			})
 			wg.Done()
 		}

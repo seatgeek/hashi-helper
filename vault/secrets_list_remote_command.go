@@ -24,7 +24,7 @@ func ListSecretsRemoteCommand(c *cli.Context) error {
 	return nil
 }
 
-func printDetailedSecrets(paths config.SecretList) {
+func printDetailedSecrets(paths config.Secrets) {
 	secrets, err := helper.ReadRemoteSecrets(paths)
 	if err != nil {
 		log.Fatal(err)

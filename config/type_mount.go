@@ -2,16 +2,22 @@ package config
 
 // Mount struct ...
 type Mount struct {
-	Name   string
-	Type   string
-	Config []*MountConfig
-	Roles  []*MountRole
+	Environment *Environment
+	Name        string
+	Type        string
+	Config      []*MountConfig
+	Roles       []*MountRole
 }
 
 // Mounts struct
 //
 // environment
-type Mounts map[string]Mount
+type Mounts []*Mount
+
+// Add ...
+func (m *Mounts) Add(mount *Mount) {
+	*m = append(*m, mount)
+}
 
 // MountConfig ...
 type MountConfig struct {

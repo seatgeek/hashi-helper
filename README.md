@@ -14,15 +14,15 @@ hashi-helper [--global-flags] command [--command-flags]
 
 ### global flags
 
-`--concurrency` / `CONCURRENCY`: How many parallel requests to run in parallel against remote servers (2 * CPU Cores)
+`--concurrency` / `CONCURRENCY`: How many parallel requests to run in parallel against remote servers (optional, default: `2 * CPU Cores`)
 
-`--log-level` / `LOG_LEVEL`: Debug level (debug, info, warn/warning, error, fatal, panic)
+`--log-level` / `LOG_LEVEL`: Debug level of `debug`, `info`, `warn/warning`, `error`, `fatal`, `panic` (optional, default: `info`)
 
-`--config-dir` / `CONFIG_DIR`: The conf.d directory to read/write to (default: `./conf.d`)
+`--config-dir` / `CONFIG_DIR`: The conf.d directory to read/write to (optional; default: `./conf.d`)
 
-`--environment` / `ENVIRONMENT`: The environment to process for (default: all)
+`--environment` / `ENVIRONMENT`: The environment to process for (optional; default: `all`)
 
-`--application` / `APPLICATION`: The application to process for (default: all)
+`--application` / `APPLICATION`: The application to process for (optional; default: `all`)
 
 ## vault
 

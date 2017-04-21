@@ -8,72 +8,61 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-func processMounts(mountAST *ast.ObjectList, environment Environment) (Mounts, error) {
-	mounts := Mounts{}
+func (c *Config) processMounts(mountAST *ast.ObjectList, environment *Environment) error {
+	if len(mountAST.Items) == 0 {
+		return nil
+	}
 
-	if len(mountAST.Items) > 0 {
-		for _, appAST := range mountAST.Items {
-			if len(appAST.Keys) < 1 {
-				return nil, fmt.Errorf("Missing mount name in line %+v", appAST.Keys[0].Pos())
-			}
+	for _, appAST := range mountAST.Items {
+		if len(appAST.Keys) < 1 {
+			return fmt.Errorf("Missing mount name in line %+v", appAST.Keys[0].Pos())
+		}
 
-			if len(appAST.Keys) < 2 {
-				return nil, fmt.Errorf("Missing mount type in line %+v", appAST.Keys[0].Pos())
-			}
+		if len(appAST.Keys) < 2 {
+			return fmt.Errorf("Missing mount type in line %+v", appAST.Keys[0].Pos())
+		}
 
-			mount, err := parseMount(appAST.Val.(*ast.ObjectType).List)
+		x := appAST.Val.(*ast.ObjectType).List
+
+		valid := []string{"config", "role"}
+		if err := checkHCLKeys(x, valid); err != nil {
+			return err
+		}
+
+		mount := &Mount{
+			Environment: environment,
+		}
+
+		configAST := x.Filter("config")
+		if len(configAST.Items) > 0 {
+			config, err := c.parseMountConfig(configAST)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
-			mount.Name = appAST.Keys[0].Token.Value().(string)
-			mount.Type = appAST.Keys[1].Token.Value().(string)
+			mount.Config = config
+		}
 
-			if _, ok := mounts[mount.Name]; !ok {
-				mounts[mount.Name] = *mount
-			} else {
-				// mounts[name].merge(*app)
+		roleAST := x.Filter("role")
+		if len(roleAST.Items) > 0 {
+			roles, err := c.parseMountRole(roleAST)
+			if err != nil {
+				return err
 			}
+
+			mount.Roles = roles
 		}
+
+		mount.Name = appAST.Keys[0].Token.Value().(string)
+		mount.Type = appAST.Keys[1].Token.Value().(string)
+
+		c.Mounts.Add(mount)
 	}
 
-	return mounts, nil
+	return nil
 }
 
-// parseEnvironmentStanza
-// parse out `environment -> application {)` stanza
-func parseMount(list *ast.ObjectList) (*Mount, error) {
-	valid := []string{"config", "role"}
-	if err := checkHCLKeys(list, valid); err != nil {
-		return nil, err
-	}
-
-	mount := Mount{}
-
-	configAST := list.Filter("config")
-	if len(configAST.Items) > 0 {
-		config, err := parseMountConfig(configAST)
-		if err != nil {
-			return nil, err
-		}
-
-		mount.Config = config
-	}
-
-	roleAST := list.Filter("role")
-	if len(roleAST.Items) > 0 {
-		roles, err := parseMountRole(roleAST)
-		if err != nil {
-			return nil, err
-		}
-
-		mount.Roles = roles
-	}
-
-	return &mount, nil
-}
-
-func parseMountConfig(list *ast.ObjectList) ([]*MountConfig, error) {
+func (c *Config) parseMountConfig(list *ast.ObjectList) ([]*MountConfig, error) {
 	configs := make([]*MountConfig, 0)
 
 	for _, mountConfigAST := range list.Items {
@@ -99,7 +88,7 @@ func parseMountConfig(list *ast.ObjectList) ([]*MountConfig, error) {
 	return configs, nil
 }
 
-func parseMountRole(list *ast.ObjectList) ([]*MountRole, error) {
+func (c *Config) parseMountRole(list *ast.ObjectList) ([]*MountRole, error) {
 	roles := make([]*MountRole, 0)
 
 	for _, config := range list.Items {

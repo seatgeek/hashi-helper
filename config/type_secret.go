@@ -1,50 +1,66 @@
 package config
 
-import (
-	"sort"
-
-	"github.com/hashicorp/vault/api"
-)
+import "github.com/hashicorp/vault/api"
 
 // Secret ...
 type Secret struct {
+	secret      *Secret
+	Application *Application
+	Environment *Environment
 	Path        string
-	Environment string
-	Application string
 	Key         string
 	Secret      *api.Secret
 }
 
-func (s Secret) merge(newSecret Secret) {
-	for k, v := range newSecret.Secret.Data {
-		s.Secret.Data[k] = v
-	}
+// Equal ...
+func (s *Secret) Equal(o *Secret) bool {
+	return s.Application.Equal(o.Application) && s.Path == o.Path && s.Key == o.Key
 }
 
 // Secrets struct
 //
 // environment -> application
-type Secrets map[string]Secret
+type Secrets []*Secret
 
-func (currentSecrets Secrets) merge(newSecrets Secrets) {
-	for secretKey, secretValue := range newSecrets {
-		if _, ok := currentSecrets[secretKey]; !ok {
-			currentSecrets[secretKey] = secretValue
-			continue
-		}
-
-		currentSecrets[secretKey].merge(secretValue)
+// Add ...
+func (e *Secrets) Add(secret *Secret) bool {
+	if !e.Exists(secret) {
+		*e = append(*e, secret)
+		return true
 	}
+
+	return false
 }
 
-// SecretList ...
-type SecretList []*Secret
+// Exists ...
+func (e *Secrets) Exists(secret *Secret) bool {
+	for _, existing := range *e {
+		if secret.Equal(existing) {
+			return true
+		}
+	}
 
-func (p SecretList) Len() int { return len(p) }
-func (p SecretList) Less(i, j int) bool {
-	return p[i].Environment+"_"+p[i].Application+"_"+p[i].Path < p[j].Environment+"_"+p[j].Application+"_"+p[j].Path
+	return false
 }
-func (p SecretList) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
-// Sort is a convenience method.
-func (p SecretList) Sort() { sort.Sort(p) }
+// Get ...
+func (e *Secrets) Get(secret *Secret) *Secret {
+	for _, existing := range *e {
+		if secret.Equal(existing) {
+			return existing
+		}
+	}
+
+	return nil
+}
+
+// GetOrSet ...
+func (e *Secrets) GetOrSet(secret *Secret) *Secret {
+	existing := e.Get(secret)
+	if existing != nil {
+		return existing
+	}
+
+	e.Add(secret)
+	return secret
+}

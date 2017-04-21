@@ -21,13 +21,12 @@ func PullSecretsCommand(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	secrets.Sort()
 
 	output := make(map[string]map[string]string)
 
 	for _, secret := range secrets {
-		env := secret.Environment
-		app := secret.Application
+		env := secret.Environment.Name
+		app := secret.Application.Name
 
 		if _, ok := output[env]; !ok {
 			output[env] = make(map[string]string)

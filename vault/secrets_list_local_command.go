@@ -9,24 +9,20 @@ import (
 
 // ListSecretsLocalCommand ...
 func ListSecretsLocalCommand(c *cli.Context) error {
-	config, err := config.NewConfigFromDirectory(c.GlobalString("config-dir"))
+	config, err := config.NewConfig(c.GlobalString("config-dir"))
 	if err != nil {
 		return err
 	}
 
-	for envName, env := range config {
-		envLogger := log.WithFields(log.Fields{"env": envName})
+	for _, secret := range config.Secrets {
+		logger := log.WithFields(log.Fields{
+			"env":    secret.Environment.Name,
+			"app":    secret.Application.Name,
+			"secret": secret.Key,
+		})
 
-		for appName, app := range env.Applications {
-			appLogger := envLogger.WithFields(log.Fields{"app": appName})
-
-			for secretKey, secretValues := range app.Secrets {
-				secretLogger := appLogger.WithFields(log.Fields{"secret": secretKey})
-
-				for k, v := range secretValues.Secret.Data {
-					secretLogger.Printf("%s = %s", k, v)
-				}
-			}
+		for k, v := range secret.Secret.Data {
+			logger.Printf("%s = %s", k, v)
 		}
 
 		log.Println()

@@ -57,14 +57,6 @@ var (
 	}
 )
 
-// Policy is used to represent the policy specified by
-// an ACL configuration.
-type Policy struct {
-	Name  string              `hcl:"name"`
-	Paths []*PathCapabilities `hcl:"-"`
-	Raw   string
-}
-
 // PathCapabilities represents a policy for a path in the namespace.
 type PathCapabilities struct {
 	Prefix       string
