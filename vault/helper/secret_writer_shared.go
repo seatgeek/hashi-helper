@@ -1,4 +1,4 @@
-package vault
+package helper
 
 import (
 	"fmt"
@@ -14,9 +14,9 @@ type SharedSecretWriter struct {
 	client *api.Client
 }
 
-func (w SharedSecretWriter) writeEnvironment(name string, e config.Environment) error {
+func (w SharedSecretWriter) WriteEnvironment(name string, e config.Environment) error {
 	for _, application := range e.Applications {
-		err := w.writeApplication(application)
+		err := w.WriteApplication(application)
 		if err != nil {
 			return err
 		}
@@ -24,9 +24,9 @@ func (w SharedSecretWriter) writeEnvironment(name string, e config.Environment) 
 	return nil
 }
 
-func (w SharedSecretWriter) writeApplication(application config.Application) error {
+func (w SharedSecretWriter) WriteApplication(application config.Application) error {
 	for _, secret := range application.Secrets {
-		err := w.writeSecret(secret)
+		err := w.WriteSecret(secret)
 		if err != nil {
 			return err
 		}
@@ -35,7 +35,7 @@ func (w SharedSecretWriter) writeApplication(application config.Application) err
 	return nil
 }
 
-func (w SharedSecretWriter) writeSecret(secret config.Secret) error {
+func (w SharedSecretWriter) WriteSecret(secret config.Secret) error {
 	path := fmt.Sprintf("secret/%s/%s/%s", secret.Environment, secret.Application, secret.Path)
 	log.Info(path)
 

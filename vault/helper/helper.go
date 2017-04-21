@@ -1,6 +1,8 @@
-package vault
+package helper
 
 import (
+	"regexp"
+	"strings"
 	"sync"
 
 	"time"
@@ -13,7 +15,17 @@ import (
 	"github.com/seatgeek/hashi-helper/support"
 )
 
-func indexRemoteSecrets(environment string) config.SecretList {
+var environmentMatch = regexp.MustCompile(`^secret/(?P<Environment>.*?)/(?P<Application>.*?)/(?P<Path>.+)$`)
+
+// SecretWriter ...
+type SecretWriter interface {
+	WriteSecret(secret config.Secret) error
+	WriteEnvironment(name string, environment config.Environment) error
+	getClient() *api.Client
+}
+
+// IndexRemoteSecrets ...
+func IndexRemoteSecrets(environment string) config.SecretList {
 	log.Info("Scanning for remote secrets")
 
 	// Create a WaitGroup so we automatically unblock when all tasks are done
@@ -59,7 +71,7 @@ func indexRemoteSecrets(environment string) config.SecretList {
 
 // readRemoteSecrets
 // Take an array of secret paths to read
-func readRemoteSecrets(secrets config.SecretList) (config.SecretList, error) {
+func ReadRemoteSecrets(secrets config.SecretList) (config.SecretList, error) {
 	log.Infof("Going to read %d remote secrets", len(secrets))
 
 	// Create a WaitGroup for the remote reader, so we automatically unblock when all tasks are done
@@ -130,4 +142,107 @@ func extraEnvironmentFromPath(path string) (string, string, string, error) {
 	}
 
 	return match[1], match[2], match[3], nil
+}
+
+func filterByEnvironment(secrets config.SecretList, environment string) (result config.SecretList) {
+	if environment == "" {
+		return secrets
+	}
+
+	for _, s := range secrets {
+		if s.Environment == environment {
+			result = append(result, s)
+		}
+	}
+
+	return result
+}
+
+func remoteSecretIndexerResultProcessor(result *config.SecretList, resultCh chan string, completeCh chan interface{}, wg *sync.WaitGroup) {
+	for {
+		select {
+		case <-completeCh:
+			return
+		case path := <-resultCh:
+			environment, application, key, err := extraEnvironmentFromPath(path)
+			if err != nil {
+				environment = "unknown"
+				log.Warnf("Could not extract environment from %s", path)
+			}
+
+			*result = append(*result, &config.Secret{
+				Path:        path,
+				Key:         key,
+				Environment: environment,
+				Application: application,
+			})
+			wg.Done()
+		}
+	}
+}
+
+func remoteSecretIndexer(indexerCh chan string, resultCh chan string, completeCh chan interface{}, indexerWg *sync.WaitGroup, resultWg *sync.WaitGroup, workerID int) {
+	log.Debugf("Starting worker %d", workerID)
+
+	// Create a new Vault API client for this go-routine
+	client, err := api.NewClient(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		select {
+		case <-completeCh:
+			log.Debugf("Stopping worker %d", workerID)
+			return
+		case path := <-indexerCh:
+			logicalPath := fmt.Sprintf("secret/%s", strings.Trim(path, "/"))
+			log.Debugf("[%d] Scanning path: %s", workerID, logicalPath)
+
+			response, err := client.Logical().List(logicalPath)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if response.Data == nil {
+				log.Fatal("Response contains no data")
+			}
+
+			rawKeys, ok := response.Data["keys"]
+			if !ok {
+				log.Fatal("Could not find any keys in the response, server issues?")
+			}
+
+			keys := secretsToString(rawKeys)
+
+			if len(keys) == 0 {
+				log.Fatalf("No keys found in the vault path %s", path)
+			}
+
+			for _, keyPath := range keys {
+				// If the path end in a /, it's a "directory" and should be processed recursively
+				if strings.HasSuffix(keyPath, "/") {
+					indexerWg.Add(1)
+					indexerCh <- fmt.Sprintf("%s/%s", path, strings.Trim(keyPath, "/"))
+					continue
+				}
+
+				// Add the found secret to the result
+				resultWg.Add(1)
+				resultCh <- fmt.Sprintf("%s/%s", logicalPath, keyPath)
+			}
+
+			indexerWg.Done()
+		}
+	}
+}
+
+func secretsToString(in interface{}) (out []string) {
+	t := in.([]interface{})
+
+	for _, v := range t {
+		out = append(out, v.(string))
+	}
+
+	return out
 }

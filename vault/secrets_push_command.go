@@ -5,6 +5,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/seatgeek/hashi-helper/config"
+	helper "github.com/seatgeek/hashi-helper/vault/helper"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -15,7 +16,7 @@ func PushSecretsCommand(c *cli.Context) error {
 		return err
 	}
 
-	var engine SecretWriter
+	var engine helper.SecretWriter
 
 	if c.Bool("isolated") {
 		env := c.GlobalString("environment")
@@ -27,16 +28,16 @@ func PushSecretsCommand(c *cli.Context) error {
 			return fmt.Errorf("Could not find any environment with name %s in configuration", env)
 		}
 
-		engine = IsolatedSecretWriter{}
-		err := engine.writeEnvironment(env, config[env])
+		engine = helper.IsolatedSecretWriter{}
+		err := engine.WriteEnvironment(env, config[env])
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		engine = SharedSecretWriter{}
+		engine = helper.SharedSecretWriter{}
 
 		for env, apps := range config {
-			engine.writeEnvironment(env, apps)
+			engine.WriteEnvironment(env, apps)
 		}
 	}
 

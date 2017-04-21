@@ -9,14 +9,15 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/seatgeek/hashi-helper/vault/helper"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
 // PullSecretsCommand ...
 func PullSecretsCommand(c *cli.Context) error {
-	secrets := indexRemoteSecrets(c.GlobalString("environment"))
+	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"))
 
-	secrets, err := readRemoteSecrets(secrets)
+	secrets, err := helper.ReadRemoteSecrets(secrets)
 	if err != nil {
 		return err
 	}
