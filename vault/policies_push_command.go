@@ -11,9 +11,18 @@ import (
 
 // PushPoliciesCommand ...
 func PushPoliciesCommand(c *cli.Context) error {
+	env := c.GlobalString("environment")
+	if env == "" {
+		return fmt.Errorf("Pushing policies require a 'environment' value (--environment or ENV[ENVIRONMENT])")
+	}
+
 	config, err := config.NewConfig(c.GlobalString("config-dir"))
 	if err != nil {
 		return err
+	}
+
+	if !config.Environments.Contains(env) {
+		return fmt.Errorf("Could not find any environment with name %s in configuration", env)
 	}
 
 	client, err := api.NewClient(nil)
@@ -21,38 +30,19 @@ func PushPoliciesCommand(c *cli.Context) error {
 		return err
 	}
 
-	env := c.GlobalString("environment")
-	if env == "" {
-		return fmt.Errorf("Isolated writer requires a environment value (--environment or ENV[ENVIRONMENT])")
-	}
-
-	// if !config.Contains(env) {
-	// 	return fmt.Errorf("Could not find any environment with name %s in configuration", env)
-	// }
-
 	for _, policy := range config.Policies {
-		var policyPath, policyName string
+		var policyName, policyContent string
 
-		policyPath = fmt.Sprintf("secret/%s/*", policy.Application.Name)
-		policyName = fmt.Sprintf("app-%s-readonly", policy.Application.Name)
+		policyName = policy.Name
+		policyContent = policy.Raw
 
-		policyContent := fmt.Sprintf(`
-# created by hashi-helper
-path "%s" {
-	capabilities = ["read", "list"]
-}
-`, policyPath)
-
-		log.Printf("policyName: %s", policyName)
-		log.Printf("policyPath: %s", policyPath)
-		log.Printf("policyContent: %s", policyContent)
+		log.Printf("Writing policy %s", policyName)
+		log.Debugf("  content: %s", policyContent)
 
 		err := client.Sys().PutPolicy(policyName, policyContent)
 		if err != nil {
-			return err
+			log.Fatal(err)
 		}
-
-		log.Println()
 	}
 
 	return nil

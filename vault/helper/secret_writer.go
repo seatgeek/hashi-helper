@@ -14,7 +14,7 @@ type SecretWriter struct {
 }
 
 // WriteSecret ...
-func (w SecretWriter) WriteSecret(secret config.Secret) error {
+func (w SecretWriter) WriteSecret(secret *config.Secret) error {
 	path := fmt.Sprintf("secret/%s/%s", secret.Application.Name, secret.Path)
 	log.Info(path)
 

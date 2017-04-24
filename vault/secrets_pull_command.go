@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 
 	"strings"
@@ -33,7 +34,13 @@ func PullSecretsCommand(c *cli.Context) error {
 		}
 
 		if _, ok := output[env][app]; !ok {
-			output[env][app] = ""
+			output[env][app] = `policy "{app}-read-only" {
+				path "secret/{app}/*" {
+					capabilities = ["read", "list"]
+				}
+			}`
+
+			output[env][app] = strings.Replace(output[env][app], "{app}", app, -1)
 		}
 
 		output[env][app] = output[env][app] + fmt.Sprintf("\t\tsecret \"%s\" {\n", secret.Key)
@@ -61,7 +68,15 @@ func PullSecretsCommand(c *cli.Context) error {
 
 			content = content + fmt.Sprintf("}\n\n")
 
-			file := c.GlobalString("config-dir") + "/" + _env + "_" + _app + ".hcl"
+			dir := c.GlobalString("config-dir") + "/" + _env
+
+			if _, err := os.Stat(dir); os.IsNotExist(err) {
+				var mode os.FileMode
+				mode = 0777
+				os.Mkdir(dir, mode)
+			}
+
+			file := dir + "/app-" + _app + ".hcl"
 			err := ioutil.WriteFile(file, []byte(content), 0644)
 			if err != nil {
 				return err

@@ -32,6 +32,17 @@ func (e *Environments) Exists(environment *Environment) bool {
 	return false
 }
 
+// Containts ...
+func (e *Environments) Contains(environmentName string) bool {
+	for _, existing := range *e {
+		if existing.Name == environmentName {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Get ...
 func (e *Environments) Get(environment *Environment) *Environment {
 	for _, existing := range *e {

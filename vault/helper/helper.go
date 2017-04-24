@@ -143,7 +143,7 @@ func filterByEnvironment(secrets config.Secrets, environment string) (result con
 	}
 
 	for _, s := range secrets {
-		if s.Application.Environment.Name == environment {
+		if s.Environment.Name == environment {
 			result = append(result, s)
 		}
 	}

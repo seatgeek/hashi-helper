@@ -20,8 +20,8 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
 			Name:        "concurrency",
-			Value:       runtime.NumCPU() * 2,
-			Usage:       "How many parallel requests to run in parallel against remote servers (2 * CPU Cores)",
+			Value:       runtime.NumCPU() * 3,
+			Usage:       "How many parallel requests to run in parallel against remote servers (3 * CPU Cores)",
 			EnvVar:      "CONCURRENCY",
 			Destination: &config.DefaultConcurrency,
 		},

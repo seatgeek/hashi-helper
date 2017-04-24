@@ -3,7 +3,9 @@ package config
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/printer"
@@ -33,8 +35,14 @@ func (c *Config) processPolicies(list *ast.ObjectList, environment *Environment,
 		// Convert the HCL AST back to text so we can send it to the Vault API
 		buf := new(bytes.Buffer)
 		printer := printer.Config{}
-		printer.Fprint(buf, list)
+		printer.Fprint(buf, x.Children())
 		policy.Raw = buf.String()
+
+		// Replace environment and maybe app name placeholders
+		policy.Raw = strings.Replace(policy.Raw, "__ENV__", environment.Name, -1)
+		if application != nil {
+			policy.Raw = strings.Replace(policy.Raw, "__APP__", application.Name, -1)
+		}
 
 		if err := hcl.DecodeObject(policy, policyAST); err != nil {
 			return fmt.Errorf("Failed to parse policy: %s", err)
@@ -46,7 +54,13 @@ func (c *Config) processPolicies(list *ast.ObjectList, environment *Environment,
 			}
 		}
 
-		c.Policies.Add(policy)
+		if c.Policies.Add(policy) == false {
+			if application != nil {
+				log.Warnf("      Ignored duplicate policy '%s' -> '%s' -> '%s' in line %s", environment.Name, application.Name, policy.Name, policyAST.Keys[0].Token.Pos)
+			} else {
+				log.Warnf("      Ignored duplicate policy '%s' -> '%s' line %s", environment.Name, policy.Name, policyAST.Keys[0].Token.Type)
+			}
+		}
 	}
 
 	return nil

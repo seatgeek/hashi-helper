@@ -10,10 +10,43 @@ type Policy struct {
 	Raw         string
 }
 
+// Equal ...
+func (p *Policy) Equal(o *Policy) bool {
+	// name must be same
+	if p.Name != o.Name {
+		return false
+	}
+
+	// environmet must same
+	if p.Environment.Equal(o.Environment) == false {
+		return false
+	}
+
+	// @todo check Application
+
+	return true
+}
+
 // Policies ...
 type Policies []*Policy
 
 // Add ...
-func (p *Policies) Add(policy *Policy) {
-	*p = append(*p, policy)
+func (p *Policies) Add(policy *Policy) bool {
+	if p.Exists(policy) == false {
+		*p = append(*p, policy)
+		return true
+	}
+
+	return false
+}
+
+// Exists ...
+func (p *Policies) Exists(policy *Policy) bool {
+	for _, existing := range *p {
+		if policy.Equal(existing) {
+			return true
+		}
+	}
+
+	return false
 }

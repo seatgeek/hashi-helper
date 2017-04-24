@@ -2,9 +2,10 @@ package vault
 
 import (
 	"fmt"
+	"log"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/seatgeek/hashi-helper/config"
+	"github.com/seatgeek/hashi-helper/vault/helper"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -17,22 +18,20 @@ func PushSecretsCommand(c *cli.Context) error {
 
 	env := c.GlobalString("environment")
 	if env == "" {
-		return fmt.Errorf("Isolated writer requires a environment value (--environment or ENV[ENVIRONMENT])")
+		return fmt.Errorf("Secret writer requires a environment value (--environment or ENV[ENVIRONMENT])")
 	}
 
-	spew.Dump(config)
+	if !config.Environments.Contains(env) {
+		return fmt.Errorf("Could not find any environment with name %s in configuration", env)
+	}
 
-	// if !config.Contains(env) {
-	// 	return fmt.Errorf("Could not find any environment with name %s in configuration", env)
-	// }
-
-	// var engine helper.SecretWriter
-
-	// engine = helper.IsolatedSecretWriter{}
-	// err := engine.WriteEnvironment(env, config[env])
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	engine := helper.SecretWriter{}
+	for _, secret := range config.Secrets {
+		err := engine.WriteSecret(secret)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	return nil
 }
