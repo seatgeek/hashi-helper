@@ -8,8 +8,8 @@ import (
 )
 
 func (c *Config) processApplications(applicationsAST *ast.ObjectList, environment *Environment) error {
-	if len(applicationsAST.Items) == 0 {
-		return nil
+	if len(applicationsAST.Items) > 1 {
+		return fmt.Errorf("only one application stanza is allowed per file")
 	}
 
 	for _, appAST := range applicationsAST.Items {

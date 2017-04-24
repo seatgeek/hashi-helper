@@ -15,6 +15,10 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 	}
 
 	environmentsAST := list.Filter("environment")
+	if len(environmentsAST.Items) > 1 {
+		return fmt.Errorf("only one environment stanza is allowed per file")
+	}
+
 	for _, envAST := range environmentsAST.Items {
 		// ensure that we have a named environment
 		//

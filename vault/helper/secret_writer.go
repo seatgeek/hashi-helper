@@ -1,7 +1,10 @@
 package helper
 
 import (
+	"bytes"
 	"fmt"
+	"os/exec"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/vault/api"
@@ -31,4 +34,22 @@ func (w SecretWriter) getClient() *api.Client {
 		w.client = client
 	}
 	return w.client
+}
+
+// EscapeValue ...
+func EscapeValue(value string) string {
+	value = strings.Replace(value, "\\", "\\\\", -1)
+	value = strings.Replace(value, "\"", "\\", -1)
+
+	return value
+}
+
+// FormatHclFile ...
+func FormatHclFile(file string) (bytes.Buffer, error) {
+	cmd := exec.Command("hclfmt", "-w", file)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	err := cmd.Run()
+	return out, err
 }

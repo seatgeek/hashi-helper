@@ -56,10 +56,10 @@ func main() {
 			Usage: "Print a list of local or remote secrets",
 			Action: func(c *cli.Context) error {
 				if c.Bool("remote") {
-					return vault.ListSecretsRemoteCommand(c)
+					return vault.SecretsListRemoteCommand(c)
 				}
 
-				return vault.ListSecretsLocalCommand(c)
+				return vault.SecretsListLocalCommand(c)
 			},
 			Flags: []cli.Flag{
 				cli.BoolFlag{
@@ -78,14 +78,21 @@ func main() {
 			Name:  "vault-pull-secrets",
 			Usage: "Write remote secrets to local disk",
 			Action: func(c *cli.Context) error {
-				return vault.PullSecretsCommand(c)
+				return vault.SecretsPullCommand(c)
+			},
+		},
+		{
+			Name:  "vault-import-secrets",
+			Usage: "Write remote secrets to local disk (legacy)",
+			Action: func(c *cli.Context) error {
+				return vault.SecretsImportCommand(c)
 			},
 		},
 		{
 			Name:  "vault-push-secrets",
 			Usage: "Write local secrets to remote Vault instance",
 			Action: func(c *cli.Context) error {
-				return vault.PushSecretsCommand(c)
+				return vault.SecretsPushCommand(c)
 			},
 			Flags: []cli.Flag{
 				cli.BoolFlag{
@@ -99,7 +106,7 @@ func main() {
 			Name:  "vault-push-policies",
 			Usage: "Write application read-only policies to remote Vault instance",
 			Action: func(c *cli.Context) error {
-				return vault.PushPoliciesCommand(c)
+				return vault.PoliciesPushCommand(c)
 			},
 			Flags: []cli.Flag{
 				cli.BoolFlag{

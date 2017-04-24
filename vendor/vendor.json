@@ -109,6 +109,12 @@
 			"revisionTime": "2017-02-17T16:47:38Z"
 		},
 		{
+			"checksumSHA1": "J7j/5Jtk8la/xEAtu4e/6KIiqzs=",
+			"path": "github.com/hashicorp/nomad/helper/flatmap",
+			"revision": "53eb407c7f035efabb26147376e0a803084db6d8",
+			"revisionTime": "2017-04-19T23:55:49Z"
+		},
+		{
 			"checksumSHA1": "NRXFJ+XdP3BcA8ABvHSxjqcOcEA=",
 			"path": "github.com/hashicorp/vault/api",
 			"revision": "db86d87c8ee403625d7c732f9a190891bf1abf59",
@@ -137,6 +143,12 @@
 			"path": "github.com/mitchellh/go-homedir",
 			"revision": "b8bc1bf767474819792c23f32d8286a45736f1c6",
 			"revisionTime": "2016-12-03T19:45:07Z"
+		},
+		{
+			"checksumSHA1": "sWdAYPKyaT4SW8hNQNpRS0sU4lU=",
+			"path": "github.com/mitchellh/hashstructure",
+			"revision": "ab25296c0f51f1022f01cd99dfb45f1775de8799",
+			"revisionTime": "2017-01-16T05:20:23Z"
 		},
 		{
 			"checksumSHA1": "MlX15lJuV8DYARX5RJY8rqrSEWQ=",

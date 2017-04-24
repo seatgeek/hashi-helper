@@ -8,36 +8,22 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/seatgeek/hashi-helper/config"
 	"github.com/seatgeek/hashi-helper/vault/helper"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// SecretsPullCommand ...
-func SecretsPullCommand(c *cli.Context) error {
-	env := c.GlobalString("environment")
-	if env == "" {
-		return fmt.Errorf("Pulling secrets require a 'environment' value (--environment or ENV[ENVIRONMENT])")
-	}
+// SecretsImportCommand ...
+func SecretsImportCommand(c *cli.Context) error {
+	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"))
 
-	config, err := config.NewConfig(c.GlobalString("config-dir"))
-	if err != nil {
-		return err
-	}
-
-	if !config.Environments.Contains(env) {
-		return fmt.Errorf("Could not find any environment with name %s in configuration - did you mean `vault-import-secrets`?", env)
-	}
-
-	remoteSecrets := helper.IndexRemoteSecrets(c.GlobalString("environment"))
-	remoteSecrets, err = helper.ReadRemoteSecrets(remoteSecrets)
+	secrets, err := helper.ReadRemoteSecrets(secrets)
 	if err != nil {
 		return err
 	}
 
 	output := make(map[string]map[string]string)
 
-	for _, secret := range remoteSecrets {
+	for _, secret := range secrets {
 		env := secret.Environment.Name
 		app := secret.Application.Name
 
