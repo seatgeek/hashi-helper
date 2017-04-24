@@ -39,7 +39,7 @@ func (c *Config) processSecrets(list *ast.ObjectList, app *Application) error {
 			},
 		}
 
-		if c.Secrets.Add(secret) {
+		if !c.Secrets.Add(secret) {
 			log.Warnf("      Ignored duplicate secret '%s' -> '%s' -> '%s' in line %s", secret.Environment.Name, secret.Application.Name, secret.Key, secretData.Keys[0].Token.Pos)
 		}
 	}
