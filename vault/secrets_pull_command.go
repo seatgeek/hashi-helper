@@ -15,6 +15,8 @@ import (
 
 // SecretsPullCommand ...
 func SecretsPullCommand(c *cli.Context) error {
+	log.Fatal("NOT IMPLEMENTED YET")
+
 	env := c.GlobalString("environment")
 	if env == "" {
 		return fmt.Errorf("Pulling secrets require a 'environment' value (--environment or ENV[ENVIRONMENT])")
