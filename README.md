@@ -34,6 +34,8 @@ Add `--detailed` / `DETAILED` to show secret data rather than just the key names
 
 ### vault-pull-secrets
 
+NOT IMPLEMENTED YET
+
 Write remote Vault secrets to local disk in `conf.d/`
 
 ### vault-push-secrets
@@ -42,7 +44,19 @@ Write local secrets to remote Vault instance
 
 ### vault-push-policies
 
-Write a Vault read-only policy for each env + application combo that exist in `conf.d/`
+Write Vault `policy {}` stanza found in `conf.d/` to remote vault server
+
+### vault-push-mounts
+
+Mount and configure `mount {}` stanza found in `conf.d/` to remote vault server
+
+# Install & usage
+
+```
+go get -u github.com/kardianos/govendor
+govendor sync
+blackbox_postdeploy
+```
 
 # Example
 
