@@ -73,3 +73,4 @@ conf.d/staging/app-api-admin.hcl
 conf.d/staging/app-api.hcl
 conf.d/staging/app-apollo.hcl
 conf.d/staging/app-base-flask-app.hcl
+conf.d/staging/app-blart.hcl
