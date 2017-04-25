@@ -51,3 +51,4 @@ conf.d/production/app-ledgerman.hcl
 conf.d/production/app-listingfeed.hcl
 conf.d/production/app-lucille.hcl
 conf.d/production/app-manbearpig.hcl
+conf.d/production/app-milkk.hcl
