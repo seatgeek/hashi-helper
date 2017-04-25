@@ -53,3 +53,4 @@ conf.d/production/app-lucille.hcl
 conf.d/production/app-manbearpig.hcl
 conf.d/production/app-milkk.hcl
 conf.d/production/app-normalization.hcl
+conf.d/production/app-notify.hcl
