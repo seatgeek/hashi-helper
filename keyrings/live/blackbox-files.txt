@@ -3,3 +3,4 @@ conf.d/performance/app-api-admin.hcl
 conf.d/performance/app-api.hcl
 conf.d/performance/app-apollo.hcl
 conf.d/performance/app-base-flask-app.hcl
+conf.d/performance/app-blart.hcl
