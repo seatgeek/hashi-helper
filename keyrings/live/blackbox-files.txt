@@ -102,3 +102,4 @@ conf.d/staging/app-sirius.hcl
 conf.d/staging/app-ted.hcl
 conf.d/staging/app-ticketparse.hcl
 conf.d/staging/app-tracker.hcl
+conf.d/staging/app-turtle.hcl
