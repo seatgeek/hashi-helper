@@ -93,3 +93,4 @@ conf.d/staging/app-paulbunyan.hcl
 conf.d/staging/app-peakpass.hcl
 conf.d/staging/app-plot.hcl
 conf.d/staging/app-rescraper.hcl
+conf.d/staging/app-santamaria.hcl
