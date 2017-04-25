@@ -44,3 +44,4 @@ conf.d/production/app-common.hcl
 conf.d/production/app-dealquality.hcl
 conf.d/production/app-dharma.hcl
 conf.d/production/app-floortwo.hcl
+conf.d/production/app-fortune.hcl
