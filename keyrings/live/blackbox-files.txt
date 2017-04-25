@@ -7,3 +7,4 @@ conf.d/performance/app-blart.hcl
 conf.d/performance/app-buster.hcl
 conf.d/performance/app-buzzfeed.hcl
 conf.d/performance/app-common.hcl
+conf.d/performance/app-dealquality.hcl
