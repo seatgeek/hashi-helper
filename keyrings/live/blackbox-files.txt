@@ -6,3 +6,4 @@ conf.d/performance/app-base-flask-app.hcl
 conf.d/performance/app-blart.hcl
 conf.d/performance/app-buster.hcl
 conf.d/performance/app-buzzfeed.hcl
+conf.d/performance/app-common.hcl
