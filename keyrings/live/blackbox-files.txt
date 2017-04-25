@@ -15,3 +15,4 @@ conf.d/performance/app-janestreet.hcl
 conf.d/performance/app-keyboard.hcl
 conf.d/performance/app-ledgerman.hcl
 conf.d/performance/app-listingfeed.hcl
+conf.d/performance/app-lucille.hcl
