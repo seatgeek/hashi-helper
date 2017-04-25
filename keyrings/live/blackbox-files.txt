@@ -1,3 +1,4 @@
 conf.d/management/app-common.hcl
 conf.d/performance/app-api-admin.hcl
 conf.d/performance/app-api.hcl
+conf.d/performance/app-apollo.hcl
