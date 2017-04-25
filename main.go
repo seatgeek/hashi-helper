@@ -55,11 +55,8 @@ func main() {
 			Name:  "vault-list-secrets",
 			Usage: "Print a list of local or remote secrets",
 			Action: func(c *cli.Context) error {
-				if c.Bool("remote") {
-					return vaultCommand.SecretsListRemote(c)
-				}
+				return vaultCommand.SecretsList(c)
 
-				return vaultCommand.SecretsListLocal(c)
 			},
 			Flags: []cli.Flag{
 				cli.BoolFlag{
