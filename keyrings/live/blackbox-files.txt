@@ -13,3 +13,4 @@ conf.d/performance/app-floortwo.hcl
 conf.d/performance/app-fortune.hcl
 conf.d/performance/app-janestreet.hcl
 conf.d/performance/app-keyboard.hcl
+conf.d/performance/app-ledgerman.hcl
