@@ -67,3 +67,4 @@ conf.d/production/app-sidekick.hcl
 conf.d/production/app-sirius.hcl
 conf.d/production/app-ted.hcl
 conf.d/production/app-ticketparse.hcl
+conf.d/production/app-tracker.hcl
