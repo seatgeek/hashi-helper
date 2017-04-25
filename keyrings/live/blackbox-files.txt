@@ -98,3 +98,4 @@ conf.d/staging/app-sellerdirect-portal.hcl
 conf.d/staging/app-sellerdirect.hcl
 conf.d/staging/app-sevenpack.hcl
 conf.d/staging/app-sidekick.hcl
+conf.d/staging/app-sirius.hcl
