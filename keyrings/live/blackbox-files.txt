@@ -83,3 +83,4 @@ conf.d/staging/app-floortwo.hcl
 conf.d/staging/app-fortune.hcl
 conf.d/staging/app-janestreet.hcl
 conf.d/staging/app-keyboard.hcl
+conf.d/staging/app-ledgerman.hcl
