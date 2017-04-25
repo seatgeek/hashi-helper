@@ -16,3 +16,4 @@ conf.d/performance/app-keyboard.hcl
 conf.d/performance/app-ledgerman.hcl
 conf.d/performance/app-listingfeed.hcl
 conf.d/performance/app-lucille.hcl
+conf.d/performance/app-manbearpig.hcl
