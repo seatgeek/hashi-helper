@@ -62,3 +62,4 @@ conf.d/production/app-rescraper.hcl
 conf.d/production/app-santamaria.hcl
 conf.d/production/app-sellerdirect-portal.hcl
 conf.d/production/app-sellerdirect.hcl
+conf.d/production/app-sevenpack.hcl
