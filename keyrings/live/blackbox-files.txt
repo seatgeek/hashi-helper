@@ -56,3 +56,4 @@ conf.d/production/app-normalization.hcl
 conf.d/production/app-notify.hcl
 conf.d/production/app-paulbunyan.hcl
 conf.d/production/app-peakpass.hcl
+conf.d/production/app-plot.hcl
