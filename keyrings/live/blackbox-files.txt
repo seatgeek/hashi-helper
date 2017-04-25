@@ -49,3 +49,4 @@ conf.d/production/app-janestreet.hcl
 conf.d/production/app-keyboard.hcl
 conf.d/production/app-ledgerman.hcl
 conf.d/production/app-listingfeed.hcl
+conf.d/production/app-lucille.hcl
