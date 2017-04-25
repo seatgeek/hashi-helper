@@ -8,28 +8,35 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-func (c *Config) processMounts(mountAST *ast.ObjectList, environment *Environment) error {
-	if len(mountAST.Items) == 0 {
+func (c *Config) processMounts(list *ast.ObjectList, environment *Environment) error {
+	if len(list.Items) == 0 {
 		return nil
 	}
 
-	for _, appAST := range mountAST.Items {
-		if len(appAST.Keys) < 1 {
-			return fmt.Errorf("Missing mount name in line %+v", appAST.Keys[0].Pos())
-		}
+	for _, mountAST := range list.Items {
+		x := mountAST.Val.(*ast.ObjectType).List
 
-		if len(appAST.Keys) < 2 {
-			return fmt.Errorf("Missing mount type in line %+v", appAST.Keys[0].Pos())
-		}
-
-		x := appAST.Val.(*ast.ObjectType).List
-
-		valid := []string{"config", "role"}
+		valid := []string{"config", "role", "type", "path"}
 		if err := checkHCLKeys(x, valid); err != nil {
 			return err
 		}
 
+		if len(mountAST.Keys) != 1 {
+			return fmt.Errorf("Missing mount name in line %+v", mountAST.Keys[0].Pos())
+		}
+
+		mountName := mountAST.Keys[0].Token.Value().(string)
+
+		typeAST := x.Filter("type")
+		if len(typeAST.Items) != 1 {
+			return fmt.Errorf("missing mount type in %s -> %s", environment.Name, mountName)
+		}
+
+		mountType := typeAST.Items[0].Val.(*ast.LiteralType).Token.Value().(string)
+
 		mount := &Mount{
+			Name:        mountName,
+			Type:        mountType,
 			Environment: environment,
 		}
 
@@ -52,9 +59,6 @@ func (c *Config) processMounts(mountAST *ast.ObjectList, environment *Environmen
 
 			mount.Roles = roles
 		}
-
-		mount.Name = appAST.Keys[0].Token.Value().(string)
-		mount.Type = appAST.Keys[1].Token.Value().(string)
 
 		c.Mounts.Add(mount)
 	}

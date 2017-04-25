@@ -91,13 +91,6 @@ func main() {
 			Action: func(c *cli.Context) error {
 				return vaultCommand.SecretsPush(c)
 			},
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:   "isolated",
-					Usage:  "Write to the cluster as if its isolated env (e.g. don't encode environment into the path)",
-					EnvVar: "isolated",
-				},
-			},
 		},
 		{
 			Name:  "vault-push-policies",
@@ -105,12 +98,12 @@ func main() {
 			Action: func(c *cli.Context) error {
 				return vaultCommand.PoliciesPush(c)
 			},
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:   "isolated",
-					Usage:  "Write to the cluster as if its isolated env (e.g. don't encode environment into the path)",
-					EnvVar: "isolated",
-				},
+		},
+		{
+			Name:  "vault-push-mounts",
+			Usage: "Write vault mounts to remote Vault instance",
+			Action: func(c *cli.Context) error {
+				return vaultCommand.MountsPush(c)
 			},
 		},
 	}

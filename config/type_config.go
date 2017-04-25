@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
@@ -46,7 +48,7 @@ func (c *Config) ScanDirectory(directory string) error {
 	}
 
 	for _, fi := range fi {
-		if fi.Mode().IsRegular() {
+		if fi.Mode().IsRegular() && strings.HasSuffix(fi.Name(), ".hcl") {
 			if err := c.AddFile(directory + "/" + fi.Name()); err != nil {
 				return err
 			}
@@ -61,6 +63,8 @@ func (c *Config) ScanDirectory(directory string) error {
 
 			continue
 		}
+
+		log.Debugf("Ignoring file %s/%s", directory, fi.Name())
 	}
 
 	return nil
