@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/seatgeek/hashi-helper/vault/helper"
+	"github.com/seatgeek/hashi-helper/command/vault/helper"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// SecretsImportCommand ...
-func SecretsImportCommand(c *cli.Context) error {
+// SecretsImport ...
+func SecretsImport(c *cli.Context) error {
 	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"))
 
 	secrets, err := helper.ReadRemoteSecrets(secrets)

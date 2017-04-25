@@ -2,13 +2,13 @@ package vault
 
 import (
 	log "github.com/Sirupsen/logrus"
+	helper "github.com/seatgeek/hashi-helper/command/vault/helper"
 	"github.com/seatgeek/hashi-helper/config"
-	helper "github.com/seatgeek/hashi-helper/vault/helper"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// SecretsListRemoteCommand ...
-func SecretsListRemoteCommand(c *cli.Context) error {
+// SecretsListRemote ...
+func SecretsListRemote(c *cli.Context) error {
 	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"))
 
 	if c.Bool("detailed") {

@@ -9,8 +9,8 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// PoliciesPushCommand ...
-func PoliciesPushCommand(c *cli.Context) error {
+// PoliciesPush ...
+func PoliciesPush(c *cli.Context) error {
 	env := c.GlobalString("environment")
 	if env == "" {
 		return fmt.Errorf("Pushing policies require a 'environment' value (--environment or ENV[ENVIRONMENT])")

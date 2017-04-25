@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/seatgeek/hashi-helper/command/vault/helper"
 	"github.com/seatgeek/hashi-helper/config"
-	"github.com/seatgeek/hashi-helper/vault/helper"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// SecretsPushCommand ...
-func SecretsPushCommand(c *cli.Context) error {
+// SecretsPush ...
+func SecretsPush(c *cli.Context) error {
 	config, err := config.NewConfig(c.GlobalString("config-dir"))
 	if err != nil {
 		return err

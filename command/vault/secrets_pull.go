@@ -8,13 +8,13 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/seatgeek/hashi-helper/command/vault/helper"
 	"github.com/seatgeek/hashi-helper/config"
-	"github.com/seatgeek/hashi-helper/vault/helper"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// SecretsPullCommand ...
-func SecretsPullCommand(c *cli.Context) error {
+// SecretsPull ...
+func SecretsPull(c *cli.Context) error {
 	log.Fatal("NOT IMPLEMENTED YET")
 
 	env := c.GlobalString("environment")

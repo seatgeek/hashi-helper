@@ -6,8 +6,8 @@ import (
 	"sort"
 
 	log "github.com/Sirupsen/logrus"
+	vaultCommand "github.com/seatgeek/hashi-helper/command/vault"
 	"github.com/seatgeek/hashi-helper/config"
-	"github.com/seatgeek/hashi-helper/vault"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -56,10 +56,10 @@ func main() {
 			Usage: "Print a list of local or remote secrets",
 			Action: func(c *cli.Context) error {
 				if c.Bool("remote") {
-					return vault.SecretsListRemoteCommand(c)
+					return vaultCommand.SecretsListRemote(c)
 				}
 
-				return vault.SecretsListLocalCommand(c)
+				return vaultCommand.SecretsListLocal(c)
 			},
 			Flags: []cli.Flag{
 				cli.BoolFlag{
@@ -78,21 +78,21 @@ func main() {
 			Name:  "vault-pull-secrets",
 			Usage: "Write remote secrets to local disk",
 			Action: func(c *cli.Context) error {
-				return vault.SecretsPullCommand(c)
+				return vaultCommand.SecretsPull(c)
 			},
 		},
 		{
 			Name:  "vault-import-secrets",
 			Usage: "Write remote secrets to local disk (legacy)",
 			Action: func(c *cli.Context) error {
-				return vault.SecretsImportCommand(c)
+				return vaultCommand.SecretsImport(c)
 			},
 		},
 		{
 			Name:  "vault-push-secrets",
 			Usage: "Write local secrets to remote Vault instance",
 			Action: func(c *cli.Context) error {
-				return vault.SecretsPushCommand(c)
+				return vaultCommand.SecretsPush(c)
 			},
 			Flags: []cli.Flag{
 				cli.BoolFlag{
@@ -106,7 +106,7 @@ func main() {
 			Name:  "vault-push-policies",
 			Usage: "Write application read-only policies to remote Vault instance",
 			Action: func(c *cli.Context) error {
-				return vault.PoliciesPushCommand(c)
+				return vaultCommand.PoliciesPush(c)
 			},
 			Flags: []cli.Flag{
 				cli.BoolFlag{
