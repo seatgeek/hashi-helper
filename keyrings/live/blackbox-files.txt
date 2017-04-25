@@ -23,3 +23,4 @@ conf.d/performance/app-paulbunyan.hcl
 conf.d/performance/app-peakpass.hcl
 conf.d/performance/app-plot.hcl
 conf.d/performance/app-rescraper.hcl
+conf.d/performance/app-santamaria.hcl
