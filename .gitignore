@@ -109,3 +109,5 @@ conf.d/
 /conf.d/staging/app-ticketparse.hcl
 /conf.d/staging/app-tracker.hcl
 /conf.d/staging/app-turtle.hcl
+/conf.d/performance/_mounts.hcl
+/conf.d/performance/_policies.hcl
