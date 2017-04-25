@@ -78,3 +78,4 @@ conf.d/staging/app-buster.hcl
 conf.d/staging/app-buzzfeed.hcl
 conf.d/staging/app-common.hcl
 conf.d/staging/app-dealquality.hcl
+conf.d/staging/app-dharma.hcl
