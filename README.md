@@ -52,8 +52,14 @@ Mount and configure `mount {}` stanza found in `conf.d/` to remote vault server
 
 # Install & usage
 
+Tested with Go 1.8.1
+
 ```
 go get -u github.com/kardianos/govendor
+mkdir -p $GOPATH/src/github.com/seatgeek/
+cd $GOPATH/src/github.com/seatgeek/
+git clone git@github.com:seatgeek/hashi-helper.git
+cd hashi-helper
 govendor sync
 blackbox_postdeploy
 ```
