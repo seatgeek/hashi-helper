@@ -1,3 +1,6 @@
 vendor/
 !vendor/vendor.json
 conf.d/
+/keyrings/live/pubring.gpg~
+/keyrings/live/pubring.kbx~
+/keyrings/live/secring.gpg
