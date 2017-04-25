@@ -39,3 +39,4 @@ conf.d/production/app-apollo.hcl
 conf.d/production/app-base-flask-app.hcl
 conf.d/production/app-blart.hcl
 conf.d/production/app-buster.hcl
+conf.d/production/app-buzzfeed.hcl
