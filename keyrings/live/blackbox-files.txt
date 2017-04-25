@@ -71,3 +71,4 @@ conf.d/production/app-tracker.hcl
 conf.d/production/app-turtle.hcl
 conf.d/staging/app-api-admin.hcl
 conf.d/staging/app-api.hcl
+conf.d/staging/app-apollo.hcl
