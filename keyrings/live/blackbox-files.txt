@@ -34,3 +34,4 @@ conf.d/performance/app-ticketparse.hcl
 conf.d/performance/app-tracker.hcl
 conf.d/performance/app-turtle.hcl
 conf.d/production/app-api-admin.hcl
+conf.d/production/app-api.hcl
