@@ -63,3 +63,4 @@ conf.d/production/app-santamaria.hcl
 conf.d/production/app-sellerdirect-portal.hcl
 conf.d/production/app-sellerdirect.hcl
 conf.d/production/app-sevenpack.hcl
+conf.d/production/app-sidekick.hcl
