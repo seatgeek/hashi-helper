@@ -89,3 +89,4 @@ conf.d/staging/app-lucille.hcl
 conf.d/staging/app-manbearpig.hcl
 conf.d/staging/app-normalization.hcl
 conf.d/staging/app-notify.hcl
+conf.d/staging/app-paulbunyan.hcl
