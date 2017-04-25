@@ -36,3 +36,4 @@ conf.d/performance/app-turtle.hcl
 conf.d/production/app-api-admin.hcl
 conf.d/production/app-api.hcl
 conf.d/production/app-apollo.hcl
+conf.d/production/app-base-flask-app.hcl
