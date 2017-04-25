@@ -9,3 +9,4 @@ conf.d/performance/app-buzzfeed.hcl
 conf.d/performance/app-common.hcl
 conf.d/performance/app-dealquality.hcl
 conf.d/performance/app-dharma.hcl
+conf.d/performance/app-floortwo.hcl
