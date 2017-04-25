@@ -30,3 +30,4 @@ conf.d/performance/app-sevenpack.hcl
 conf.d/performance/app-sidekick.hcl
 conf.d/performance/app-sirius.hcl
 conf.d/performance/app-ted.hcl
+conf.d/performance/app-ticketparse.hcl
