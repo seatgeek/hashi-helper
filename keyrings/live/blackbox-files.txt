@@ -60,3 +60,4 @@ conf.d/production/app-plot.hcl
 conf.d/production/app-request-logger.hcl
 conf.d/production/app-rescraper.hcl
 conf.d/production/app-santamaria.hcl
+conf.d/production/app-sellerdirect-portal.hcl
