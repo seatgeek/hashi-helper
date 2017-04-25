@@ -10,3 +10,4 @@ conf.d/performance/app-common.hcl
 conf.d/performance/app-dealquality.hcl
 conf.d/performance/app-dharma.hcl
 conf.d/performance/app-floortwo.hcl
+conf.d/performance/app-fortune.hcl
