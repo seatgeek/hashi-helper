@@ -21,3 +21,4 @@ conf.d/performance/app-normalization.hcl
 conf.d/performance/app-notify.hcl
 conf.d/performance/app-paulbunyan.hcl
 conf.d/performance/app-peakpass.hcl
+conf.d/performance/app-plot.hcl
