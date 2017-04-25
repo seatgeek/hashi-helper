@@ -85,3 +85,4 @@ conf.d/staging/app-janestreet.hcl
 conf.d/staging/app-keyboard.hcl
 conf.d/staging/app-ledgerman.hcl
 conf.d/staging/app-listingfeed.hcl
+conf.d/staging/app-lucille.hcl
