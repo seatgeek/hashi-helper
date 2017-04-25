@@ -46,3 +46,4 @@ conf.d/production/app-dharma.hcl
 conf.d/production/app-floortwo.hcl
 conf.d/production/app-fortune.hcl
 conf.d/production/app-janestreet.hcl
+conf.d/production/app-keyboard.hcl
