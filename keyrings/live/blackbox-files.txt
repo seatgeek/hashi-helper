@@ -29,3 +29,4 @@ conf.d/performance/app-sellerdirect.hcl
 conf.d/performance/app-sevenpack.hcl
 conf.d/performance/app-sidekick.hcl
 conf.d/performance/app-sirius.hcl
+conf.d/performance/app-ted.hcl
