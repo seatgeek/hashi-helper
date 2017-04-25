@@ -95,3 +95,4 @@ conf.d/staging/app-plot.hcl
 conf.d/staging/app-rescraper.hcl
 conf.d/staging/app-santamaria.hcl
 conf.d/staging/app-sellerdirect-portal.hcl
+conf.d/staging/app-sellerdirect.hcl
