@@ -111,3 +111,5 @@ conf.d/
 /conf.d/staging/app-turtle.hcl
 /conf.d/performance/_mounts.hcl
 /conf.d/performance/_policies.hcl
+/conf.d/production/_mounts.hcl
+/conf.d/production/_policies.hcl
