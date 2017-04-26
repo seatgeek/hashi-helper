@@ -16,6 +16,11 @@ func SecretsPush(c *cli.Context) error {
 		return err
 	}
 
+	return SecretsPushWithConfig(c, config)
+}
+
+// SecretsPushWithConfig ...
+func SecretsPushWithConfig(c *cli.Context, config *config.Config) error {
 	env := c.GlobalString("environment")
 	if env == "" {
 		return fmt.Errorf("Secret writer requires a environment value (--environment or ENV[ENVIRONMENT])")

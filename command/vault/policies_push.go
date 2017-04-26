@@ -11,14 +11,19 @@ import (
 
 // PoliciesPush ...
 func PoliciesPush(c *cli.Context) error {
-	env := c.GlobalString("environment")
-	if env == "" {
-		return fmt.Errorf("Pushing policies require a 'environment' value (--environment or ENV[ENVIRONMENT])")
-	}
-
 	config, err := config.NewConfigFromCLI(c)
 	if err != nil {
 		return err
+	}
+
+	return PoliciesPushWithConfig(c, config)
+}
+
+// PoliciesPushWithConfig ...
+func PoliciesPushWithConfig(c *cli.Context, config *config.Config) error {
+	env := c.GlobalString("environment")
+	if env == "" {
+		return fmt.Errorf("Pushing policies require a 'environment' value (--environment or ENV[ENVIRONMENT])")
 	}
 
 	if !config.Environments.Contains(env) {

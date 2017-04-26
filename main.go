@@ -92,6 +92,13 @@ func main() {
 			},
 		},
 		{
+			Name:  "vault-push-all",
+			Usage: "Push all known resources to remote Vault",
+			Action: func(c *cli.Context) error {
+				return vaultCommand.PushAll(c)
+			},
+		},
+		{
 			Name:  "vault-push-secrets",
 			Usage: "Write local secrets to remote Vault instance",
 			Action: func(c *cli.Context) error {

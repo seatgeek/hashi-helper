@@ -1,0 +1,28 @@
+package vault
+
+import (
+	"github.com/seatgeek/hashi-helper/config"
+	cli "gopkg.in/urfave/cli.v1"
+)
+
+// PushAll ...
+func PushAll(cli *cli.Context) error {
+	config, err := config.NewConfigFromCLI(cli)
+	if err != nil {
+		return err
+	}
+
+	if err := MountsPushWithConfig(cli, config); err != nil {
+		return err
+	}
+
+	if err := PoliciesPushWithConfig(cli, config); err != nil {
+		return err
+	}
+
+	if err := SecretsPushWithConfig(cli, config); err != nil {
+		return err
+	}
+
+	return nil
+}
