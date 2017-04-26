@@ -18,7 +18,9 @@ hashi-helper [--global-flags] command [--command-flags]
 
 `--log-level` / `LOG_LEVEL`: Debug level of `debug`, `info`, `warn/warning`, `error`, `fatal`, `panic` (optional, default: `info`)
 
-`--config-dir` / `CONFIG_DIR`: The conf.d directory to read/write to (optional; default: `./conf.d`)
+`--config-dir` / `CONFIG_DIR`: A directory to recursively scan for `hcl` configuration files (optional; default: `./conf.d`)
+
+`--config-file` / `CONFIG_FILE`: A single `hcl` configuration file to parse instead of a directory (optional; default: `<empty>`)
 
 `--environment` / `ENVIRONMENT`: The environment to process for (optional; default: `all`)
 
@@ -49,6 +51,10 @@ Write Vault `policy {}` stanza found in `conf.d/` to remote vault server
 ### vault-push-mounts
 
 Mount and configure `mount {}` stanza found in `conf.d/` to remote vault server
+
+### vault-push-all
+
+Pushes all  `mounts`, `policies` and `secrets` to a remote vault server
 
 # Install & usage
 
