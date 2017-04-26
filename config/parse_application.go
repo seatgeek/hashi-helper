@@ -36,7 +36,7 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 		environment.Applications.Add(application)
 
 		log.Debug("    Scanning for secrets")
-		if err := c.processSecrets(x.Filter("secret"), application); err != nil {
+		if err := c.processSecrets(x.Filter("secret"), environment, application); err != nil {
 			return err
 		}
 

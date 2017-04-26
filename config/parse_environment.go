@@ -40,12 +40,17 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 
 		// check for valid keys inside an environment stanza
 		x := envAST.Val.(*ast.ObjectType).List
-		valid := []string{"application", "policy", "mount"}
+		valid := []string{"application", "policy", "mount", "secret"}
 		if err := checkHCLKeys(x, valid); err != nil {
 			return err
 		}
 
 		env := c.Environments.GetOrSet(&Environment{Name: envName})
+
+		log.Debug("  Scanning for secrets")
+		if err := c.processSecrets(x.Filter("secret"), env, nil); err != nil {
+			return err
+		}
 
 		log.Debug("  Scanning for applications")
 		if err := c.processApplications(x.Filter("application"), env); err != nil {

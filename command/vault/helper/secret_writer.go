@@ -18,7 +18,17 @@ type SecretWriter struct {
 
 // WriteSecret ...
 func (w SecretWriter) WriteSecret(secret *config.Secret) error {
-	path := fmt.Sprintf("secret/%s/%s", secret.Application.Name, secret.Path)
+	var path string
+
+	// @TODO Make a dedicated type for writing non-secrets !
+	if strings.HasPrefix(secret.Path, "/") {
+		path = strings.TrimLeft(secret.Path, "/")
+	} else if secret.Application != nil {
+		path = fmt.Sprintf("secret/%s/%s", secret.Application.Name, secret.Path)
+	} else {
+		path = fmt.Sprintf("secret/%s", secret.Path)
+	}
+
 	log.Info(path)
 
 	_, err := w.getClient().Logical().Write(path, secret.Secret.Data)

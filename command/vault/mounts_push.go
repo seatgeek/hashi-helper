@@ -16,7 +16,7 @@ func MountsPush(c *cli.Context) error {
 		return fmt.Errorf("Pushing policies require a 'environment' value (--environment or ENV[ENVIRONMENT])")
 	}
 
-	config, err := config.NewConfig(c.GlobalString("config-dir"))
+	config, err := config.NewConfigFromCLI(c)
 	if err != nil {
 		return err
 	}

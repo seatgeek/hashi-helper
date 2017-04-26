@@ -10,6 +10,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // Config ...
@@ -22,14 +23,25 @@ type Config struct {
 }
 
 // NewConfig will create a new Config struct based on a directory
-func NewConfig(directory string) (*Config, error) {
+func NewConfig(path string) (*Config, error) {
 	config := &Config{}
 
-	if err := config.ScanDirectory(directory); err != nil {
+	if err := config.ScanDirectory(path); err != nil {
 		return nil, err
 	}
 
 	return config, nil
+}
+
+// NewConfigFromCLI will take a CLI context and create config from it
+func NewConfigFromCLI(c *cli.Context) (*Config, error) {
+	config := &Config{}
+
+	if c.GlobalString("config-file") != "" {
+		return config, config.AddFile(c.GlobalString("config-file"))
+	}
+
+	return config, config.ScanDirectory(c.GlobalString("config-dir"))
 }
 
 // ScanDirectory ...

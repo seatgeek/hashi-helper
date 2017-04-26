@@ -38,6 +38,12 @@ func main() {
 			EnvVar: "CONFIG_DIR",
 		},
 		cli.StringFlag{
+			Name:   "config-file",
+			Value:  "",
+			Usage:  "Config file to read from, if you don't want to scan a directory recursively",
+			EnvVar: "CONFIG_FILE",
+		},
+		cli.StringFlag{
 			Name:        "environment",
 			Usage:       "The environment to process for (default: all env)",
 			EnvVar:      "ENVIRONMENT",

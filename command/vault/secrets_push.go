@@ -11,7 +11,7 @@ import (
 
 // SecretsPush ...
 func SecretsPush(c *cli.Context) error {
-	config, err := config.NewConfig(c.GlobalString("config-dir"))
+	config, err := config.NewConfigFromCLI(c)
 	if err != nil {
 		return err
 	}

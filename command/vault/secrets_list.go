@@ -18,7 +18,7 @@ func SecretsList(c *cli.Context) error {
 }
 
 func secretListLocal(c *cli.Context) error {
-	config, err := config.NewConfig(c.GlobalString("config-dir"))
+	config, err := config.NewConfigFromCLI(c)
 	if err != nil {
 		return err
 	}
