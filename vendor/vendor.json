@@ -25,6 +25,12 @@
 			"revisionTime": "2017-01-03T08:10:50Z"
 		},
 		{
+			"checksumSHA1": "uB7qEuqVeWzCLRX1FypCKsJdEBg=",
+			"path": "github.com/hashicorp/consul/api",
+			"revision": "b70e419aeb8a13164b658d3fb316cc9a6eff0d26",
+			"revisionTime": "2017-04-27T08:29:39Z"
+		},
+		{
 			"checksumSHA1": "cdOCt0Yb+hdErz8NAQqayxPmRsY=",
 			"path": "github.com/hashicorp/errwrap",
 			"revision": "7554cd9344cec97297fa6649b055a8c98c2a1e55",
@@ -113,6 +119,12 @@
 			"path": "github.com/hashicorp/nomad/helper/flatmap",
 			"revision": "53eb407c7f035efabb26147376e0a803084db6d8",
 			"revisionTime": "2017-04-19T23:55:49Z"
+		},
+		{
+			"checksumSHA1": "E3Xcanc9ouQwL+CZGOUyA/+giLg=",
+			"path": "github.com/hashicorp/serf/coordinate",
+			"revision": "65c2babe73c7a096cd24e9eeec67613eb4e436c9",
+			"revisionTime": "2017-04-19T22:16:26Z"
 		},
 		{
 			"checksumSHA1": "NRXFJ+XdP3BcA8ABvHSxjqcOcEA=",
