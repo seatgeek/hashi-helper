@@ -14,7 +14,11 @@ type Secret struct {
 
 // Equal ...
 func (s *Secret) Equal(o *Secret) bool {
-	return s.Application.Equal(o.Application) && s.Path == o.Path && s.Key == o.Key
+	if s.Application != nil && s.Application.Equal(o.Application) == false {
+		return false
+	}
+
+	return s.Path == o.Path && s.Key == o.Key
 }
 
 // Secrets struct
