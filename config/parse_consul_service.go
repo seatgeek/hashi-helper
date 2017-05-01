@@ -16,7 +16,7 @@ func (c *Config) processConsulServices(list *ast.ObjectList, environment *Enviro
 	for _, serviceAST := range list.Items {
 		x := serviceAST.Val.(*ast.ObjectType).List
 
-		valid := []string{"address", "node", "port", "tags"}
+		valid := []string{"id", "address", "node", "port", "tags"}
 		if err := checkHCLKeys(x, valid); err != nil {
 			return err
 		}
@@ -71,7 +71,7 @@ func (c *Config) processConsulServices(list *ast.ObjectList, environment *Enviro
 				Tags:    tags,
 			},
 			Check: &api.AgentCheck{
-				CheckID:     fmt.Sprintf("service:%s", serviceName),
+				CheckID:     fmt.Sprintf("service:%s", serviceID),
 				Name:        serviceName,
 				Node:        node,
 				Notes:       "created by hashi-helper",
