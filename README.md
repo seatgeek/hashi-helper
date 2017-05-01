@@ -8,25 +8,18 @@ hashi-helper [--global-flags] command [--command-flags]
 
 ## Expectations
 
-`VAULT_TOKEN` environment variable (preferable a root/admin token)
-
-`VAULT_ADDR` environment variable (example: `http://127.0.0.1:8200`)
-
-`CONSUL_ADDR_HTTP` environment variable (example: `http://127.0.0.1:8500`)
+- `VAULT_TOKEN` environment variable (preferable a root/admin token)
+- `VAULT_ADDR` environment variable (example: `http://127.0.0.1:8200`)
+- `CONSUL_ADDR_HTTP` environment variable (example: `http://127.0.0.1:8500`)
 
 ### global flags
 
-`--concurrency` / `CONCURRENCY`: How many parallel requests to run in parallel against remote servers (optional, default: `2 * CPU Cores`)
-
-`--log-level` / `LOG_LEVEL`: Debug level of `debug`, `info`, `warn/warning`, `error`, `fatal`, `panic` (optional, default: `info`)
-
-`--config-dir` / `CONFIG_DIR`: A directory to recursively scan for `hcl` configuration files (optional; default: `./conf.d`)
-
-`--config-file` / `CONFIG_FILE`: A single `hcl` configuration file to parse instead of a directory (optional; default: `<empty>`)
-
-`--environment` / `ENVIRONMENT`: The environment to process for (optional; default: `all`)
-
-`--application` / `APPLICATION`: The application to process for (optional; default: `all`)
+- `--concurrency` / `CONCURRENCY`: How many parallel requests to run in parallel against remote servers (optional, default: `2 * CPU Cores`)
+- `--log-level` / `LOG_LEVEL`: Debug level of `debug`, `info`, `warn/warning`, `error`, `fatal`, `panic` (optional, default: `info`)
+- `--config-dir` / `CONFIG_DIR`: A directory to recursively scan for `hcl` configuration files (optional; default: `./conf.d`)
+- `--config-file` / `CONFIG_FILE`: A single `hcl` configuration file to parse instead of a directory (optional; default: `<empty>`)
+- `--environment` / `ENVIRONMENT`: The environment to process for (optional; default: `all`)
+- `--application` / `APPLICATION`: The application to process for (optional; default: `all`)
 
 ## global
 
