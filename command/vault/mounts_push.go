@@ -23,7 +23,7 @@ func MountsPush(c *cli.Context) error {
 func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
 	env := c.GlobalString("environment")
 	if env == "" {
-		return fmt.Errorf("Pushing policies require a 'environment' value (--environment or ENV[ENVIRONMENT])")
+		return fmt.Errorf("Pushing mounts require a 'environment' value (--environment or ENV[ENVIRONMENT])")
 	}
 
 	if !config.Environments.Contains(env) {
