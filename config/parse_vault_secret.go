@@ -12,7 +12,7 @@ import (
 
 // parseSecretStanza
 // parse out `environment -> application -> secret {}` stanza
-func (c *Config) processSecrets(list *ast.ObjectList, env *Environment, app *Application) error {
+func (c *Config) processVaultSecrets(list *ast.ObjectList, env *Environment, app *Application) error {
 	if len(list.Items) == 0 {
 		return nil
 	}
@@ -39,7 +39,7 @@ func (c *Config) processSecrets(list *ast.ObjectList, env *Environment, app *App
 			},
 		}
 
-		if c.Secrets.Add(secret) == false {
+		if c.VaultSecrets.Add(secret) == false {
 			if secret.Application != nil {
 				log.Warnf("      Ignored duplicate secret '%s' -> '%s' -> '%s' in line %s", secret.Environment.Name, secret.Application.Name, secret.Key, secretData.Keys[0].Token.Pos)
 			} else {

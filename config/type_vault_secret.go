@@ -21,13 +21,13 @@ func (s *Secret) Equal(o *Secret) bool {
 	return s.Path == o.Path && s.Key == o.Key
 }
 
-// Secrets struct
+// VaultSecrets struct
 //
 // environment -> application
-type Secrets []*Secret
+type VaultSecrets []*Secret
 
 // Add ...
-func (e *Secrets) Add(secret *Secret) bool {
+func (e *VaultSecrets) Add(secret *Secret) bool {
 	if !e.Exists(secret) {
 		*e = append(*e, secret)
 		return true
@@ -37,7 +37,7 @@ func (e *Secrets) Add(secret *Secret) bool {
 }
 
 // Exists ...
-func (e *Secrets) Exists(secret *Secret) bool {
+func (e *VaultSecrets) Exists(secret *Secret) bool {
 	for _, existing := range *e {
 		if secret.Equal(existing) {
 			return true
@@ -48,7 +48,7 @@ func (e *Secrets) Exists(secret *Secret) bool {
 }
 
 // Get ...
-func (e *Secrets) Get(secret *Secret) *Secret {
+func (e *VaultSecrets) Get(secret *Secret) *Secret {
 	for _, existing := range *e {
 		if secret.Equal(existing) {
 			return existing
@@ -59,7 +59,7 @@ func (e *Secrets) Get(secret *Secret) *Secret {
 }
 
 // GetOrSet ...
-func (e *Secrets) GetOrSet(secret *Secret) *Secret {
+func (e *VaultSecrets) GetOrSet(secret *Secret) *Secret {
 	existing := e.Get(secret)
 	if existing != nil {
 		return existing

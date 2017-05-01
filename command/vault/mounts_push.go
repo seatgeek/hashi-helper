@@ -40,7 +40,7 @@ func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
 		return err
 	}
 
-	for _, mount := range config.Mounts {
+	for _, mount := range config.VaultMounts {
 
 		// MOUNT POINT
 

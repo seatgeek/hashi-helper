@@ -12,6 +12,8 @@ hashi-helper [--global-flags] command [--command-flags]
 
 `VAULT_ADDR` environment variable (example: `http://127.0.0.1:8200`)
 
+`CONSUL_ADDR_HTTP` environment variable (example: `http://127.0.0.1:8500`)
+
 ### global flags
 
 `--concurrency` / `CONCURRENCY`: How many parallel requests to run in parallel against remote servers (optional, default: `2 * CPU Cores`)
@@ -25,6 +27,12 @@ hashi-helper [--global-flags] command [--command-flags]
 `--environment` / `ENVIRONMENT`: The environment to process for (optional; default: `all`)
 
 `--application` / `APPLICATION`: The application to process for (optional; default: `all`)
+
+## global
+
+### push-all
+
+Push all Consul and Vault data to remote servers (same as running `vault-push-all` and `consul-push-all`)
 
 ## vault
 
@@ -40,6 +48,10 @@ NOT IMPLEMENTED YET
 
 Write remote Vault secrets to local disk in `conf.d/`
 
+### vault-push-all
+
+Pushes all  `mounts`, `policies` and `secrets` to a remote vault server
+
 ### vault-push-secrets
 
 Write local secrets to remote Vault instance
@@ -52,9 +64,15 @@ Write Vault `policy {}` stanza found in `conf.d/` to remote vault server
 
 Mount and configure `mount {}` stanza found in `conf.d/` to remote vault server
 
-### vault-push-all
+## Consul
 
-Pushes all  `mounts`, `policies` and `secrets` to a remote vault server
+### consul-push-all
+
+Push all local consul state to remote consul cluster.
+
+### consul-push-services
+
+Push all `service{}` stanza to remote Consul cluster
 
 # Install & usage
 

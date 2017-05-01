@@ -22,13 +22,13 @@ func (m *Mount) MountInput() *api.MountInput {
 	}
 }
 
-// Mounts struct
+// VaultMounts struct
 //
 // environment
-type Mounts []*Mount
+type VaultMounts []*Mount
 
 // Add ...
-func (m *Mounts) Add(mount *Mount) {
+func (m *VaultMounts) Add(mount *Mount) {
 	*m = append(*m, mount)
 }
 

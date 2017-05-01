@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/hcl/hcl/printer"
 )
 
-func (c *Config) processPolicies(list *ast.ObjectList, environment *Environment, application *Application) error {
+func (c *Config) processVaultPolicies(list *ast.ObjectList, environment *Environment, application *Application) error {
 	if len(list.Items) < 1 {
 		return nil
 	}
@@ -54,7 +54,7 @@ func (c *Config) processPolicies(list *ast.ObjectList, environment *Environment,
 			}
 		}
 
-		if c.Policies.Add(policy) == false {
+		if c.VaultPolicies.Add(policy) == false {
 			if application != nil {
 				log.Warnf("      Ignored duplicate policy '%s' -> '%s' -> '%s' in line %s", environment.Name, application.Name, policy.Name, policyAST.Keys[0].Token.Pos)
 			} else {

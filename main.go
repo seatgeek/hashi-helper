@@ -6,6 +6,8 @@ import (
 	"sort"
 
 	log "github.com/Sirupsen/logrus"
+	allCommand "github.com/seatgeek/hashi-helper/command"
+	consulCommand "github.com/seatgeek/hashi-helper/command/consul"
 	vaultCommand "github.com/seatgeek/hashi-helper/command/vault"
 	"github.com/seatgeek/hashi-helper/config"
 	cli "gopkg.in/urfave/cli.v1"
@@ -57,6 +59,13 @@ func main() {
 		},
 	}
 	app.Commands = []cli.Command{
+		{
+			Name:  "push-all",
+			Usage: "push all consul and vault settings",
+			Action: func(c *cli.Context) error {
+				return allCommand.PushAll(c)
+			},
+		},
 		{
 			Name:  "vault-list-secrets",
 			Usage: "Print a list of local or remote secrets",
@@ -117,6 +126,20 @@ func main() {
 			Usage: "Write vault mounts to remote Vault instance",
 			Action: func(c *cli.Context) error {
 				return vaultCommand.MountsPush(c)
+			},
+		},
+		{
+			Name:  "consul-push-all",
+			Usage: "Push all known consul configs to remote Consul cluster",
+			Action: func(c *cli.Context) error {
+				return consulCommand.PushAll(c)
+			},
+		},
+		{
+			Name:  "consul-push-services",
+			Usage: "Push all known consul services to remote Consul cluster",
+			Action: func(c *cli.Context) error {
+				return consulCommand.ServicesPush(c)
 			},
 		},
 	}

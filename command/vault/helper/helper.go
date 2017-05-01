@@ -18,7 +18,7 @@ import (
 var environmentMatch = regexp.MustCompile(`^secret/(?P<Environment>.*?)/(?P<Application>.*?)/(?P<Path>.+)$`)
 
 // IndexRemoteSecrets ...
-func IndexRemoteSecrets(environment string) config.Secrets {
+func IndexRemoteSecrets(environment string) config.VaultSecrets {
 	log.Info("Scanning for remote secrets")
 
 	// Create a WaitGroup so we automatically unblock when all tasks are done
@@ -32,7 +32,7 @@ func IndexRemoteSecrets(environment string) config.Secrets {
 	completeCh := make(chan interface{})
 	defer close(completeCh)
 
-	var paths config.Secrets
+	var paths config.VaultSecrets
 
 	// Queue our first path to kick off the scanning
 	indexerWg.Add(1)
@@ -64,7 +64,7 @@ func IndexRemoteSecrets(environment string) config.Secrets {
 
 // readRemoteSecrets
 // Take an array of secret paths to read
-func ReadRemoteSecrets(secrets config.Secrets) (config.Secrets, error) {
+func ReadRemoteSecrets(secrets config.VaultSecrets) (config.VaultSecrets, error) {
 	log.Infof("Going to read %d remote secrets", len(secrets))
 
 	// Create a WaitGroup for the remote reader, so we automatically unblock when all tasks are done
@@ -137,7 +137,7 @@ func extraEnvironmentFromPath(path string) (string, string, string, error) {
 	return match[1], match[2], match[3], nil
 }
 
-func filterByEnvironment(secrets config.Secrets, environment string) (result config.Secrets) {
+func filterByEnvironment(secrets config.VaultSecrets, environment string) (result config.VaultSecrets) {
 	if environment == "" {
 		return secrets
 	}
@@ -151,7 +151,7 @@ func filterByEnvironment(secrets config.Secrets, environment string) (result con
 	return result
 }
 
-func remoteSecretIndexerResultProcessor(result *config.Secrets, resultCh chan string, completeCh chan interface{}, wg *sync.WaitGroup) {
+func remoteSecretIndexerResultProcessor(result *config.VaultSecrets, resultCh chan string, completeCh chan interface{}, wg *sync.WaitGroup) {
 	apps := make(map[string]*config.Application)
 	envs := make(map[string]*config.Environment)
 

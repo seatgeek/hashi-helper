@@ -23,7 +23,7 @@ func secretListLocal(c *cli.Context) error {
 		return err
 	}
 
-	for _, secret := range config.Secrets {
+	for _, secret := range config.VaultSecrets {
 		logger := log.WithFields(log.Fields{
 			"env":    secret.Environment.Name,
 			"app":    secret.Application.Name,
@@ -59,7 +59,7 @@ func secretListRemote(c *cli.Context) error {
 	return nil
 }
 
-func printDetailedSecrets(paths config.Secrets) {
+func printDetailedSecrets(paths config.VaultSecrets) {
 	secrets, err := helper.ReadRemoteSecrets(paths)
 	if err != nil {
 		log.Fatal(err)

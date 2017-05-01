@@ -15,11 +15,12 @@ import (
 
 // Config ...
 type Config struct {
-	Applications Applications
-	Environments Environments
-	Mounts       Mounts
-	Policies     Policies
-	Secrets      Secrets
+	Applications   Applications
+	Environments   Environments
+	VaultMounts    VaultMounts
+	VaultPolicies  VaultPolicies
+	VaultSecrets   VaultSecrets
+	ConsulServices ConsulServices
 }
 
 // NewConfig will create a new Config struct based on a directory

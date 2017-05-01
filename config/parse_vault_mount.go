@@ -8,7 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-func (c *Config) processMounts(list *ast.ObjectList, environment *Environment) error {
+func (c *Config) processVaultMounts(list *ast.ObjectList, environment *Environment) error {
 	if len(list.Items) == 0 {
 		return nil
 	}
@@ -60,7 +60,7 @@ func (c *Config) processMounts(list *ast.ObjectList, environment *Environment) e
 			mount.Roles = roles
 		}
 
-		c.Mounts.Add(mount)
+		c.VaultMounts.Add(mount)
 	}
 
 	return nil

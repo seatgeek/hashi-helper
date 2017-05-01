@@ -1,4 +1,4 @@
-package vault
+package consul
 
 import (
 	cfg "github.com/seatgeek/hashi-helper/config"
@@ -17,15 +17,7 @@ func PushAll(cli *cli.Context) error {
 
 // PushAllWithConfig ...
 func PushAllWithConfig(cli *cli.Context, config *cfg.Config) error {
-	if err := MountsPushWithConfig(cli, config); err != nil {
-		return err
-	}
-
-	if err := PoliciesPushWithConfig(cli, config); err != nil {
-		return err
-	}
-
-	if err := SecretsPushWithConfig(cli, config); err != nil {
+	if err := ServicesPushWithConfig(cli, config); err != nil {
 		return err
 	}
 

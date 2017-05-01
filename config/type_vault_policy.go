@@ -27,11 +27,11 @@ func (p *Policy) Equal(o *Policy) bool {
 	return true
 }
 
-// Policies ...
-type Policies []*Policy
+// VaultPolicies ...
+type VaultPolicies []*Policy
 
 // Add ...
-func (p *Policies) Add(policy *Policy) bool {
+func (p *VaultPolicies) Add(policy *Policy) bool {
 	if p.Exists(policy) == false {
 		*p = append(*p, policy)
 		return true
@@ -41,7 +41,7 @@ func (p *Policies) Add(policy *Policy) bool {
 }
 
 // Exists ...
-func (p *Policies) Exists(policy *Policy) bool {
+func (p *VaultPolicies) Exists(policy *Policy) bool {
 	for _, existing := range *p {
 		if policy.Equal(existing) {
 			return true

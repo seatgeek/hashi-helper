@@ -35,7 +35,7 @@ func PoliciesPushWithConfig(c *cli.Context, config *config.Config) error {
 		return err
 	}
 
-	for _, policy := range config.Policies {
+	for _, policy := range config.VaultPolicies {
 		var policyName, policyContent string
 
 		policyName = policy.Name

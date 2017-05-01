@@ -36,12 +36,12 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 		environment.Applications.Add(application)
 
 		log.Debug("    Scanning for secrets")
-		if err := c.processSecrets(x.Filter("secret"), environment, application); err != nil {
+		if err := c.processVaultSecrets(x.Filter("secret"), environment, application); err != nil {
 			return err
 		}
 
 		log.Debug("    Scanning for policy")
-		if err := c.processPolicies(x.Filter("policy"), environment, application); err != nil {
+		if err := c.processVaultPolicies(x.Filter("policy"), environment, application); err != nil {
 			return err
 		}
 
