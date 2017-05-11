@@ -17,6 +17,10 @@ func PushAll(cli *cli.Context) error {
 
 // PushAllWithConfig ...
 func PushAllWithConfig(cli *cli.Context, config *cfg.Config) error {
+	if err := AuthPushWithConfig(cli, config); err != nil {
+		return err
+	}
+
 	if err := MountsPushWithConfig(cli, config); err != nil {
 		return err
 	}

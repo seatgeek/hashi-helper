@@ -49,6 +49,10 @@ Pushes all  `mounts`, `policies` and `secrets` to a remote vault server
 
 Write local secrets to remote Vault instance
 
+### vault-push-auth
+
+Write Vault `auth {}` stanza found in `conf.d/` to remote vault server
+
 ### vault-push-policies
 
 Write Vault `policy {}` stanza found in `conf.d/` to remote vault server

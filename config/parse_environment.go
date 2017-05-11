@@ -40,7 +40,7 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 
 		// check for valid keys inside an environment stanza
 		x := envAST.Val.(*ast.ObjectType).List
-		valid := []string{"application", "policy", "mount", "secret", "service"}
+		valid := []string{"application", "auth", "policy", "mount", "secret", "service"}
 		if err := checkHCLKeys(x, valid); err != nil {
 			return err
 		}
@@ -49,6 +49,11 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 
 		log.Debug("  Scanning for applications")
 		if err := c.processApplications(x.Filter("application"), env); err != nil {
+			return err
+		}
+
+		log.Debug("  Scanning for vault auth backends")
+		if err := c.processVaultAuths(x.Filter("auth"), env); err != nil {
 			return err
 		}
 

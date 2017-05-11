@@ -129,6 +129,13 @@ func main() {
 			},
 		},
 		{
+			Name:  "vault-push-auth",
+			Usage: "Write vault auth backends to remote Vault instance",
+			Action: func(c *cli.Context) error {
+				return vaultCommand.AuthPush(c)
+			},
+		},
+		{
 			Name:  "consul-push-all",
 			Usage: "Push all known consul configs to remote Consul cluster",
 			Action: func(c *cli.Context) error {

@@ -20,6 +20,7 @@ type Config struct {
 	VaultMounts    VaultMounts
 	VaultPolicies  VaultPolicies
 	VaultSecrets   VaultSecrets
+	VaultAuths     VaultAuths
 	ConsulServices ConsulServices
 }
 
