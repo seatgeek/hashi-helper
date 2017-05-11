@@ -136,6 +136,31 @@ func main() {
 			},
 		},
 		{
+			Name:  "vault-find-token",
+			Usage: "Find vault token matching a name",
+			Action: func(c *cli.Context) error {
+				return vaultCommand.FindToken(c)
+			},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "filter-name",
+					Usage: "Only match tokens that has this fuzzy name in their display name",
+				},
+				cli.StringFlag{
+					Name:  "filter-policy",
+					Usage: "Only match tokens that have this policy",
+				},
+				cli.BoolFlag{
+					Name:  "filter-orphan",
+					Usage: "Only match tokens that are orphans",
+				},
+				cli.BoolFlag{
+					Name:  "delete-matches",
+					Usage: "Delete all tokens that match the filters",
+				},
+			},
+		},
+		{
 			Name:  "consul-push-all",
 			Usage: "Push all known consul configs to remote Consul cluster",
 			Action: func(c *cli.Context) error {

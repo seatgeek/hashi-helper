@@ -61,6 +61,22 @@ Write Vault `policy {}` stanza found in `conf.d/` to remote vault server
 
 Mount and configure `mount {}` stanza found in `conf.d/` to remote vault server
 
+### vault-find-token
+
+Scan all tokens in the Vault server, optionally tokens matching certain conditions
+
+Filter flags:
+
+`--filter-name jose` will only match tokens where display name contains `jose`
+
+`--filter-policy root` will only match tokens that have the policy `root`
+
+`--filter-orphan` will only match tokens that are orphaned
+
+Action flags:
+
+`--delete-matches` will match all tokens matching the filter flags. You will be asked to verify each token before deleting it.
+
 ## Consul
 
 ### consul-push-all
