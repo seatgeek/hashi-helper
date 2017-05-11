@@ -44,6 +44,7 @@ conf.d/production/_rds.blart.hcl
 conf.d/production/_rds.dharma.hcl
 conf.d/production/_rds.inferno.hcl
 conf.d/production/_rds.peakpass.hcl
+conf.d/production/_rds.tzanalytic.hcl
 conf.d/production/app-api-admin.hcl
 conf.d/production/app-api.hcl
 conf.d/production/app-apollo.hcl
