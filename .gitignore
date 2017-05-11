@@ -1,6 +1,6 @@
 vendor/
 !vendor/vendor.json
-conf.d/
+conf.d/*.hcl
 /keyrings/live/pubring.gpg~
 /keyrings/live/pubring.kbx~
 /keyrings/live/secring.gpg
@@ -115,3 +115,4 @@ conf.d/
 /conf.d/production/_policies.hcl
 /conf.d/staging/_mounts.hcl
 /conf.d/qa/_mounts.hcl
+/conf.d/performance/_aws.hcl

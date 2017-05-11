@@ -1,4 +1,5 @@
 conf.d/management/app-common.hcl
+conf.d/performance/_aws.hcl
 conf.d/performance/_mounts.hcl
 conf.d/performance/_policies.hcl
 conf.d/performance/app-api-admin.hcl
