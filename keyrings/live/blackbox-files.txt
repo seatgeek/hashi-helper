@@ -41,6 +41,7 @@ conf.d/production/_consul_services.rds.hcl
 conf.d/production/_mounts.hcl
 conf.d/production/_policies.hcl
 conf.d/production/_rds.blart.hcl
+conf.d/production/_rds.dharma.hcl
 conf.d/production/app-api-admin.hcl
 conf.d/production/app-api.hcl
 conf.d/production/app-apollo.hcl
