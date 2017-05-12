@@ -39,6 +39,7 @@ conf.d/performance/app-turtle.hcl
 conf.d/performance/db/alerts.hcl
 conf.d/performance/db/apollo.hcl
 conf.d/performance/db/blart.hcl
+conf.d/performance/db/buster.hcl
 conf.d/production/_consul_services.cache.hcl
 conf.d/production/_consul_services.rds.hcl
 conf.d/production/_policies.hcl
