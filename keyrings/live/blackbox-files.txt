@@ -45,6 +45,7 @@ conf.d/performance/db/dharma.hcl
 conf.d/performance/db/manbearpig.hcl
 conf.d/performance/db/paulbunyan.hcl
 conf.d/performance/db/peakpass.hcl
+conf.d/performance/db/sellerdirect.hcl
 conf.d/production/_consul_services.cache.hcl
 conf.d/production/_consul_services.rds.hcl
 conf.d/production/_policies.hcl
