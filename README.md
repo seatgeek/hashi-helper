@@ -1,6 +1,6 @@
 # hashi-helper
 
-`hashi-helper` is a tool mean to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
+`hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
 
 ## Requirements
 
