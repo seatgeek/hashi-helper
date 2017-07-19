@@ -188,7 +188,6 @@ Some string will need replacement
 The following can be stored in an encrypted file at `production/apps/api-admin.hcl`.
 
 ```hcl
-# environment name must match the directory name
 environment "production" {
 
   # application name must match the file name
@@ -213,7 +212,6 @@ environment "production" {
 
 
 ```hcl
-# environment name must match the directory name
 environment "production" {
 
   # The auth "name" can be anything, will be the "path" in auth configuration, e.g. the mount below will
@@ -254,6 +252,17 @@ environment "production" {
       bound_iam_instance_profile_arn = "arn:aws:iam::XXXXXXX:instance-profile/XXXX"
     }
   }
+
+  auth "sg-github" {
+    type = "github"
+
+    # https://www.vaultproject.io/docs/auth/github.html#generate-a-github-personal-access-token
+    #
+    # API endpoint: auth/:name/config (auth/sg-github/config)
+    config "" {
+      organization = "seatgeek"
+    }
+  }
 }
 ```
 
@@ -262,7 +271,6 @@ environment "production" {
 The following can be stored in a cleartext file at `production/consul_services/cache.hcl`
 
 ```hcl
-# environment name must match the directory name
 environment "production" {
 
   # service name
@@ -287,10 +295,7 @@ environment "production" {
 
 ### Vault mount
 
-The following can be stored in an encrypted file at `production/databases/api/_mount.hcl`
-
 ```hcl
-# environment name must match the directory name
 environment "production" {
 
   # the name / path the mount will be mounted at, must be unique for the environment
@@ -310,8 +315,6 @@ environment "production" {
 ```
 
 ### Vault mount role
-
-The following can be stored in a cleartext file at `production/databases/api/read-only.hcl`
 
 ```hcl
 # environment name must match the directory name
