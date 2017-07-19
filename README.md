@@ -190,10 +190,10 @@ The following can be stored in an encrypted file at `production/apps/api-admin.h
 ```hcl
 # environment name must match the directory name
 environment "production" {
-  
+
   # application name must match the file name
   application "api-admin" {
-  
+
     # Vault policy granting any user with policy api-admin-read-only read+list access to all secrets
     policy "api-admin-read-only" {
       path "secret/api-admin/*" {
@@ -209,29 +209,43 @@ environment "production" {
 }
 ```
 
-### Vault auth 
+### Vault auth
 
-
-The following can be stored in an encrypted file at `production/auth/aws-ec2.hcl`.
 
 ```hcl
 # environment name must match the directory name
 environment "production" {
 
-  # The auth name can be anything
-  auth "aws-ec2" {
+  # The auth "name" can be anything, will be the "path" in auth configuration, e.g. the mount below will
+  # make the "aws-ec2" secret backend available at "aws-ec2/" in the Vault API and CLI.
+  #
+  # The auth stanza maps to the Mount API ( https://www.vaultproject.io/api/system/auth.html#mount-auth-backend )
+  # API endpoint: /sys/auth/:path (/sys/auth/aws-ec2)
+  auth "aws-ec2" { # name
 
     # Type must match the Vault auth types
+    # based on this type, all config and role config below will map to settings found at https://www.vaultproject.io/docs/auth/aws.html
     type = "aws-ec2"
 
     # Client Configuration for the autb backend
+    #
+    # maps to the secret backend specific configuration
+    # in this example it will be https://www.vaultproject.io/docs/auth/aws.html#auth-aws-config-client
+    # key/value here is arbitrary and backend dependent, matches the Vaults docs 1:1 in keys and values
+    #
+    # API endpoint: /auth/:path/config/client (/auth/aws-ec2/config/client)
     config "client" {
       access_key = "XXXX"
       secret_key = "YYYY"
       max_ttl    = "1d"
     }
 
-    # Sample auth role 
+    # Auth backend type specific roles
+    #
+    # in this case it maps to https://www.vaultproject.io/docs/auth/aws.html#auth-aws-role-role-
+    # key/value here is arbritary and backend dependent, matches the Vault docs 1:1 in keys and values
+    #
+    # API endpoint: /auth/:path/role/:role: (/auth/aws-ec2/role/api-admin-prod)
     role "api-admin-prod" {
       policies                       = "global,sample-policy"
       max_ttl                        = "1h"
@@ -253,7 +267,7 @@ environment "production" {
 
   # service name
   service "cache-shared" {
-    # ID must be unique 
+    # ID must be unique
     id      = "cache-shared"
 
     # Pseudo node name to attach the service to (we use "cache" or "rds" depending on service type)
@@ -281,7 +295,7 @@ environment "production" {
 
   # the name / path the mount will be mounted at, must be unique for the environment
   mount "db-api" {
-    
+
     # the mount backend type to use (see Vault docs)
     type = "database"
 
@@ -303,9 +317,9 @@ The following can be stored in a cleartext file at `production/databases/api/rea
 # environment name must match the directory name
 environment "production" {
 
-  # the name *must* match the name from _mount.hcl ! 
+  # the name *must* match the name from _mount.hcl !
   mount "db-api" {
-    
+
     # the role name and configuration
     role "read-only" {
       # by convention, db_name matches the config{} stanza from the _mount example
@@ -318,7 +332,7 @@ environment "production" {
       max_ttl     = "24h"
 
       # The SQL to execute when creating a user
-      # 
+      #
       # '{{name}}', '{{password}}' and '{{expiry}}' (used in postgres)
       creation_statements = <<-SQL
       CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';
@@ -330,14 +344,14 @@ environment "production" {
   # policy name, granting users with policy "db-api-read-only" access to create credentials from the Vault mount
   # by convention the name is always ${mount_name}-${role_name}
   policy "db-api-read-only" {
-    
+
     # the path to allow Vault read from, always ${mount_name}/creds/${role_name}
     path "db-api/creds/read-only" {
       capabilities = ["read"]
     }
   }
 
-  # This will configure the GitHub team "rds-production-api-read-only" to have the policy "db-api-read-only" 
+  # This will configure the GitHub team "rds-production-api-read-only" to have the policy "db-api-read-only"
   # when they "vault auth"
   secret "/auth/github/map/teams/rds-production-api-read-only" {
     value = "db-api-read-only"
