@@ -219,7 +219,7 @@ environment "production" {
   #
   # The auth stanza maps to the Mount API ( https://www.vaultproject.io/api/system/auth.html#mount-auth-backend )
   # API endpoint: /sys/auth/:path (/sys/auth/aws-ec2)
-  auth "aws-ec2" { # name
+  auth "aws-ec2" { # :path
 
     # Type must match the Vault auth types
     # based on this type, all config and role config below will map to settings found at https://www.vaultproject.io/docs/auth/aws.html
@@ -231,8 +231,8 @@ environment "production" {
     # in this example it will be https://www.vaultproject.io/docs/auth/aws.html#auth-aws-config-client
     # key/value here is arbitrary and backend dependent, matches the Vaults docs 1:1 in keys and values
     #
-    # API endpoint: /auth/:path/config/client (/auth/aws-ec2/config/client)
-    config "client" {
+    # API endpoint: /auth/:path/config/:config_name (/auth/aws-ec2/config/client)
+    config "client" { # :config_name
       access_key = "XXXX"
       secret_key = "YYYY"
       max_ttl    = "1d"
@@ -244,7 +244,7 @@ environment "production" {
     # key/value here is arbritary and backend dependent, matches the Vault docs 1:1 in keys and values
     #
     # API endpoint: /auth/:path/role/:role: (/auth/aws-ec2/role/api-admin-prod)
-    role "api-admin-prod" {
+    role "api-admin-prod" { # :role
       policies                       = "global,sample-policy"
       max_ttl                        = "1h"
       allow_instance_migration       = false
