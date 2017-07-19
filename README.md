@@ -1,6 +1,6 @@
 # hashi-helper
 
-`hashi-helper` is a tool mean to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
+`hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
 
 ## Requirements
 
@@ -21,7 +21,7 @@ cd $GOPATH/src/github.com/seatgeek/hashi-helper
 make build
 ```
 
-This will create a `nomad-helper` binary in your `$GOPATH/bin` directory.
+This will create a `hashi-helper` binary in your `$GOPATH/bin` directory.
 
 ## Configuration
 
