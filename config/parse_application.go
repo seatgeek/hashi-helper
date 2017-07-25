@@ -26,7 +26,7 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 
 		// Check for valid keys inside an application stanza
 		x := appAST.Val.(*ast.ObjectType).List
-		valid := []string{"secret", "policy"}
+		valid := []string{"secret", "policy", "kv"}
 		if err := checkHCLKeys(x, valid); err != nil {
 			return err
 		}
@@ -42,6 +42,11 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 
 		log.Debug("    Scanning for policy")
 		if err := c.processVaultPolicies(x.Filter("policy"), environment, application); err != nil {
+			return err
+		}
+
+		log.Debug("    Scanning for KV")
+		if err := c.processConsulKV(x.Filter("kv"), environment, application); err != nil {
 			return err
 		}
 

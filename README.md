@@ -62,6 +62,10 @@ Push all local consul state to remote consul cluster.
 
 Push all `service{}` stanza to remote Consul cluster
 
+#### `consul-push-kv`
+
+Push all `kv{}` stanza to remote Consul cluster
+
 ### vault commands
 
 #### `vault-create-token`
@@ -166,7 +170,7 @@ The following is a sample workflow that may be used for organizations with Consu
 
 The directory structure is laid out like described below:
 
-- `/${env}/apps/${app}.hcl` (encrypted) Vault secrets for an application in a specific environment.
+- `/${env}/apps/${app}.hcl` (encrypted) Vault secrets or (cleartext) Consul KeyValue for an application in a specific environment.
 - `/${env}/auth/${name}.hcl` (encrypted) [Vault auth backends](https://www.vaultproject.io/docs/auth/index.html) for an specific environment `${env}`.
 - `/${env}/consul_services/${type}.hcl` (cleartext) List of static Consul services that should be made available in an specific environment `${env}`.
 - `/${env}/databases/${name}/_mount.hcl` (encrypted) [Vault secret backend](https://www.vaultproject.io/docs/secrets/index.html) configuration for an specific mount `${name}` in `${env}`.
@@ -203,6 +207,22 @@ environment "production" {
     # an sample secret, will be written to secrets/api-admin/API_URL in Vault
     secret "API_URL" {
       value = "http://localhost:8181"
+    }
+  }
+}
+```
+
+### Consul app KV
+
+```hcl
+environment "production" {
+
+  # application name must match the file name
+  application "api-admin" {
+
+    # cleartext configuration for the application, will be written to /api-admin/threads
+    kv "threads" {
+      value = "10"
     }
   }
 }

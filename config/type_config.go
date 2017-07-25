@@ -23,6 +23,7 @@ type Config struct {
 	VaultSecrets   VaultSecrets
 	VaultAuths     VaultAuths
 	ConsulServices ConsulServices
+	ConsulKVs      ConsulKVs
 }
 
 // NewConfig will create a new Config struct based on a directory
