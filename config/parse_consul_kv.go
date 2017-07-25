@@ -19,15 +19,24 @@ func (c *Config) processConsulKV(list *ast.ObjectList, env *Environment, app *Ap
 			return err
 		}
 
-		if len(kvAST.Keys) != 1 {
+		if len(kvAST.Keys) == 0 {
 			return fmt.Errorf("Missing kv path in line %+v", kvAST.Keys[0].Pos())
 		}
 
 		key := kvAST.Keys[0].Token.Value().(string)
 
-		value, err := getKeyString("value", x)
-		if err != nil {
-			return err
+		var value string
+
+		if len(kvAST.Keys) == 1 {
+			var err error
+			value, err = getKeyString("value", x)
+			if err != nil {
+				return err
+			}
+		} else if len(kvAST.Keys) == 2 {
+			value = kvAST.Keys[1].Token.Value().(string)
+		} else {
+			return fmt.Errorf("Invalid number of parameter (%+v) on kv in line %+v", len(kvAST.Keys), kvAST.Keys[0].Pos())
 		}
 
 		kv := &ConsulKV{

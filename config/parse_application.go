@@ -45,7 +45,7 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 			return err
 		}
 
-		log.Debug("    Scanning for KV")
+		log.Debug("    Scanning for consul KV")
 		if err := c.processConsulKV(x.Filter("kv"), environment, application); err != nil {
 			return err
 		}

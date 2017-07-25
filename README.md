@@ -216,13 +216,21 @@ environment "production" {
 
 ```hcl
 environment "production" {
+  kv "name" "production" {}
 
   # application name must match the file name
   application "api-admin" {
 
-    # cleartext configuration for the application, will be written to /api-admin/threads
-    kv "threads" {
-      value = "10"
+    # cleartext shorthand configuration for the application, will be written to /api-admin/threads
+    kv "threads" "10" {}
+
+    # cleartext configuration for the application, will be written to /api-admin/config
+    kv "config" {
+      value = <<EOF
+Some
+file
+value!
+EOF
     }
   }
 }
