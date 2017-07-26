@@ -21,5 +21,9 @@ func PushAllWithConfig(cli *cli.Context, config *cfg.Config) error {
 		return err
 	}
 
+	if err := KVPushWithConfig(cli, config); err != nil {
+		return err
+	}
+
 	return nil
 }

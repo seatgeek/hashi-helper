@@ -232,6 +232,13 @@ func main() {
 				return consulCommand.ServicesPush(c)
 			},
 		},
+		{
+			Name:  "consul-push-kv",
+			Usage: "Push all known consul kv to remote Consul cluster",
+			Action: func(c *cli.Context) error {
+				return consulCommand.KVPush(c)
+			},
+		},
 	}
 	app.Before = func(c *cli.Context) error {
 		// convert the human passed log level into logrus levels
