@@ -1,0 +1,50 @@
+sudo: required
+
+language: go
+
+go:
+  - 1.8
+
+services:
+  - docker
+
+cache:
+  directories:
+    - backend/vendor/github.com
+    - backend/vendor/go4.org
+    - backend/vendor/golang.org
+    - backend/vendor/gopkg.in
+
+env:
+  global:
+    - CGO_ENABLED=0
+    - GOBUILD="linux-amd64 windows-amd64 darwin-amd64"
+    # DOCKER_USER
+    - secure: "g4CIzKlS/0TXuV5QUG9wX43FYcMTZMhRYIprHWFeaMzVLD4igzZeh+nkW2xm0nuXX6JbYTWF59B8kYFFJWYBDw+gUIWwzL2c7cPE7eCDUx8e1juiOuUGLMUTo+/Bbv0gfvcw5kWVeUEQ5kYM8sRFCZfFzroFRYaSIL0e6nNhIX4joN+IhU20MK+2dUf38cLia4/P3Hc16WpDpLMGPFKeReY9GOoQHMt5AmpHT2TXQpUH0bmeALZ3lq9rnBVivCKhrnYzf1TCF5M5+hpRV0cxG1sFhfgXF2vCl8lGtJTOlZkOEkuXujV/V5QY8P2jC8LOX9pFGHtZ9QJ31X+U5VW0RvSr6qTVCNMcm3WSWSnI+aUYnTN8DQDSy4G6nd39uvOm9dhbf78gGbobDEHzyCfWkSq6EYdFoAtRMSDyDQxyBfnXPQZw0IiWBffDYjs+W8uV641mKypqFwMqgcRraKOFoWyr5evDYe+b2KEwRnOz0mFqtqs2RemKPbh/eACn4CxZGjTjjxiat1+fjcT7dtsEF4CinjYFDiZQL2PgFEv2mZ6RtHHQQRUJJ0GtrVj9EGQuCs/foLofbAsp/4fQWuejPobDEUWb4QNV14QUVTWyl4MDsfNnCABi9msp2mU8Jg0Fk7gAQ81C/+/L3yYAZY5mkMMow4I4irqmLpVggkwvWJM="
+    # DOCKER_PASS
+    - secure: "GYbB1rILVLa3SyuZbqunukI8fO/QSPcjXl/RmklzVAlZXeKePs8dHYljC96zk3psXw9SL9y4H/uHLc9xItjLCtrbyn7jur++MX/7DqJlvLHlx+B/wezPCbP8uzd+yGRhdjQ4Bme0UoxwIYK4jMCy0ewsu7fh7++OQFKJ3LiUAfnASw7m9m2piyP3MMld5JyqZtfj0GOca5NyNucrXa9dp6rrE5WkTCSK6GTf+tJ9XKGv5fDsRXRbPIqaRDQWhL2UO+dNzxVP7cLsi+2+QIr0Wjwwlvy2pcn14uq8SwvcbvWoak9YV0smDfVautX39+4Sb4aeWd9PmZF0Vj9euuQIBsgh6AnOHaCGuqsv4rZXcSOc01/Qg5Gto4QnvUMzfu7UNqNUBDhUO8jDMJ2w5CgwCZHFByRPYGuhLRZFxdPgTU8ZG4LaZbJ9e84L3+1HhjfcNpy0tMtHmuuUc4jKoYgDDY3QbzvhdT8MFPuY0pvBUNYXovT1lSua36BJnOZKut0Pj8v+lnNRVbV5jJNNQQ7o9zsjup2HmJJMFnF+eLDkn4D8/jLu014TvY8JAIIrGH6dLELVXbcUVyDans9LHJ76eBOBmIGxPGHBF13rnhCPK+LF65tqRpIi+1yZifSmmx2vHLWJkBLMR6WsqNS2upzLCQ7P/fL66N/2R8xzXPJzBjw="
+
+script:
+  - GOBUILD=${GOBUILD} make -j dist
+  - ls -la build
+
+after_success:
+  - export PR=https://api.github.com/repos/$TRAVIS_REPO_SLUG/pulls/$TRAVIS_PULL_REQUEST
+  - export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo `curl -s $PR | jq -r .head.ref`; fi)
+  - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then make -j docker DOCKER_USER=$DOCKER_USER DOCKER_PASS=$DOCKER_PASS TAG=pr-$TRAVIS_PULL_REQUEST COMMIT=$TRAVIS_COMMIT; fi
+  - if [[ "$TRAVIS_TAG" =~ ^v.*$ ]]; then make -j docker DOCKER_USER=$DOCKER_USER DOCKER_PASS=$DOCKER_PASS TAG=$TRAVIS_TAG COMMIT=$TRAVIS_COMMIT; fi
+  - if [[ "$BRANCH" == "master" ]]; then make -j docker DOCKER_USER=$DOCKER_USER DOCKER_PASS=$DOCKER_PASS TAG=latest COMMIT=$TRAVIS_COMMIT; fi
+
+deploy:
+  provider: releases
+  api_key:
+    secure: iUEYgokutOO6dve8VEB6ZGzq2zaSczgg16HN01/Wb3R2j+YGwdm7Gwy9xB/QdEz9UPdBhZSpKzT6MzI3HCt5YliBdrbEsV3QTuLR5yVDegDwBpfHwxA+R8VjXKJPi65HZhnmCmsxhDwzPn1B01nzQVRvSz8hR/5J0Y+L6h37V10niuK0b5bsopucfyTvrhIZRoWVjvDOMJSiV4g9smEbPE3egdlLP+GEezIE2daSUdGdnfpVJk2VqfrHCU6n0gz1Dpv0+fSkGg/ypbNBmTOu4jnfklXuUhqdyLAr+gJW3bNnZDNVBK/Fa8Mp5kOKrPwGdbPfrjUo0KHipT3caDIGGAzgQZF21CiWzXOmzyW1cUXAO1OhFG8ZJNnyWFQ7dbxjTN5meyEOvTaxDi4rECsjblFj5m6JaexQwDy9lC1wm5vDxTC9dVG/ZcEXgtGOfJu/qOw44Bj/MIomc1mxVCjVB82MZBkUopGXRDm+kDSWkmXlD/NIUV00t6i7q33AkR0rCMqg7f/a5yHp/AlCR6mH/8PQe9GLxBrCUq2ufzLZmA9valRr/5/H8KQvDPhDI10+Df8fusBfH/iLKUOjC9TCN9at1KUQOvS467sM/nJSI0XsotWFGalkyytogfMxaXzuwSob/YgGf1aGTXmjjubiM96YHF8cUVLC623gGAHBoeQ=
+  file:
+    - build/hashi-helper-linux-amd64
+    - build/hashi-helper-windows-amd64
+    - build/hashi-helper-darwin-amd64
+  skip_cleanup: true
+  overwrite: true
+  on:
+    tags: true
+    repo: seatgeek/hashi-helper
