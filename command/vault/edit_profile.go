@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+    log "github.com/Sirupsen/logrus"
 
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -53,8 +54,12 @@ func EditProfile(c *cli.Context) error {
 	editCmd := exec.Command(editor, flags...)
 	editErr := editCmd.Run()
 	if editErr != nil {
+		log.Info("editErr %s\n", editErr)
+		log.Info(editErr)
 		return editErr
 	}
+
+	log.Info("finish edit%s\n", editCmd)
 
 	// backup the old file
 	if backup {
