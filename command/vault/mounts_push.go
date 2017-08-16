@@ -46,7 +46,7 @@ func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
 
 		mountLogicalName := mount.Name + "/"
 		if _, ok := mounts[mountLogicalName]; !ok {
-			
+			log.Printf("Creating mount %s", mountLogicalName)
 			err := client.Sys().Mount(mount.Name, mount.MountInput())
 			if err != nil {
 				log.Fatal(err)
