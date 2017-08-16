@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/mitchellh/mapstructure"
@@ -16,7 +15,7 @@ func (c *Config) processVaultMounts(list *ast.ObjectList, environment *Environme
 	for _, mountAST := range list.Items {
 		x := mountAST.Val.(*ast.ObjectType).List
 
-		valid := []string{"config", "role", "type", "path"}
+		valid := []string{"config", "role", "type", "path", "maxleasettl"}
 		if err := checkHCLKeys(x, valid); err != nil {
 			return err
 		}
@@ -38,10 +37,18 @@ func (c *Config) processVaultMounts(list *ast.ObjectList, environment *Environme
 
 			mountType := typeAST.Items[0].Val.(*ast.LiteralType).Token.Value().(string)
 
+			mountmaxttl:=""
+			max_ttl_AST := x.Filter("maxleasettl")
+
+			if len(max_ttl_AST.Items) == 1 {
+				mountmaxttl = max_ttl_AST.Items[0].Val.(*ast.LiteralType).Token.Value().(string)
+			}
+
 			mount = &Mount{
 				Name:        mountName,
 				Type:        mountType,
 				Environment: environment,
+				MaxLeaseTTL: mountmaxttl,
 			}
 		}
 

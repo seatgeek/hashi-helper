@@ -19,6 +19,7 @@ func (m *Mount) MountInput() *api.MountInput {
 	return &api.MountInput{
 		Type:        m.Type,
 		Description: m.Description,
+		Config:		 api.MountConfigInput{MaxLeaseTTL:m.MaxLeaseTTL},
 	}
 }
 
