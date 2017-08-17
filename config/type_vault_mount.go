@@ -10,6 +10,7 @@ type Mount struct {
 	Description     string
 	DefaultLeaseTTL string
 	MaxLeaseTTL     string
+	ForceNoCache    bool
 	Config          []*MountConfig
 	Roles           MountRoles
 }
@@ -19,7 +20,11 @@ func (m *Mount) MountInput() *api.MountInput {
 	return &api.MountInput{
 		Type:        m.Type,
 		Description: m.Description,
-		Config:      api.MountConfigInput{MaxLeaseTTL:m.MaxLeaseTTL},
+		Config: api.MountConfigInput{
+			DefaultLeaseTTL: m.DefaultLeaseTTL,
+			MaxLeaseTTL:     m.MaxLeaseTTL,
+			ForceNoCache:    m.ForceNoCache,
+		},
 	}
 }
 

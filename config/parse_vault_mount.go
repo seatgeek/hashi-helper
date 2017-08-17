@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/mitchellh/mapstructure"
@@ -15,7 +16,7 @@ func (c *Config) processVaultMounts(list *ast.ObjectList, environment *Environme
 	for _, mountAST := range list.Items {
 		x := mountAST.Val.(*ast.ObjectType).List
 
-		valid := []string{"config", "role", "type", "path", "maxleasettl"}
+		valid := []string{"config", "role", "type", "path", "max_lease_ttl", "default_lease_ttl", "force_no_cache"}
 		if err := checkHCLKeys(x, valid); err != nil {
 			return err
 		}
@@ -34,21 +35,39 @@ func (c *Config) processVaultMounts(list *ast.ObjectList, environment *Environme
 			if len(typeAST.Items) != 1 {
 				return fmt.Errorf("missing mount type in %s -> %s", environment.Name, mountName)
 			}
-
 			mountType := typeAST.Items[0].Val.(*ast.LiteralType).Token.Value().(string)
 
-			mountmaxttl:=""
-			max_ttl_AST := x.Filter("maxleasettl")
+			mountMaxLeaseTTL := ""
+			maxTTLAST := x.Filter("max_lease_ttl")
+			if len(maxTTLAST.Items) == 1 {
+				mountMaxLeaseTTL = maxTTLAST.Items[0].Val.(*ast.LiteralType).Token.Value().(string)
+			} else if len(maxTTLAST.Items) > 1 {
+				return fmt.Errorf("You can only specify max_lease_ttl once per mount in %s -> %s", environment.Name, mountName)
+			}
 
-			if len(max_ttl_AST.Items) == 1 {
-				mountmaxttl = max_ttl_AST.Items[0].Val.(*ast.LiteralType).Token.Value().(string)
+			mountDefaultLeaseTTL := ""
+			defaultTTLAST := x.Filter("default_lease_ttl")
+			if len(defaultTTLAST.Items) == 1 {
+				mountMaxLeaseTTL = defaultTTLAST.Items[0].Val.(*ast.LiteralType).Token.Value().(string)
+			} else if len(defaultTTLAST.Items) > 1 {
+				return fmt.Errorf("You can only specify default_lease_ttl once per mount in %s -> %s", environment.Name, mountName)
+			}
+
+			mountForceNoCache := false
+			forceNoCacheAST := x.Filter("force_no_cache")
+			if len(forceNoCacheAST.Items) == 1 {
+				mountForceNoCache = defaultTTLAST.Items[0].Val.(*ast.LiteralType).Token.Value().(bool)
+			} else if len(forceNoCacheAST.Items) > 1 {
+				return fmt.Errorf("You can only specify force_no_cache once per mount in %s -> %s", environment.Name, mountName)
 			}
 
 			mount = &Mount{
-				Name:        mountName,
-				Type:        mountType,
-				Environment: environment,
-				MaxLeaseTTL: mountmaxttl,
+				Name:            mountName,
+				Type:            mountType,
+				Environment:     environment,
+				MaxLeaseTTL:     mountMaxLeaseTTL,
+				DefaultLeaseTTL: mountDefaultLeaseTTL,
+				ForceNoCache:    mountForceNoCache,
 			}
 		}
 
