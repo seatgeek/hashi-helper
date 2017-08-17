@@ -332,6 +332,15 @@ environment "production" {
     # the mount backend type to use (see Vault docs)
     type = "database"
 
+    # optional string
+    max_lease_ttl     = "1h"
+
+    # optional string
+    default_lease_ttl = "1h"
+
+    # optional boolean
+    force_no_cache    = true
+
     # mount configuration, see Vault docs for details
     config "default" {
       plugin_name    = "mysql-rds-database-plugin"
