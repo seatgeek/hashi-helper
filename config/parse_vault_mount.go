@@ -40,7 +40,13 @@ func (c *Config) processVaultMounts(list *ast.ObjectList, environment *Environme
 			mountMaxLeaseTTL := ""
 			maxTTLAST := x.Filter("max_lease_ttl")
 			if len(maxTTLAST.Items) == 1 {
-				mountMaxLeaseTTL = maxTTLAST.Items[0].Val.(*ast.LiteralType).Token.Value().(string)
+				v := maxTTLAST.Items[0].Val.(*ast.LiteralType).Token.Value()
+				switch t := v.(type) {
+				default:
+					return fmt.Errorf("unexpected type %T for %s -> %s -> max_lease_ttl", environment.Name, mountName, t)
+				case string:
+					mountMaxLeaseTTL = v.(string)
+				}
 			} else if len(maxTTLAST.Items) > 1 {
 				return fmt.Errorf("You can only specify max_lease_ttl once per mount in %s -> %s", environment.Name, mountName)
 			}
@@ -48,7 +54,13 @@ func (c *Config) processVaultMounts(list *ast.ObjectList, environment *Environme
 			mountDefaultLeaseTTL := ""
 			defaultTTLAST := x.Filter("default_lease_ttl")
 			if len(defaultTTLAST.Items) == 1 {
-				mountMaxLeaseTTL = defaultTTLAST.Items[0].Val.(*ast.LiteralType).Token.Value().(string)
+				v := defaultTTLAST.Items[0].Val.(*ast.LiteralType).Token.Value()
+				switch t := v.(type) {
+				default:
+					return fmt.Errorf("unexpected type %T for %s -> %s -> default_lease_ttl", environment.Name, mountName, t)
+				case string:
+					mountDefaultLeaseTTL = v.(string)
+				}
 			} else if len(defaultTTLAST.Items) > 1 {
 				return fmt.Errorf("You can only specify default_lease_ttl once per mount in %s -> %s", environment.Name, mountName)
 			}
@@ -56,7 +68,13 @@ func (c *Config) processVaultMounts(list *ast.ObjectList, environment *Environme
 			mountForceNoCache := false
 			forceNoCacheAST := x.Filter("force_no_cache")
 			if len(forceNoCacheAST.Items) == 1 {
-				mountForceNoCache = defaultTTLAST.Items[0].Val.(*ast.LiteralType).Token.Value().(bool)
+				v := forceNoCacheAST.Items[0].Val.(*ast.LiteralType).Token.Value()
+				switch t := v.(type) {
+				default:
+					return fmt.Errorf("unexpected type %T for %s -> %s -> force_no_cache", environment.Name, mountName, t)
+				case bool:
+					mountForceNoCache = v.(bool)
+				}
 			} else if len(forceNoCacheAST.Items) > 1 {
 				return fmt.Errorf("You can only specify force_no_cache once per mount in %s -> %s", environment.Name, mountName)
 			}
