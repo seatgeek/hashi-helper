@@ -3,7 +3,6 @@ package vault
 import (
 	"bufio"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 
@@ -36,7 +35,7 @@ func FindToken(c *cli.Context) error {
 	wg := sync.WaitGroup{}
 	wg.Add(len(accessors))
 
-	for i := 0; i < runtime.NumCPU(); i++ {
+	for i := 0; i < 16; i++ {
 		go func(i int) {
 			log.Debugf("Starting indexer %d", i)
 
@@ -51,6 +50,7 @@ func FindToken(c *cli.Context) error {
 					}
 
 					if filterToken(token.Data, c) {
+						log.Debugf("Accessor %s did not match filtering rules", accessorString)
 						wg.Done()
 						continue
 					}
@@ -106,8 +106,8 @@ func FindToken(c *cli.Context) error {
 		}
 	}()
 
-	log.Info("Waiting ...")
 	wg.Wait()
+	log.Info("Done")
 
 	return nil
 }
