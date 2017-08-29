@@ -38,7 +38,7 @@ func FindToken(c *cli.Context) error {
 
 	for i := 0; i < runtime.NumCPU(); i++ {
 		go func(i int) {
-			log.Infof("Starting indexer %d", i)
+			log.Debugf("Starting indexer %d", i)
 
 			for {
 				select {
