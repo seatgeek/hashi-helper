@@ -90,6 +90,10 @@ Filter flags:
 
 `--filter-policy root` will only match tokens that have the policy `root`
 
+`--filter-path auth/github/login` will only match tokens that have the path `auth/github/login`
+
+`--filter-meta-username jippi` will only match tokens that have the `meta[username]` value `jippi` (GitHub auth backend injects this, as an example)
+
 `--filter-orphan` will only match tokens that are orphaned
 
 Action flags:

@@ -208,6 +208,14 @@ func main() {
 					Name:  "filter-policy",
 					Usage: "Only match tokens that have this policy",
 				},
+				cli.StringFlag{
+					Name:  "filter-path",
+					Usage: "Only match tokens that was created from this path",
+				},
+				cli.StringFlag{
+					Name:  "filter-meta-username",
+					Usage: "Only match tokens from matching meta[username] (e.g. from GitHub auth backend)",
+				},
 				cli.BoolFlag{
 					Name:  "filter-orphan",
 					Usage: "Only match tokens that are orphans",

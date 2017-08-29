@@ -3,7 +3,9 @@ package vault
 import (
 	"bufio"
 	"os"
+	"runtime"
 	"strings"
+	"sync"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/vault/api"
@@ -28,42 +30,94 @@ func FindToken(c *cli.Context) error {
 	log.Infof("Found %d possible tokens, beging scanning each ...", len(accessors))
 	log.Info("")
 
-	for _, accessorString := range accessors {
-		token, err := tokenReader.LookupAccessor(accessorString)
-		if err != nil {
-			log.Errorf("Could not lookup accessor %s: %s", accessorString, err)
-			continue
-		}
+	inCh := make(chan string, 9999)
+	outCh := make(chan *api.Secret, 9999)
 
-		if filterToken(token.Data, c) {
-			continue
-		}
+	wg := sync.WaitGroup{}
+	wg.Add(len(accessors))
 
-		log.Infof("Found token: %s", token.Data["display_name"])
-		log.Infof("  policies         : %s", getPolicies(token.Data))
-		log.Infof("  orphan           : %t", token.Data["orphan"])
-		log.Infof("  renewable        : %t", token.Data["renewable"])
-		log.Infof("  path             : %s", token.Data["path"])
-		log.Infof("  creation_time    : %s", token.Data["creation_time"])
-		log.Infof("  ttl              : %s", token.Data["ttl"])
-		log.Infof("  creation_ttl     : %s", token.Data["creation_ttl"])
-		log.Infof("  explicit_max_ttl : %s", token.Data["explicit_max_ttl"])
-		log.Infof("  num_uses         : %s", token.Data["num_uses"])
-		log.Info("")
+	for i := 0; i < runtime.NumCPU(); i++ {
+		go func(i int) {
+			log.Infof("Starting indexer %d", i)
 
-		if c.Bool("delete-matches") {
-			if confirm("Are you sure you want to delete this token?") {
-				if err := tokenReader.RevokeAccessor(accessorString); err != nil {
-					log.Errorf("Could not delete token: %s", err)
+			for {
+				select {
+				case accessorString := <-inCh:
+					token, err := tokenReader.LookupAccessor(accessorString)
+					if err != nil {
+						log.Errorf("Could not lookup accessor %s: %s", accessorString, err)
+						wg.Done()
+						continue
+					}
+
+					if filterToken(token.Data, c) {
+						wg.Done()
+						continue
+					}
+
+					outCh <- token
 				}
-				log.Info("Successfully deleted token")
-			} else {
-				log.Info("Skipping delete")
 			}
-		}
+		}(i)
 	}
 
+	go func() {
+		for _, accessorString := range accessors {
+			inCh <- accessorString
+		}
+	}()
+
+	go func() {
+		for {
+			select {
+			case token := <-outCh:
+				log.Infof("Found token: %s", token.Data["display_name"])
+				log.Infof("  policies           : %s", getPolicies(token.Data))
+				log.Infof("  orphan             : %t", token.Data["orphan"])
+				log.Infof("  renewable          : %t", token.Data["renewable"])
+				log.Infof("  path               : %s", token.Data["path"])
+				log.Infof("  creation_time      : %s", token.Data["creation_time"])
+				log.Infof("  ttl                : %s", token.Data["ttl"])
+				log.Infof("  creation_ttl       : %s", token.Data["creation_ttl"])
+				log.Infof("  explicit_max_ttl   : %s", token.Data["explicit_max_ttl"])
+				log.Infof("  num_uses           : %s", token.Data["num_uses"])
+
+				if meta, ok := token.Data["meta"]; ok {
+					for k, v := range meta.(map[string]interface{}) {
+						log.Infof("  meta[%s] %s: %v", k, strings.Repeat(" ", max(0, 12-len(k))), v)
+					}
+				}
+
+				log.Info("")
+
+				if c.Bool("delete-matches") {
+					if confirm("Are you sure you want to delete this token?") {
+						if err := tokenReader.RevokeAccessor(token.Data["accessor"].(string)); err != nil {
+							log.Errorf("Could not delete token: %s", err)
+						}
+						log.Info("Successfully deleted token")
+					} else {
+						log.Info("Skipping delete")
+					}
+				}
+
+				wg.Done()
+			}
+		}
+	}()
+
+	log.Info("Waiting ...")
+	wg.Wait()
+
 	return nil
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+
+	return b
 }
 
 func confirm(message string) bool {
@@ -106,7 +160,32 @@ func filterToken(data map[string]interface{}, c *cli.Context) bool {
 		return true
 	}
 
+	// filter on path for the token
+	if path := c.String("filter-path"); path != "" && !strings.Contains(data["path"].(string), path) {
+		return true
+	}
+
+	// filter on meta key "username"
+	if username := c.String("filter-meta-username"); username != "" && username != getMetaKey(data, "username") {
+		return true
+	}
+
 	return false
+}
+
+func getMetaKey(data map[string]interface{}, key string) string {
+	metaRaw, ok := data["meta"]
+	if !ok || metaRaw == nil {
+		return ""
+	}
+
+	meta := metaRaw.(map[string]interface{})
+	keyValueRaw, ok := meta[key]
+	if !ok || keyValueRaw == nil {
+		return ""
+	}
+
+	return keyValueRaw.(string)
 }
 
 func contains(slice []string, item string) bool {
