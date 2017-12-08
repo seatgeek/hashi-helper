@@ -57,6 +57,12 @@ func main() {
 			EnvVar:      "APPLICATION",
 			Destination: &config.TargetApplication,
 		},
+		cli.BoolFlag{
+		  Name:        "warn-unencrypted",
+		  Usage:       "Issue a warning if unencrypted HCL files are discovered",
+		  EnvVar:      "WARN_UNENCRYPTED",
+		  Destination: &config.WarnUnencrypted,
+		},
 	}
 	app.Commands = []cli.Command{
 		{

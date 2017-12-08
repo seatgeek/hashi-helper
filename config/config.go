@@ -8,3 +8,6 @@ var TargetEnvironment string
 
 // TargetApplication ...
 var TargetApplication string
+
+// WarnUnencrypted ...
+var WarnUnencrypted bool

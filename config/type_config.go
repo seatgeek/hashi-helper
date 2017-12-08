@@ -121,6 +121,9 @@ func (c *Config) AddFile(file string) error {
 
 	} else {
 		// unencrypted files
+    if WarnUnencrypted == true {
+      log.Warnf("Found unencrypted file: %s", file)
+    }
 		log.Debugf("Parsing file %s", file)
 		configContent = string(configContentRaw)
 		if err != nil {

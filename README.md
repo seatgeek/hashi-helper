@@ -1,21 +1,8 @@
-# This fork of `hashi-helper`
+# hashi-helper
 
-This fork extends [seatgeek's `hashi-helper`](https://github.com/seatgeek/hashi-helper) by decrypting and parsing configuration files which have been encrypted (on disk) via [Keybase](https://keybase.io/).
+`hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share `hcl` format.
 
-## New features
-
-`hashi-helper` inspects each ingested HCL file for `-----BEGIN PGP MESSAGE-----`  and attempts to decrypt it (in memory only) with Keybase if possible. If decryption succeeds, it pushes the cleartext payload to Vault (or Consul) via the existing method. `hashi-helper` does not place any unencrypted content on disk. This workflow assumes Keybase was employed (separately) to encrypt the HCL files on disk.
-
-## To do
-
-- Enable generic PGP-encrypted file editing (extend `vault-profile-edit`).
-- Add optional warning for unencrypted HCL files.
-
-***
-
-# hashi-helper (original documentation)
-
-`hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
+`hashi-helper` inspects each ingested `hcl` file for `-----BEGIN PGP MESSAGE-----`  and attempts to decrypt it (in memory only) with [Keybase](https://keybase.io/) if possible. If decryption succeeds, it pushes the cleartext payload to Vault (or Consul). `hashi-helper` does not place any unencrypted content on disk. This workflow assumes Keybase was employed (separately) to encrypt the `hcl` files on disk. Optionally, `hashi-helper` will warn if it encounters an _unencrypted_ `hcl` file.  
 
 ## Requirements
 
@@ -60,6 +47,7 @@ hashi-helper [--global-flags] command [--command-flags]
 - `--config-file` / `CONFIG_FILE`: A single `hcl` configuration file to parse instead of a directory (optional; default: `<empty>`)
 - `--environment` / `ENVIRONMENT`: The environment to process for (optional; default: `all`)
 - `--application` / `APPLICATION`: The application to process for (optional; default: `all`)
+- `--warn-unencrypted` / `WARN_UNENCRYPTED`: Issue a warning if unencrypted HCL files are discovered.
 
 ### Global Commands
 
