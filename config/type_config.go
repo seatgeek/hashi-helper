@@ -1,9 +1,11 @@
 package config
 
 import (
+  "bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 
 	"strings"
 
@@ -89,15 +91,45 @@ func (c *Config) ScanDirectory(directory string) error {
 
 // AddFile to the config struct
 func (c *Config) AddFile(file string) error {
-	log.Debugf("Parsing file %s", file)
 
-	configContent, err := ioutil.ReadFile(file)
-	if err != nil {
-		return err
+  var encryptedHcl bool = false
+	var configContent string = ""
+	configContentRaw, err := ioutil.ReadFile(file)
+
+	// look for file contents indicating an encrypted payload
+	if strings.Contains(string(configContentRaw), "-----BEGIN PGP MESSAGE-----") {
+		encryptedHcl = true
+	}
+
+	if encryptedHcl == true {
+		// files encrypted with Keybase pgp (similar to Vault profiles file)
+		log.Debugf("Decrypting file %s", file)
+		cmd := exec.Command("keybase", "pgp", "decrypt", "--infile", file)
+
+		var stdout bytes.Buffer
+		cmd.Stdout = &stdout
+
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return fmt.Errorf("Failed to run keybase gpg decrypt: %s - %s", err, stderr.String())
+		}
+
+		configContent = string(stdout.Bytes())
+
+	} else {
+		// unencrypted files
+		log.Debugf("Parsing file %s", file)
+		configContent = string(configContentRaw)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Parse into HCL AST
-	root, hclErr := hcl.Parse(string(configContent))
+	root, hclErr := hcl.Parse(configContent)
 	if hclErr != nil {
 		return fmt.Errorf("Could not parse file %s: %s", file, hclErr)
 	}

@@ -15,8 +15,8 @@ import (
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "vault-manager"
-	app.Usage = "easily restore / snapshot your secrets"
+	app.Name = "hashi-helper"
+	app.Usage = "Manage cleartext and encrypted secrets, configuration, and more for Vault and Consul."
 	app.Version = "0.1"
 
 	app.Flags = []cli.Flag{

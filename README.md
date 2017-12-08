@@ -1,4 +1,19 @@
-# hashi-helper
+# This fork of `hashi-helper`
+
+This fork extends [seatgeek's `hashi-helper`](https://github.com/seatgeek/hashi-helper) by decrypting and parsing configuration files which have been encrypted (on disk) via [Keybase](https://keybase.io/).
+
+## New features
+
+`hashi-helper` inspects each ingested HCL file for `-----BEGIN PGP MESSAGE-----`  and attempts to decrypt it (in memory only) with Keybase if possible. If decryption succeeds, it pushes the cleartext payload to Vault (or Consul) via the existing method. `hashi-helper` does not place any unencrypted content on disk. This workflow assumes Keybase was employed (separately) to encrypt the HCL files on disk.
+
+## To do
+
+- Enable generic PGP-encrypted file editing (extend `vault-profile-edit`).
+- Add optional warning for unencrypted HCL files.
+
+***
+
+# hashi-helper (original documentation)
 
 `hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
 
