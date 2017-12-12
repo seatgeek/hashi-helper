@@ -2,7 +2,9 @@
 
 `hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share `hcl` format.
 
-`hashi-helper` inspects each ingested `hcl` file for `-----BEGIN PGP MESSAGE-----`  and attempts to decrypt it (in memory only) with [Keybase](https://keybase.io/) if possible. If decryption succeeds, it pushes the cleartext payload to Vault (or Consul). `hashi-helper` does not place any unencrypted content on disk. This workflow assumes Keybase was employed (separately) to encrypt the `hcl` files on disk. Optionally, `hashi-helper` will warn if it encounters an _unencrypted_ `hcl` file.  
+`hashi-helper` inspects each ingested `hcl` file for `-----BEGIN PGP MESSAGE-----`  and attempts to decrypt it (in memory only) with [Keybase](https://keybase.io/) if possible. If decryption succeeds, it pushes the cleartext payload to Vault (or Consul). This workflow assumes Keybase was employed (separately, or via `edit-file`) to encrypt the `hcl` files on disk. Optionally, `hashi-helper` will warn if it encounters an _unencrypted_ `hcl` file.  
+
+`hashi-helper` has the ability to edit any existing file which has been encrypted with Keybase PGP including Vault and Consul `hcl` configuration files, and its own `YAML` configuration file. Optionally, edited files can be re-encrypted and signed using multiple Keybase PGP identities bases on a specific Keybase _team name_. This is useful when committing encrypted Vault / Consul files to source control and other team members need to decrypt and edit these files in your absence.
 
 ## Requirements
 
@@ -33,6 +35,24 @@ The following environment variables are required for setting configuration and k
 - `VAULT_ADDR` environment variable (example: `http://127.0.0.1:8200`)
 - `CONSUL_ADDR_HTTP` environment variable (example: `http://127.0.0.1:8500`)
 
+The following may be optionally set in `~/.hashi-helper-config.pgp` / `$HASHIHELPER_CONFIG_FILE`, a Keybase PGP-encrypted YAML file containing details about Vault server configurations and preferences for handling encrypted files:
+```yml
+---
+vault_profile_name_1:
+  server: http://<ip>:8200
+  token: <your token>
+vault_profile_name_2:
+  server: http://<ip>:8200
+  token: <your token>
+...
+encrypted-file-config:
+  keybase-team-name: < your keybase team name >
+  editor: < your favorite editor > # defaults to $EDITOR, then pico
+...
+```
+Note that when used with the `--use-keybase-team` global flag below, `keybase-team-name` will be used to create a Keybase PGP identity member list, and each members' PGP identity will be used when re-encrypting and re-signing files.
+
+
 ## Usage
 
 ```shell
@@ -48,12 +68,21 @@ hashi-helper [--global-flags] command [--command-flags]
 - `--environment` / `ENVIRONMENT`: The environment to process for (optional; default: `all`)
 - `--application` / `APPLICATION`: The application to process for (optional; default: `all`)
 - `--warn-unencrypted` / `WARN_UNENCRYPTED`: Issue a warning if unencrypted HCL files are discovered.
+- `--use-keybase-team` / `USE_KEYBASE_TEAM`: Use the keybase team name in `.hashi-helper-config.pgp` to re-sign encrypted hcl files post-edit. **Only** used with global command `edit-encrypted-file`. Note this does not affect nor apply to editing `.hashi-helper-config.pgp` itself.
 
 ### Global Commands
 
 #### `push-all`
 
 Push all Consul and Vault data to remote servers (same as running `vault-push-all` and `consul-push-all`)
+
+#### `edit-file < file name >`
+
+Edit any Keybase PGP-encrypted `hcl` configuration file `< file name >` with editor specified in `.hashi-helper-config.pgp` `encrypted-hcl-config:  editor:` block, or `$EDITOR` environment variable, or `pico` (in that order). File is decrypted, the external editor invoked, and re-encrypted post-edit. All temporary files are deleted.
+
+This may be used to edit the `hashi-helper` config file itself (`~/.hashi-helper-config.pgp` / `$HASHIHELPER_CONFIG_FILE`) and may optionally be paired with `--use-keybase-team`. When used to edit the `hashi-helper` config file, this functionality is equivalent to `vault-profile-edit`.
+
+If `< file name >` does not exist, a new file will be created. 
 
 ### Consul
 
@@ -111,23 +140,13 @@ Add `--detailed` / `DETAILED` to show secret data rather than just the key names
 
 #### `vault-profile-edit`
 
-Decrypt (or create), open and encrypt the secure `VAULT_PROFILE_FILE` (`~/.vault_profiles.pgp`) file containing your vault clusters
+Replaced by `hashi-helper edit-file ~/.hashi-helper-config.pgp`.
 
-File format is as described below, a simple yaml file
-
-```yml
----
-name_1:
-  server: http://<ip>:8200
-  token: <your token>
-name_2:
-  server: http://<ip>:8200
-  token: <your token>
-```
+Decrypt (or create), open and encrypt the secure `HASHIHELPER_CONFIG_FILE` (`~/.hashi-helper-config.pgp`) file containing `hashi-helper` configuration, including the collection of Vault profiles which can be used. See `YAML` file snippet example, above.
 
 #### `vault-profile-use`
 
-Decrypt the `VAULT_PROFILE_FILE` and output bash/zsh compatible commands to set `VAULT_ADDR`, `VAULT_TOKEN`, `ENVIRONMENT` based on the profile you selected.
+Decrypt the `HASHIHELPER_CONFIG_FILE` and output bash/zsh compatible commands to set `VAULT_ADDR`, `VAULT_TOKEN`, `ENVIRONMENT` based on the profile you selected in the `hashi-helper` config file.
 
 Example: `$(hashi-helper vault-profile-use name_1)`
 

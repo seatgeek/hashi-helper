@@ -28,7 +28,7 @@ func UseProfile(c *cli.Context) error {
 	}
 
 	var profiles profiles
-	dat, err := getProfileConfig()
+	dat, err := GetProfileConfig()
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func UseProfile(c *cli.Context) error {
 	return nil
 }
 
-func getProfileConfig() ([]byte, error) {
+func GetProfileConfig() ([]byte, error) {
 	cmd := exec.Command("keybase", "pgp", "decrypt", "--infile", getProfileFile())
 
 	var stdout bytes.Buffer
@@ -56,7 +56,7 @@ func getProfileConfig() ([]byte, error) {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
-	fmt.Fprintf(os.Stderr, "# Starting keybase decrypt of %s\n", getProfileFile())
+	fmt.Fprintf(os.Stderr, "\n# Starting keybase decrypt of %s\n\n", getProfileFile())
 	err := cmd.Run()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to run keybase gpg decrypt: %s - %s", err, stderr.String())
@@ -66,9 +66,9 @@ func getProfileConfig() ([]byte, error) {
 }
 
 func getProfileFile() string {
-	path := os.Getenv("VAULT_PROFILE_FILE")
+	path := os.Getenv("HASHIHELPER_CONFIG_FILE")
 	if path == "" {
-		path = os.Getenv("HOME") + "/.vault_profiles.pgp"
+		path = os.Getenv("HOME") + "/.hashi-helper-config.pgp"
 	}
 	return path
 }

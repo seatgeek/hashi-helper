@@ -10,6 +10,7 @@ import (
 	consulCommand "github.com/seatgeek/hashi-helper/command/consul"
 	vaultCommand "github.com/seatgeek/hashi-helper/command/vault"
 	"github.com/seatgeek/hashi-helper/config"
+	"github.com/seatgeek/hashi-helper/command"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -63,13 +64,26 @@ func main() {
 		  EnvVar:      "WARN_UNENCRYPTED",
 		  Destination: &config.WarnUnencrypted,
 		},
+		cli.BoolFlag{
+			Name:        "use-keybase-team",
+			Usage:       "Use the keybase team name in config file to re-sign encrypted files post-edit",
+			EnvVar:      "USE_KEYBASE_TEAM",
+			Destination: &command.UseKeybaseTeam,
+		},
 	}
 	app.Commands = []cli.Command{
 		{
 			Name:  "push-all",
-			Usage: "push all consul and vault settings",
+			Usage: "Push all consul and vault settings",
 			Action: func(c *cli.Context) error {
 				return allCommand.PushAll(c)
+			},
+		},
+		{
+			Name:  "edit-file",
+			Usage: "Edit a Keybase PGP-encrypted file (config file or otherwise)",
+			Action: func(c *cli.Context) error {
+				return allCommand.EditEncryptedFile(c)
 			},
 		},
 		{
