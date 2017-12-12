@@ -68,7 +68,7 @@ hashi-helper [--global-flags] command [--command-flags]
 - `--environment` / `ENVIRONMENT`: The environment to process for (optional; default: `all`)
 - `--application` / `APPLICATION`: The application to process for (optional; default: `all`)
 - `--warn-unencrypted` / `WARN_UNENCRYPTED`: Issue a warning if unencrypted HCL files are discovered.
-- `--use-keybase-team` / `USE_KEYBASE_TEAM`: Use the keybase team name in `.hashi-helper-config.pgp` to re-sign encrypted hcl files post-edit. **Only** used with global command `edit-encrypted-file`. Note this does not affect nor apply to editing `.hashi-helper-config.pgp` itself.
+- `--use-keybase-team` / `USE_KEYBASE_TEAM`: Use the keybase team name in `.hashi-helper-config.pgp` to re-sign encrypted files post-edit.
 
 ### Global Commands
 
@@ -82,7 +82,7 @@ Edit any Keybase PGP-encrypted `hcl` configuration file `< file name >` with edi
 
 This may be used to edit the `hashi-helper` config file itself (`~/.hashi-helper-config.pgp` / `$HASHIHELPER_CONFIG_FILE`) and may optionally be paired with `--use-keybase-team`. When used to edit the `hashi-helper` config file, this functionality is equivalent to `vault-profile-edit`.
 
-If `< file name >` does not exist, a new file will be created. 
+If `< file name >` does not exist, a new file will be created.
 
 ### Consul
 
