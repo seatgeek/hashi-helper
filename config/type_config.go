@@ -67,7 +67,7 @@ func (c *Config) ScanDirectory(directory string) error {
 
 	var result error
 	for _, fi := range fi {
-		if fi.Mode().IsRegular() && strings.HasSuffix(fi.Name(), ".hcl") {
+		if fi.Mode().IsRegular() && (strings.HasSuffix(fi.Name(), ".hcl") || strings.HasSuffix(fi.Name(), ".pgp") ) {
 			if err := c.AddFile(directory + "/" + fi.Name()); err != nil {
 				result = multierror.Append(result, fmt.Errorf("[%s] %s", directory+"/"+fi.Name(), err))
 			}

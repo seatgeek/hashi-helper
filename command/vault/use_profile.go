@@ -68,7 +68,7 @@ func GetProfileConfig() ([]byte, error) {
 func getProfileFile() string {
 	path := os.Getenv("HASHIHELPER_CONFIG_FILE")
 	if path == "" {
-		path = os.Getenv("HOME") + "/.hashi-helper-config.pgp"
+		path = os.Getenv("HOME") + "/.hashi-helper-config.yml.pgp"
 	}
 	return path
 }
