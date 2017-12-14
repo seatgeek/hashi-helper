@@ -32,7 +32,7 @@ func SecretsPushWithConfig(c *cli.Context, config *config.Config) error {
 
 	engine := helper.SecretWriter{}
 	for _, secret := range config.VaultSecrets {
-		err := engine.WriteSecret(secret)
+		err := engine.WriteSecret(secret, env)
 		if err != nil {
 			log.Fatal(err)
 		}
