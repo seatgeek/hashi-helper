@@ -1,4 +1,4 @@
 package command
 
-// UseKeybaseTeam ...
-var UseKeybaseTeam bool
+// NoKeybaseTeam ...
+var NoKeybaseTeam bool

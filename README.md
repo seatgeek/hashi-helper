@@ -47,11 +47,10 @@ vault_profile_name_2:
 ...
 encrypted-file-config:
   keybase-team-name: < your keybase team name >
-  editor: < your favorite editor > # defaults to $EDITOR, then pico
+  editor: < your favorite editor > # defaults to $EDITOR, this, then pico
 ...
 ```
-Note that when used with the `--use-keybase-team` global flag below, `keybase-team-name` will be used to create a Keybase PGP identity member list, and each members' PGP identity will be used when re-encrypting and re-signing files.
-
+Note that if `--no-keybase-team` global flag is set, `keybase-team-name` will be ignored and only the local Keybase PGP profile will be used.
 
 ## Usage
 
@@ -68,7 +67,7 @@ hashi-helper [--global-flags] command [--command-flags]
 - `--environment` / `ENVIRONMENT`: The environment to process for (optional; default: `all`)
 - `--application` / `APPLICATION`: The application to process for (optional; default: `all`)
 - `--warn-unencrypted` / `WARN_UNENCRYPTED`: Issue a warning if unencrypted HCL files are discovered.
-- `--use-keybase-team` / `USE_KEYBASE_TEAM`: Use the keybase team name in `.hashi-helper-config.yml.pgp` to re-sign encrypted files post-edit.
+- `--no-keybase-team` / `NO_KEYBASE_TEAM`: Ignore the Keybase team name in `.hashi-helper-config.yml.pgp` (if set).
 
 ### Global Commands
 
@@ -78,9 +77,9 @@ Push all Consul and Vault data to remote servers (same as running `vault-push-al
 
 #### `edit-file < file name >`
 
-Edit any Keybase PGP-encrypted `hcl.pgp` configuration file `< file name >` with editor specified in `.hashi-helper-config.yml.pgp` `encrypted-hcl-config:  editor:` block, or `$EDITOR` environment variable, or `pico` (in that order). File is decrypted, the external editor invoked, and re-encrypted post-edit. All temporary files are deleted.
+Edit any Keybase PGP-encrypted `hcl.pgp` configuration file `< file name >` with editor specified in the `$EDITOR` environment variable,, or`.hashi-helper-config.yml.pgp` `encrypted-hcl-config:  editor:` block, or `pico` (in that order). File is decrypted, the external editor invoked, and re-encrypted post-edit. All temporary files are deleted.
 
-This may be used to edit the `hashi-helper` config file itself (`~/.hashi-helper-config.yml.pgp` / `$HASHIHELPER_CONFIG_FILE`) and may optionally be paired with `--use-keybase-team`. When used to edit the `hashi-helper` config file, this functionality is equivalent to `vault-profile-edit`.
+This may be used to edit the `hashi-helper` config file itself (`~/.hashi-helper-config.yml.pgp` / `$HASHIHELPER_CONFIG_FILE`) and may optionally be paired with `--no-keybase-team`. When used to edit the `hashi-helper` config file, this functionality is equivalent to `vault-profile-edit`.
 
 If `< file name >` does not exist, a new file will be created.
 
@@ -176,6 +175,10 @@ Write Vault `policy {}` stanza found in `conf.d/` to remote vault server
 
 Write local secrets to remote Vault instance
 
+#### `vault-delete-secrets`
+
+Delete remote secrets from Vault. Leaves local secrets unchanged. Optionally suppress confirmations of each delete with `--skip-confirm`.
+
 #### `vault-unseal-keybase`
 
 Unseal Vault using the raw unseal key from [keybase / gpg init/rekey](https://www.vaultproject.io/docs/concepts/pgp-gpg-keybase.html) .
@@ -202,7 +205,7 @@ The directory structure is laid out like described below:
 - `/${env}/databases/${name}/_mount.hcl` (unencrypted) / `/${env}/databases/${name}/_mount.hcl.pgp` (encrypted) [Vault secret backend](https://www.vaultproject.io/docs/secrets/index.html) configuration for an specific mount `${name}` in `${env}`.
 - `/${env}/databases/${name}/*.hcl` (unencrypted) / `/${env}/databases/${name}/*.hcl.pgp` (encrypted) [Vault secret backend](https://www.vaultproject.io/docs/secrets/index.html) configuration for an specific Vault role belonging to mount `${name}` in `${env}`.
 
-*Note*: `hashi-helper` does not rely on the file extension to determine if a file is encrypted. It inspects the contents of the file. 
+*Note*: `hashi-helper` does not rely on the file extension to determine if a file is encrypted. It inspects the contents of the file.
 
 ### Configuration Examples
 

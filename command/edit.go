@@ -45,21 +45,20 @@ func EditEncryptedFile(c *cli.Context) error {
 		return fmt.Errorf("No encrypted-file-config block found in config file.\n")
 	}
 	// editor
-	editor := preference.Editor
+	editor := os.Getenv("EDITOR")
 	if editor == "" {
-		editor = os.Getenv("EDITOR")
+		editor = preference.Editor
 	}
 	if editor == "" {
 		editor = "pico"
 	}
 	// keybase team
-	var keybaseTeam string = ""
-	if UseKeybaseTeam == true {
-		keybaseTeam = preference.KeybaseTeam
-		if keybaseTeam == "" {
-			UseKeybaseTeam = false
-			log.Warnf("--use-keybase-team set to true but no Keybase Team name found in config file. Not using Keybase Team.\n")
-		}
+	var keybaseTeam string = preference.KeybaseTeam
+	if keybaseTeam == "" && NoKeybaseTeam == false {
+		log.Warnf("No Keybase Team found in config (and --no-keybase-team is unset). Not using Keybase Team.\n")
+	}
+	if NoKeybaseTeam == true {
+		keybaseTeam = ""
 	}
 
 	// create the temporary file
@@ -105,7 +104,7 @@ func EditEncryptedFile(c *cli.Context) error {
 		                         "--i", tempFile.Name(),
 	                           "--o", filePath)
 	log.Infof("Re-encrypting updated %s.\n", filePath)
-	if UseKeybaseTeam == true {
+	if NoKeybaseTeam == false { // I know, a double negative. Sue me.
 		cmd := "keybase team list-members " + keybaseTeam + " | awk '{print $3}' | tr '\\n' ' ' | xargs | tr -d '\\n'"
     memberListCmd := exec.Command("bash", "-c", cmd)
 		var stdout bytes.Buffer

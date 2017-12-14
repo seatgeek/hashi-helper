@@ -65,10 +65,10 @@ func main() {
 		  Destination: &config.WarnUnencrypted,
 		},
 		cli.BoolFlag{
-			Name:        "use-keybase-team",
-			Usage:       "Use the keybase team name in config file to re-sign encrypted files post-edit",
-			EnvVar:      "USE_KEYBASE_TEAM",
-			Destination: &command.UseKeybaseTeam,
+			Name:        "no-keybase-team",
+			Usage:       "Do not use the keybase team name in config file (if specified) to re-sign encrypted files post-edit",
+			EnvVar:      "NO_KEYBASE_TEAM",
+			Destination: &command.NoKeybaseTeam,
 		},
 	}
 	app.Commands = []cli.Command{
@@ -157,9 +157,22 @@ func main() {
 		},
 		{
 			Name:  "vault-push-secrets",
-			Usage: "Write local secrets to remote Vault instance",
+			Usage: "Write local secrets to remote Vault",
 			Action: func(c *cli.Context) error {
 				return vaultCommand.SecretsPush(c)
+			},
+		},
+		{
+			Name:  "vault-delete-secrets",
+			Usage: "Delete remote secrets from Vault, leaves local secrets unchanged",
+			Action: func(c *cli.Context) error {
+				return vaultCommand.SecretsDelete(c)
+			},
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:   "skip-confirm",
+					Usage:  "Do NOT ask for confirmation at each remote Vault prefix delete",
+				},
 			},
 		},
 		{
