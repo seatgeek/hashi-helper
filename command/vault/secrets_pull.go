@@ -95,14 +95,14 @@ func SecretsPull(c *cli.Context) error {
 			if err != nil {
 				return err
 			}
-			log.Infof("Wrote file: %s", file)
+			log.Infof("Wrote unencrypted file: %s", file)
 
 			output, err := helper.FormatHclFile(file)
 			if err != nil {
 				return err
 			}
 
-			log.Infof("Formatted file: %s (%s)", file, output.String())
+			log.Infof("Formatted unencrypted file: %s (%s)", file, output.String())
 		}
 	}
 

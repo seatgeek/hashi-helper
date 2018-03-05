@@ -1,9 +1,7 @@
 package helper
 
 import (
-	"bytes"
 	"fmt"
-	"os/exec"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -11,13 +9,13 @@ import (
 	"github.com/seatgeek/hashi-helper/config"
 )
 
-// SecretWriter ...
-type SecretWriter struct {
+// SecretDeleter ...
+type SecretDeleter struct {
 	client *api.Client
 }
 
-// WriteSecret ...
-func (w SecretWriter) WriteSecret(secret *config.Secret, env string) error {
+// DeleteSecret ...
+func (w SecretDeleter) DeleteSecret(secret *config.Secret, env string) error {
 	var path string
 
 	// @TODO Make a dedicated type for writing non-secrets !
@@ -29,13 +27,13 @@ func (w SecretWriter) WriteSecret(secret *config.Secret, env string) error {
 		path = fmt.Sprintf("secret/%s", secret.Path)
 	}
 
-	log.Info(path)
+	log.Warnf("Deleting secret: %s", path)
 
-	_, err := w.getClient().Logical().Write(path, secret.Secret.Data)
+	_, err := w.getClient().Logical().Delete(path)
 	return err
 }
 
-func (w SecretWriter) getClient() *api.Client {
+func (w SecretDeleter) getClient() *api.Client {
 	if w.client == nil {
 		client, err := api.NewClient(nil)
 		if err != nil {
@@ -44,22 +42,4 @@ func (w SecretWriter) getClient() *api.Client {
 		w.client = client
 	}
 	return w.client
-}
-
-// EscapeValue ...
-func EscapeValue(value string) string {
-	value = strings.Replace(value, "\\", "\\\\", -1)
-	value = strings.Replace(value, "\"", "\\", -1)
-
-	return value
-}
-
-// FormatHclFile ...
-func FormatHclFile(file string) (bytes.Buffer, error) {
-	cmd := exec.Command("hclfmt", "-w", file)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-
-	err := cmd.Run()
-	return out, err
 }

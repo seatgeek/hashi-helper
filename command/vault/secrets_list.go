@@ -10,7 +10,7 @@ import (
 
 // SecretsList ...
 func SecretsList(c *cli.Context) error {
-	if c.GlobalBool("remote") {
+	if c.Bool("remote") {
 		return secretListRemote(c)
 	}
 

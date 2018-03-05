@@ -25,7 +25,7 @@ func EditProfile(c *cli.Context) error {
 	if _, err := os.Stat(filePath); err == nil {
 		backup = true
 
-		b, err := getProfileConfig()
+		b, err := GetProfileConfig()
 		if err != nil {
 			return err
 		}
@@ -51,6 +51,9 @@ func EditProfile(c *cli.Context) error {
 
 	// edit the file
 	editCmd := exec.Command(editor, flags...)
+	editCmd.Stdin  = os.Stdin
+	editCmd.Stdout = os.Stdout
+	editCmd.Stderr = os.Stderr
 	editErr := editCmd.Run()
 	if editErr != nil {
 		return editErr

@@ -10,13 +10,14 @@ import (
 	consulCommand "github.com/seatgeek/hashi-helper/command/consul"
 	vaultCommand "github.com/seatgeek/hashi-helper/command/vault"
 	"github.com/seatgeek/hashi-helper/config"
+	"github.com/seatgeek/hashi-helper/command"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "vault-manager"
-	app.Usage = "easily restore / snapshot your secrets"
+	app.Name = "hashi-helper"
+	app.Usage = "Manage cleartext and encrypted secrets, configuration, and more for Vault and Consul."
 	app.Version = "0.1"
 
 	app.Flags = []cli.Flag{
@@ -57,13 +58,32 @@ func main() {
 			EnvVar:      "APPLICATION",
 			Destination: &config.TargetApplication,
 		},
+		cli.BoolFlag{
+		  Name:        "warn-unencrypted",
+		  Usage:       "Issue a warning if unencrypted HCL files are discovered",
+		  EnvVar:      "WARN_UNENCRYPTED",
+		  Destination: &config.WarnUnencrypted,
+		},
+		cli.BoolFlag{
+			Name:        "no-keybase-team",
+			Usage:       "Do not use the keybase team name in config file (if specified) to re-sign encrypted files post-edit",
+			EnvVar:      "NO_KEYBASE_TEAM",
+			Destination: &command.NoKeybaseTeam,
+		},
 	}
 	app.Commands = []cli.Command{
 		{
 			Name:  "push-all",
-			Usage: "push all consul and vault settings",
+			Usage: "Push all consul and vault settings",
 			Action: func(c *cli.Context) error {
 				return allCommand.PushAll(c)
+			},
+		},
+		{
+			Name:  "edit-file",
+			Usage: "Edit a Keybase PGP-encrypted file (config file or otherwise)",
+			Action: func(c *cli.Context) error {
+				return allCommand.EditEncryptedFile(c)
 			},
 		},
 		{
@@ -154,9 +174,22 @@ func main() {
 		},
 		{
 			Name:  "vault-push-secrets",
-			Usage: "Write local secrets to remote Vault instance",
+			Usage: "Write local secrets to remote Vault",
 			Action: func(c *cli.Context) error {
 				return vaultCommand.SecretsPush(c)
+			},
+		},
+		{
+			Name:  "vault-delete-secrets",
+			Usage: "Delete remote secrets from Vault, leaves local secrets unchanged",
+			Action: func(c *cli.Context) error {
+				return vaultCommand.SecretsDelete(c)
+			},
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:   "skip-confirm",
+					Usage:  "Do NOT ask for confirmation at each remote Vault prefix delete",
+				},
 			},
 		},
 		{
