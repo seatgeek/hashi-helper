@@ -92,6 +92,23 @@ func main() {
 					Usage:  "The raw base64 encoded and encrypted unseal key",
 					EnvVar: "VAULT_UNSEAL_KEY",
 				},
+				cli.StringFlag{
+					Name:   "vault-protocol",
+					Usage:  "The protocol to use when talking to vault (http or https)",
+					EnvVar: "VAULT_PROTOCOL",
+					Value:  "http",
+				},
+				cli.StringFlag{
+					Name:   "consul-service-name",
+					Usage:  "A consul service name to find vault instances from",
+					EnvVar: "CONSUL_SERVICE_NAME",
+				},
+				cli.StringFlag{
+					Name:   "consul-service-tag",
+					Usage:  "A consul tag name to filter found consul services by",
+					EnvVar: "CONSUL_SERVICE_TAG",
+					Value:  "standby",
+				},
 			},
 		},
 		{

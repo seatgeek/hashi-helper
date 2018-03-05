@@ -160,11 +160,23 @@ Unseal Vault using the raw unseal key from [keybase / gpg init/rekey](https://ww
 
 The command expect the raw base64encoded unseal key as env `VAULT_UNSEAL_KEY` or `--unseal-key CLI argument`
 
-`VAULT_UNSEAL_KEY=$token hashi-helper vault-unseal-keybase`
-or
-`hashi-helper vault-unseal-keybase --unseal-key=$key`
-
 It basically automates `echo "$VAULT_UNSEAL_KEY" | base64 -D | keybase pgp decrypt | xargs vault unseal -address http://<IP>:8200`
+
+##### Options
+
+- `--unseal-key`/ `VAULT_UNSEAL_KEY` (default: `<empty>`) The raw base64encoded unseal key as env or CLI argument
+- `--consul-service-name` / `CONSUL_SERVICE_NAME` (default: `<empty>`) If specified, the tool will try to lookup all vault servers in the configured Consul catalog and unseal all of them. This is the service name, e.g. `vault`
+- `--consul-service-tag` / `CONSUL_SERVICE_TAG` (default: `standby`) The Consul catalog tag to filter vault instances from if `CONSUL_SERVICE_NAME` is used.
+- `--vault-protocol` / `VAULT_PROTOCOL` (default: `http`) The protocol to use when constructing the `VAULT_ADDR` value when using `CONSUL_SERVICE_NAME` unseal strategy.
+
+All `VAULT_*` env keys are preserved when using `CONSUL_SERVICE_TAG`, `address` is the only field being overwritten per vault instance found in the catalog. So you can still configure TLS and other Vault changes as usual with the environment.
+
+##### Examples
+
+- `VAULT_UNSEAL_KEY=$token hashi-helper vault-unseal-keybase`
+- `hashi-helper vault-unseal-keybase --unseal-key=$key`
+- `VAULT_CONSUL_SERVICE=vault VAULT_UNSEAL_KEY=$token hashi-helper vault-unseal-keybase`
+- `hashi-helper vault-unseal-keybase --unseal-key=$key --consul-service-name vault`
 
 ## Workflow
 

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	consul "github.com/hashicorp/consul/api"
 	"github.com/hashicorp/vault/api"
 	cli "gopkg.in/urfave/cli.v1"
 )
@@ -41,8 +42,54 @@ func UnsealKeybase(c *cli.Context) error {
 	}
 	token := stdout.String()
 
-	log.Info("Sending unseal command to Vault")
-	client, err := api.NewClient(nil)
+	service := c.String("consul-service-name")
+	if service == "" { // assume VAULT_ADDR set
+		return sendUnseal(token, nil)
+	}
+
+	// assume we should unseal multiple clients
+	client, err := consul.NewClient(consul.DefaultConfig())
+	if err != nil {
+		return err
+	}
+
+	services, _, err := client.Catalog().Service(service, c.String("consul-service-tag"), nil)
+	if err != nil {
+		return err
+	}
+
+	if len(services) == 0 {
+		return fmt.Errorf("Could not find any vault instances in consul service '%s' with tag '%s'", service, c.String("consul-service-tag"))
+	}
+
+	log.Infof("Found %d vault instances in consul service '%s' with tag '%s'", len(services), service, c.String("consul-service-tag"))
+
+	for _, service := range services {
+		cfg := api.DefaultConfig()
+		cfg.ReadEnvironment()
+		cfg.Address = fmt.Sprintf("%s://%s:%d", c.String("vault-protocol"), service.ServiceAddress, service.ServicePort)
+
+		err := sendUnseal(token, cfg)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+	}
+
+	return nil
+}
+
+func sendUnseal(token string, config *api.Config) error {
+	var logger *log.Entry
+
+	if config == nil || config.Address == "" {
+		logger = log.WithField("vault-server", "${VAULT_ADDR}")
+	} else {
+		logger = log.WithField("vault-server", config.Address)
+	}
+
+	logger.Info("Sending unseal command to Vault")
+	client, err := api.NewClient(config)
 	if err != nil {
 		return err
 	}
@@ -52,12 +99,12 @@ func UnsealKeybase(c *cli.Context) error {
 		return fmt.Errorf("Could not unseal Vault: %s", err)
 	}
 
-	log.Info("Unseal succeeded")
+	logger.Info("Unseal succeeded")
 
 	if !resp.Sealed {
-		log.Info("Vault instance is now unsealed")
+		logger.Info("Vault instance is now unsealed")
 	} else {
-		log.Warnf("Vault unseal progress: %d out of %d unseal keys has been provided (%d shares)", resp.Progress, resp.T, resp.N)
+		logger.Warnf("Vault unseal progress: %d out of %d unseal keys has been provided (%d shares)", resp.Progress, resp.T, resp.N)
 	}
 
 	return nil
