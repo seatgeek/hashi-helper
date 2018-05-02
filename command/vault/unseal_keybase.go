@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -83,7 +84,7 @@ func sendUnseal(token string, config *api.Config) error {
 	var logger *log.Entry
 
 	if config == nil || config.Address == "" {
-		logger = log.WithField("vault-server", "${VAULT_ADDR}")
+		logger = log.WithField("vault-server", os.Getenv("VAULT_ADDR"))
 	} else {
 		logger = log.WithField("vault-server", config.Address)
 	}
