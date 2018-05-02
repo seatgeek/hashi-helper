@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 
@@ -83,9 +82,7 @@ func UnsealKeybase(c *cli.Context) error {
 func sendUnseal(token string, config *api.Config) error {
 	var logger *log.Entry
 
-	if config == nil || config.Address == "" {
-		logger = log.WithField("vault-server", os.Getenv("VAULT_ADDR"))
-	} else {
+	if config != nil || config.Address != "" {
 		logger = log.WithField("vault-server", config.Address)
 	}
 
