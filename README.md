@@ -114,12 +114,22 @@ File format is as described below, a simple yaml file
 
 ```yml
 ---
-name_1:
-  server: http://<ip>:8200
-  token: <your token>
-name_2:
-  server: http://<ip>:8200
-  token: <your token>
+# Sample config (yaml)
+#
+# all keys are optional
+#
+
+profile_name_1:
+  server: http://active.vault.service.consul:8200
+  consul_server: http://consul.service.consul:8500
+  token: <your vault token>
+  unseal_token: <your unseal token>
+
+profile_name_2:
+  server: http://active.vault.service.consul:8200
+  consul_server: http://consul.service.consul:8500
+  token: <your vault token>
+  unseal_token: <your unseal token>
 ```
 
 #### `vault-profile-use`

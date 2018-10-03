@@ -30,6 +30,17 @@ func EditProfile(c *cli.Context) error {
 			return err
 		}
 		file.Write(b)
+	} else {
+		b := []byte(`---
+# Sample config (yaml)
+#
+# profile_name_1:
+#  server: http://<ip>:8200 	  	# optional
+#  consul_server: http://<ip>:8500  # optional
+#  token: <your token>			  	# optional
+#  unseal_token: <your token>		# optional
+`)
+		file.Write(b)
 	}
 
 	// find the editor to use from env, default to pico/nano

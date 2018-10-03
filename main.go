@@ -102,6 +102,7 @@ func main() {
 					Name:   "consul-service-name",
 					Usage:  "A consul service name to find vault instances from",
 					EnvVar: "CONSUL_SERVICE_NAME",
+					Value:  "vault",
 				},
 				cli.StringFlag{
 					Name:   "consul-service-tag",

@@ -12,8 +12,10 @@ import (
 
 type profiles map[string]profile
 type profile struct {
-	Token  string `yaml:"token"`
-	Server string `yaml:"server"`
+	Token        string `yaml:"token"`
+	UnsealToken  string `yaml:"unseal_token"`
+	Server       string `yaml:"server"`
+	ConsulServer string `yaml:"consul_server"`
 }
 
 // UseProfile ...
@@ -41,8 +43,21 @@ func UseProfile(c *cli.Context) error {
 		return fmt.Errorf("No profile with the name '%s' was found", name)
 	}
 
-	fmt.Printf("export VAULT_ADDR=%s\n", profile.Server)
-	fmt.Printf("export VAULT_TOKEN=%s\n", profile.Token)
+	if profile.Server != "" {
+		fmt.Printf("export VAULT_ADDR=%s\n", profile.Server)
+	}
+
+	if profile.ConsulServer != "" {
+		fmt.Printf("export CONSUL_HTTP_ADDR=%s\n", profile.ConsulServer)
+	}
+
+	if profile.Token != "" {
+		fmt.Printf("export VAULT_TOKEN=%s\n", profile.Token)
+	}
+
+	if profile.UnsealToken != "" {
+		fmt.Printf("export VAULT_UNSEAL_KEY=%s\n", profile.UnsealToken)
+	}
 
 	return nil
 }
