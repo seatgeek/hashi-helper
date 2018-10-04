@@ -1,6 +1,47 @@
-# hashi-helper
+## hashi-helper
 
 `hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
+
+<!-- TOC -->
+
+- [hashi-helper](#hashi-helper)
+- [Requirements](#requirements)
+- [Building](#building)
+- [Configuration](#configuration)
+- [Usage](#usage)
+    - [Global Flags](#global-flags)
+    - [Global Commands](#global-commands)
+        - [`push-all`](#push-all)
+    - [Consul](#consul)
+        - [`consul-push-all`](#consul-push-all)
+        - [`consul-push-services`](#consul-push-services)
+        - [`consul-push-kv`](#consul-push-kv)
+    - [vault commands](#vault-commands)
+        - [`vault-create-token`](#vault-create-token)
+        - [`vault-find-token`](#vault-find-token)
+        - [`vault-list-secrets`](#vault-list-secrets)
+        - [`vault-profile-edit`](#vault-profile-edit)
+        - [`vault-profile-use`](#vault-profile-use)
+        - [`vault-pull-secrets`](#vault-pull-secrets)
+        - [`vault-push-all`](#vault-push-all)
+        - [`vault-push-auth`](#vault-push-auth)
+        - [`vault-push-mounts`](#vault-push-mounts)
+        - [`vault-push-policies`](#vault-push-policies)
+        - [`vault-push-secrets`](#vault-push-secrets)
+        - [`vault-unseal-keybase`](#vault-unseal-keybase)
+            - [Options](#options)
+            - [Examples](#examples)
+- [Workflow](#workflow)
+    - [Directory Structure](#directory-structure)
+    - [Configuration Examples](#configuration-examples)
+    - [Vault app secret](#vault-app-secret)
+    - [Consul app KV](#consul-app-kv)
+    - [Vault auth](#vault-auth)
+    - [Consul services](#consul-services)
+    - [Vault mount](#vault-mount)
+    - [Vault mount role](#vault-mount-role)
+
+<!-- /TOC -->
 
 ## Requirements
 
