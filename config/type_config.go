@@ -121,10 +121,12 @@ func (c *Config) readAndProcess(file string) error {
 		return err
 	}
 
-	content, err = c.renderContent(content)
+	content, err = c.renderContent(content, 0)
 	if err != nil {
 		return err
 	}
+
+	log.WithField("file", file).Debug(content)
 
 	list, err := c.parseContent(content)
 	if err != nil {
@@ -147,14 +149,20 @@ func (c *Config) readFile(file string) (string, error) {
 	return string(content), nil
 }
 
-func (c *Config) renderContent(content string) (string, error) {
-	log.Debug("Rendering content")
-	// create a template from the file content
+func (c *Config) renderContent(content string, depth int) (string, error) {
+	log.Debugf("Rendering content depth %d", depth)
+
+	if depth > 5 {
+		return "", fmt.Errorf("recursive template rendering found, aborting")
+	}
 
 	fns := template.FuncMap{
-		"service":           c.service,
-		"service_with_tag":  c.serviceWithTag,
-		"grant_credentials": c.grantCredentials,
+		"service":                   c.service,
+		"service_with_tag":          c.serviceWithTag,
+		"grant_credentials":         c.grantCredentials,
+		"grant_credentials_policy":  c.grantCredentialsPolicy,
+		"github_assign_team_policy": c.githubAssignTeamPolicy,
+		"ldap_assign_group_policy":  c.ldapAssignTeamPolicy,
 	}
 
 	tmpl, err := template.New("<file>").
@@ -174,7 +182,9 @@ func (c *Config) renderContent(content string) (string, error) {
 	}
 	writer.Flush()
 
-	fmt.Println(b.String())
+	if strings.Contains(b.String(), "[[") {
+		return c.renderContent(b.String(), depth+1)
+	}
 
 	return b.String(), nil
 }

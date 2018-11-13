@@ -35,8 +35,37 @@ func (c *Config) serviceWithTag(service, tag string) (interface{}, error) {
 func (c *Config) grantCredentials(db, role string) (interface{}, error) {
 	tmpl := `
 path "%s/creds/%s" {
-  capabilities = ["read", "list"]
+  capabilities = ["read"]
 }`
 
 	return fmt.Sprintf(tmpl, db, role), nil
+}
+
+func (c *Config) grantCredentialsPolicy(db, role string) (interface{}, error) {
+	tmpl := `
+policy "%s-%s" {
+  path "%s/creds/%s" {
+    capabilities = ["read"]
+  }
+}`
+
+	return fmt.Sprintf(tmpl, db, role, db, role), nil
+}
+
+func (c *Config) githubAssignTeamPolicy(team, policy string) (interface{}, error) {
+	tmpl := `
+secret "/auth/github/map/teams/%s" {
+  value = "%s"
+}`
+
+	return fmt.Sprintf(tmpl, team, policy), nil
+}
+
+func (c *Config) ldapAssignTeamPolicy(group, policy string) (interface{}, error) {
+	tmpl := `
+secret "/auth/ldap/groups/%s" {
+  value = "%s"
+}`
+
+	return fmt.Sprintf(tmpl, group, policy), nil
 }

@@ -139,7 +139,23 @@ func TestConfig_renderContent(t *testing.T) {
 			template: `[[ grant_credentials "my-db" "full" ]]`,
 			wantTemplate: `
 path "my-db/creds/full" {
-  capabilities = ["read", "list"]
+  capabilities = ["read"]
+}`,
+		},
+		{
+			name:     "test template func: github_assign_team_policy",
+			template: `[[ github_assign_team_policy "my-team" "my-policy" ]]`,
+			wantTemplate: `
+secret "/auth/github/map/teams/my-team" {
+  value = "my-policy"
+}`,
+		},
+		{
+			name:     "test template func: ldap_assign_group_policy",
+			template: `[[ ldap_assign_group_policy "my-group" "my-policy" ]]`,
+			wantTemplate: `
+secret "/auth/ldap/groups/my-group" {
+  value = "my-policy"
 }`,
 		},
 	}
@@ -149,7 +165,7 @@ path "my-db/creds/full" {
 				templateVariables: tt.templateVariables,
 			}
 
-			got, err := c.renderContent(tt.template)
+			got, err := c.renderContent(tt.template, 0)
 			if tt.wantErr != nil {
 				require.True(t, strings.Contains(err.Error(), tt.wantErr.Error()))
 				require.Equal(t, "", tt.wantTemplate, "you should not expect a template during error tests")
