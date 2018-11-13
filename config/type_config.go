@@ -107,6 +107,11 @@ func (c *Config) ReadAndProcess(file string) error {
 		return err
 	}
 
+	content, err = c.RenderContent(content)
+	if err != nil {
+		return err
+	}
+
 	list, err := c.ParseContent(content)
 	if err != nil {
 		return err
@@ -120,15 +125,15 @@ func (c *Config) ReadFile(file string) (string, error) {
 	log.Debugf("Parsing file %s", file)
 
 	// read file from disk
-	configContent, err := ioutil.ReadFile(file)
+	content, err := ioutil.ReadFile(file)
 	if err != nil {
 		return "", err
 	}
 
-	return string(configContent), nil
+	return string(content), nil
 }
 
-func (c *Config) ParseContent(configContent string) (*ast.ObjectList, error) {
+func (c *Config) RenderContent(content string) (string, error) {
 	log.Debug("Rendering content")
 	// create a template from the file content
 
@@ -141,23 +146,26 @@ func (c *Config) ParseContent(configContent string) (*ast.ObjectList, error) {
 		Funcs(fns).
 		Option("missingkey=error").
 		Delims("[[", "]]").
-		Parse(configContent)
+		Parse(content)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// render the template
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
 	if err := tmpl.Execute(writer, c.Interpolations); err != nil {
-		return nil, err
+		return "", err
 	}
 	writer.Flush()
 
-	fmt.Println(b.String())
+	return b.String(), nil
+}
+
+func (c *Config) ParseContent(content string) (*ast.ObjectList, error) {
 	// Parse into HCL AST
 	log.Debug("Parsing content")
-	root, hclErr := hcl.Parse(b.String())
+	root, hclErr := hcl.Parse(content)
 	if hclErr != nil {
 		return nil, fmt.Errorf("Could not parse content: %s", hclErr)
 	}
