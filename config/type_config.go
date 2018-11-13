@@ -125,31 +125,39 @@ func (c *Config) ReadFile(file string) (string, error) {
 		return "", err
 	}
 
+	return string(configContent), nil
+}
+
+func (c *Config) ParseContent(configContent string) (*ast.ObjectList, error) {
+	log.Debug("Rendering content")
 	// create a template from the file content
-	tmpl, err := template.New(file).
+
+	fns := template.FuncMap{
+		"service":          c.service,
+		"service_with_tag": c.serviceWithTag,
+	}
+
+	tmpl, err := template.New("<file>").
+		Funcs(fns).
 		Option("missingkey=error").
-		Parse(string(configContent))
+		Delims("[[", "]]").
+		Parse(configContent)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// render the template
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
 	if err := tmpl.Execute(writer, c.Interpolations); err != nil {
-		return "", err
+		return nil, err
 	}
 	writer.Flush()
 
-	// return the template string
-	return b.String(), nil
-}
-
-func (c *Config) ParseContent(configContent string) (*ast.ObjectList, error) {
-	log.Debug("Parsing content")
-
+	fmt.Println(b.String())
 	// Parse into HCL AST
-	root, hclErr := hcl.Parse(configContent)
+	log.Debug("Parsing content")
+	root, hclErr := hcl.Parse(b.String())
 	if hclErr != nil {
 		return nil, fmt.Errorf("Could not parse content: %s", hclErr)
 	}
