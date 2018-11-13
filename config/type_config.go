@@ -3,9 +3,11 @@ package config
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 	"text/template"
 
@@ -14,6 +16,7 @@ import (
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"gopkg.in/urfave/cli.v1"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // Config ...
@@ -24,7 +27,7 @@ type Config struct {
 	ConsulServices    ConsulServices
 	Environments      Environments
 	TargetEnvironment string
-	templateVariables map[string]string
+	templateVariables map[string]interface{}
 	VaultAuths        VaultAuths
 	VaultMounts       VaultMounts
 	VaultPolicies     VaultPolicies
@@ -49,8 +52,14 @@ func NewConfigFromCLI(c *cli.Context) (*Config, error) {
 		configDirectory:   c.GlobalString("config-dir"),
 	}
 
-	if len(c.GlobalStringSlice("variables")) > 0 {
-		if err := config.parseTemplateVariables(c.GlobalStringSlice("variables")); err != nil {
+	if len(c.GlobalStringSlice("variable")) > 0 {
+		if err := config.parseTemplateVariables(c.GlobalStringSlice("variable")); err != nil {
+			return nil, err
+		}
+	}
+
+	if len(c.GlobalStringSlice("variable-file")) > 0 {
+		if err := config.readTemplateVariablesFiles(c.GlobalStringSlice("variable-file")); err != nil {
 			return nil, err
 		}
 	}
@@ -138,8 +147,9 @@ func (c *Config) renderContent(content string) (string, error) {
 	// create a template from the file content
 
 	fns := template.FuncMap{
-		"service":          c.service,
-		"service_with_tag": c.serviceWithTag,
+		"service":               c.service,
+		"service_with_tag":      c.serviceWithTag,
+		"grant_database_access": c.grantDatabaseCreds,
 	}
 
 	tmpl, err := template.New("<file>").
@@ -158,6 +168,8 @@ func (c *Config) renderContent(content string) (string, error) {
 		return "", err
 	}
 	writer.Flush()
+
+	fmt.Println(b.String())
 
 	return b.String(), nil
 }
@@ -183,7 +195,7 @@ func (c *Config) processContent(list *ast.ObjectList) error {
 }
 
 func (c *Config) parseTemplateVariables(pairs []string) error {
-	c.templateVariables = map[string]string{}
+	c.templateVariables = map[string]interface{}{}
 
 	for _, val := range pairs {
 		chunks := strings.SplitN(val, "=", 2)
@@ -195,4 +207,76 @@ func (c *Config) parseTemplateVariables(pairs []string) error {
 	}
 
 	return nil
+}
+
+func (c *Config) readTemplateVariablesFiles(files []string) error {
+	for _, variableFile := range files {
+		ext := path.Ext(variableFile)
+
+		var variables map[string]interface{}
+		var err error
+
+		switch ext {
+		case ".hcl":
+			variables, err = c.parseHCLVars(variableFile)
+		case ".yaml", ".yml":
+			variables, err = c.parseYAMLVars(variableFile)
+		case ".json":
+			variables, err = c.parseJSONVars(variableFile)
+		default:
+			err = fmt.Errorf("variables file extension %v not supported", ext)
+		}
+
+		if err != nil {
+			return err
+		}
+
+		for k, v := range variables {
+			c.templateVariables[k] = v
+		}
+	}
+
+	return nil
+}
+
+func (c *Config) parseJSONVars(variableFile string) (variables map[string]interface{}, err error) {
+	jsonFile, err := ioutil.ReadFile(variableFile)
+	if err != nil {
+		return
+	}
+
+	variables = make(map[string]interface{})
+	if err = json.Unmarshal(jsonFile, &variables); err != nil {
+		return
+	}
+
+	return variables, nil
+}
+
+func (c *Config) parseYAMLVars(variableFile string) (variables map[string]interface{}, err error) {
+	yamlFile, err := ioutil.ReadFile(variableFile)
+	if err != nil {
+		return
+	}
+
+	variables = make(map[string]interface{})
+	if err = yaml.Unmarshal(yamlFile, &variables); err != nil {
+		return
+	}
+
+	return variables, nil
+}
+
+func (c *Config) parseHCLVars(variableFile string) (variables map[string]interface{}, err error) {
+	hclFile, err := ioutil.ReadFile(variableFile)
+	if err != nil {
+		return
+	}
+
+	variables = make(map[string]interface{})
+	if err := hcl.Decode(&variables, string(hclFile)); err != nil {
+		return nil, err
+	}
+
+	return variables, nil
 }

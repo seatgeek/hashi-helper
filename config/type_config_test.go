@@ -104,36 +104,35 @@ func TestConfig_renderContent(t *testing.T) {
 	tests := []struct {
 		name              string
 		template          string
-		templateVariables map[string]string
-		want              string
+		templateVariables map[string]interface{}
+		wantTemplate      string
 		wantErr           error
 	}{
 		{
-			name:     "no templating, passthrough",
-			template: "hello world",
-			want:     "hello world",
+			name:         "no templating, passthrough",
+			template:     "hello world",
+			wantTemplate: "hello world",
 		},
 		{
-			name:              "test service func missing consul_domain",
-			template:          `[[ service "derp" ]]`,
-			templateVariables: map[string]string{},
-			wantErr:           errors.New("Missing interpolation key 'consul_domain'"),
+			name:     "test service func missing consul_domain",
+			template: `[[ service "derp" ]]`,
+			wantErr:  errors.New("Missing interpolation key 'consul_domain'"),
 		},
 		{
 			name:     "test template func: service",
 			template: `[[ service "vault" ]]`,
-			templateVariables: map[string]string{
+			templateVariables: map[string]interface{}{
 				"consul_domain": "consul",
 			},
-			want: "vault.service.consul",
+			wantTemplate: "vault.service.consul",
 		},
 		{
 			name:     "test template func:  service_with_tag",
 			template: `[[ service_with_tag "vault" "active" ]]`,
-			templateVariables: map[string]string{
+			templateVariables: map[string]interface{}{
 				"consul_domain": "consul",
 			},
-			want: "active.vault.service.consul",
+			wantTemplate: "active.vault.service.consul",
 		},
 	}
 	for _, tt := range tests {
@@ -141,13 +140,16 @@ func TestConfig_renderContent(t *testing.T) {
 			c := &Config{
 				templateVariables: tt.templateVariables,
 			}
+
 			got, err := c.renderContent(tt.template)
 			if tt.wantErr != nil {
 				require.True(t, strings.Contains(err.Error(), tt.wantErr.Error()))
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, tt.want, got)
+				require.Equal(t, "", tt.wantTemplate, "you should not expect a template during error tests")
+				return
 			}
+
+			require.NoError(t, err)
+			require.Equal(t, tt.wantTemplate, got)
 		})
 	}
 }

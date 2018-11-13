@@ -58,8 +58,12 @@ func main() {
 			Destination: &config.TargetApplication,
 		},
 		cli.StringSliceFlag{
-			Name:  "variables, var",
+			Name:  "variable, var",
 			Usage: "List of key=value pairs to expose during file parsing as go-template",
+		},
+		cli.StringSliceFlag{
+			Name:  "variable-file, var-file, varf",
+			Usage: "List of files to load as variable sources",
 		},
 	}
 	app.Commands = []cli.Command{
