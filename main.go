@@ -57,6 +57,10 @@ func main() {
 			EnvVar:      "APPLICATION",
 			Destination: &config.TargetApplication,
 		},
+		cli.StringSliceFlag{
+			Name:  "interpolation",
+			Usage: "List of key=value pairs to interpolate during file loading",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
