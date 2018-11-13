@@ -127,12 +127,20 @@ func TestConfig_renderContent(t *testing.T) {
 			wantTemplate: "vault.service.consul",
 		},
 		{
-			name:     "test template func:  service_with_tag",
+			name:     "test template func: service_with_tag",
 			template: `[[ service_with_tag "vault" "active" ]]`,
 			templateVariables: map[string]interface{}{
 				"consul_domain": "consul",
 			},
 			wantTemplate: "active.vault.service.consul",
+		},
+		{
+			name:     "test template func: grant_credentials",
+			template: `[[ grant_credentials "my-db" "full" ]]`,
+			wantTemplate: `
+path "my-db/creds/full" {
+  capabilities = ["read", "list"]
+}`,
 		},
 	}
 	for _, tt := range tests {

@@ -152,9 +152,9 @@ func (c *Config) renderContent(content string) (string, error) {
 	// create a template from the file content
 
 	fns := template.FuncMap{
-		"service":               c.service,
-		"service_with_tag":      c.serviceWithTag,
-		"grant_database_access": c.grantDatabaseCreds,
+		"service":           c.service,
+		"service_with_tag":  c.serviceWithTag,
+		"grant_credentials": c.grantCredentials,
 	}
 
 	tmpl, err := template.New("<file>").
