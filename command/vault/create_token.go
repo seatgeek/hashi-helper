@@ -50,7 +50,7 @@ func CreateToken(c *cli.Context) error {
 
 	token := response.Auth.ClientToken
 	if len(c.StringSlice("keybase")) == 0 {
-		log.Info("New token: %s", token)
+		log.Infof("New token: %s", token)
 		return nil
 	}
 

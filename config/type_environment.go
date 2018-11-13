@@ -64,3 +64,13 @@ func (e *Environments) GetOrSet(environment *Environment) *Environment {
 	e.Add(environment)
 	return environment
 }
+
+func (e *Environments) List() []string {
+	res := []string{}
+
+	for _, env := range *e {
+		res = append(res, env.Name)
+	}
+
+	return res
+}

@@ -61,3 +61,13 @@ func (a *Applications) GetOrSet(application *Application) *Application {
 	a.Add(application)
 	return application
 }
+
+func (a *Applications) List() []string {
+	res := []string{}
+
+	for _, app := range *a {
+		res = append(res, app.Name)
+	}
+
+	return res
+}

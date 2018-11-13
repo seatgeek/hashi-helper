@@ -70,3 +70,13 @@ func (e *VaultSecrets) GetOrSet(secret *Secret) *Secret {
 	e.Add(secret)
 	return secret
 }
+
+func (e *VaultSecrets) List() []string {
+	res := []string{}
+
+	for _, sec := range *e {
+		res = append(res, sec.Path)
+	}
+
+	return res
+}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -42,7 +41,7 @@ func NewConfigFromCLI(c *cli.Context) (*Config, error) {
 	config := &Config{}
 
 	if c.GlobalString("config-file") != "" {
-		return config, config.AddFile(c.GlobalString("config-file"))
+		return config, config.ReadAndProcess(c.GlobalString("config-file"))
 	}
 
 	return config, config.ScanDirectory(c.GlobalString("config-dir"))
@@ -66,7 +65,7 @@ func (c *Config) ScanDirectory(directory string) error {
 	var result error
 	for _, fi := range fi {
 		if fi.Mode().IsRegular() && strings.HasSuffix(fi.Name(), ".hcl") {
-			if err := c.AddFile(directory + "/" + fi.Name()); err != nil {
+			if c.ReadAndProcess(directory + "/" + fi.Name()); err != nil {
 				result = multierror.Append(result, fmt.Errorf("[%s] %s", directory+"/"+fi.Name(), err))
 			}
 
@@ -87,25 +86,49 @@ func (c *Config) ScanDirectory(directory string) error {
 	return result
 }
 
-// AddFile to the config struct
-func (c *Config) AddFile(file string) error {
-	log.Debugf("Parsing file %s", file)
-
-	configContent, err := ioutil.ReadFile(file)
+func (c *Config) ReadAndProcess(file string) error {
+	content, err := c.ReadFile(file)
 	if err != nil {
 		return err
 	}
 
+	list, err := c.ParseContent(content)
+	if err != nil {
+		return err
+	}
+
+	return c.ProcessContent(list)
+}
+
+// Read File Content
+func (c *Config) ReadFile(file string) (string, error) {
+	log.Debugf("Parsing file %s", file)
+
+	configContent, err := ioutil.ReadFile(file)
+	if err != nil {
+		return "", err
+	}
+
+	return string(configContent), nil
+}
+
+func (c *Config) ParseContent(configContent string) (*ast.ObjectList, error) {
+	log.Debug("Parsing content")
+
 	// Parse into HCL AST
-	root, hclErr := hcl.Parse(string(configContent))
+	root, hclErr := hcl.Parse(configContent)
 	if hclErr != nil {
-		return fmt.Errorf("Could not parse file %s: %s", file, hclErr)
+		return nil, fmt.Errorf("Could not parse content: %s", hclErr)
 	}
 
-	list, ok := root.Node.(*ast.ObjectList)
+	res, ok := root.Node.(*ast.ObjectList)
 	if !ok {
-		return fmt.Errorf("error parsing: root should be an object")
+		return nil, fmt.Errorf("error parsing: root should be an object")
 	}
 
+	return res, nil
+}
+
+func (c *Config) ProcessContent(list *ast.ObjectList) error {
 	return c.processEnvironments(list)
 }
