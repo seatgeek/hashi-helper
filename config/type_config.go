@@ -111,6 +111,11 @@ func (c *Config) scanDirectory(directory string) error {
 }
 
 func (c *Config) readAndProcess(file string) error {
+	if strings.HasSuffix(file, ".var.hcl") {
+		log.Warnf("Ignoring files with .var.hcl extension")
+		return nil
+	}
+
 	content, err := c.readFile(file)
 	if err != nil {
 		return err
