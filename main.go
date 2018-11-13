@@ -58,8 +58,8 @@ func main() {
 			Destination: &config.TargetApplication,
 		},
 		cli.StringSliceFlag{
-			Name:  "interpolation",
-			Usage: "List of key=value pairs to interpolate during file loading",
+			Name:  "variables, var",
+			Usage: "List of key=value pairs to expose during file parsing as go-template",
 		},
 	}
 	app.Commands = []cli.Command{

@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Config) consulDomain() (string, error) {
-	val, ok := c.Interpolations["consul_domain"]
+	val, ok := c.templateVariables["consul_domain"]
 	if !ok {
 		return "", errors.New("Missing interpolation key 'consul_domain'")
 	}

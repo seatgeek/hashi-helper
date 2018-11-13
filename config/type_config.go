@@ -18,24 +18,24 @@ import (
 
 // Config ...
 type Config struct {
-	TargetEnvironment string
-	ConfigDirectory   string
-	Interpolations    map[string]string
 	Applications      Applications
+	configDirectory   string
+	ConsulKVs         ConsulKVs
+	ConsulServices    ConsulServices
 	Environments      Environments
+	TargetEnvironment string
+	templateVariables map[string]string
+	VaultAuths        VaultAuths
 	VaultMounts       VaultMounts
 	VaultPolicies     VaultPolicies
 	VaultSecrets      VaultSecrets
-	VaultAuths        VaultAuths
-	ConsulServices    ConsulServices
-	ConsulKVs         ConsulKVs
 }
 
 // NewConfig will create a new Config struct based on a directory
 func NewConfig(path string) (*Config, error) {
 	config := &Config{}
 
-	if err := config.ScanDirectory(path); err != nil {
+	if err := config.scanDirectory(path); err != nil {
 		return nil, err
 	}
 
@@ -46,24 +46,24 @@ func NewConfig(path string) (*Config, error) {
 func NewConfigFromCLI(c *cli.Context) (*Config, error) {
 	config := &Config{
 		TargetEnvironment: c.GlobalString("environment"),
-		ConfigDirectory:   c.GlobalString("config-dir"),
+		configDirectory:   c.GlobalString("config-dir"),
 	}
 
-	if len(c.GlobalStringSlice("interpolation")) > 0 {
-		if err := config.buildInterpolation(c.GlobalStringSlice("interpolation")); err != nil {
+	if len(c.GlobalStringSlice("variables")) > 0 {
+		if err := config.parseTemplateVariables(c.GlobalStringSlice("variables")); err != nil {
 			return nil, err
 		}
 	}
 
 	if c.GlobalString("config-file") != "" {
-		return config, config.ReadAndProcess(c.GlobalString("config-file"))
+		return config, config.readAndProcess(c.GlobalString("config-file"))
 	}
 
-	return config, config.ScanDirectory(c.GlobalString("config-dir"))
+	return config, config.scanDirectory(c.GlobalString("config-dir"))
 }
 
-// ScanDirectory ...
-func (c *Config) ScanDirectory(directory string) error {
+// scanDirectory ...
+func (c *Config) scanDirectory(directory string) error {
 	log.Debugf("Scanning directory %s", directory)
 
 	d, err := os.Open(directory)
@@ -80,15 +80,15 @@ func (c *Config) ScanDirectory(directory string) error {
 	var result error
 	for _, fi := range fi {
 		if fi.Mode().IsRegular() && strings.HasSuffix(fi.Name(), ".hcl") {
-			if err := c.ReadAndProcess(directory + "/" + fi.Name()); err != nil {
-				result = multierror.Append(result, fmt.Errorf("[%s] %s", strings.TrimPrefix(directory, c.ConfigDirectory)+"/"+fi.Name(), err))
+			if err := c.readAndProcess(directory + "/" + fi.Name()); err != nil {
+				result = multierror.Append(result, fmt.Errorf("[%s] %s", strings.TrimPrefix(directory, c.configDirectory)+"/"+fi.Name(), err))
 			}
 
 			continue
 		}
 
 		if fi.IsDir() {
-			if err := c.ScanDirectory(directory + "/" + fi.Name()); err != nil {
+			if err := c.scanDirectory(directory + "/" + fi.Name()); err != nil {
 				result = multierror.Append(result, err)
 			}
 
@@ -101,27 +101,27 @@ func (c *Config) ScanDirectory(directory string) error {
 	return result
 }
 
-func (c *Config) ReadAndProcess(file string) error {
-	content, err := c.ReadFile(file)
+func (c *Config) readAndProcess(file string) error {
+	content, err := c.readFile(file)
 	if err != nil {
 		return err
 	}
 
-	content, err = c.RenderContent(content)
+	content, err = c.renderContent(content)
 	if err != nil {
 		return err
 	}
 
-	list, err := c.ParseContent(content)
+	list, err := c.parseContent(content)
 	if err != nil {
 		return err
 	}
 
-	return c.ProcessContent(list)
+	return c.processContent(list)
 }
 
 // Read File Content
-func (c *Config) ReadFile(file string) (string, error) {
+func (c *Config) readFile(file string) (string, error) {
 	log.Debugf("Parsing file %s", file)
 
 	// read file from disk
@@ -133,7 +133,7 @@ func (c *Config) ReadFile(file string) (string, error) {
 	return string(content), nil
 }
 
-func (c *Config) RenderContent(content string) (string, error) {
+func (c *Config) renderContent(content string) (string, error) {
 	log.Debug("Rendering content")
 	// create a template from the file content
 
@@ -154,7 +154,7 @@ func (c *Config) RenderContent(content string) (string, error) {
 	// render the template
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
-	if err := tmpl.Execute(writer, c.Interpolations); err != nil {
+	if err := tmpl.Execute(writer, c.templateVariables); err != nil {
 		return "", err
 	}
 	writer.Flush()
@@ -162,7 +162,7 @@ func (c *Config) RenderContent(content string) (string, error) {
 	return b.String(), nil
 }
 
-func (c *Config) ParseContent(content string) (*ast.ObjectList, error) {
+func (c *Config) parseContent(content string) (*ast.ObjectList, error) {
 	// Parse into HCL AST
 	log.Debug("Parsing content")
 	root, hclErr := hcl.Parse(content)
@@ -178,12 +178,12 @@ func (c *Config) ParseContent(content string) (*ast.ObjectList, error) {
 	return res, nil
 }
 
-func (c *Config) ProcessContent(list *ast.ObjectList) error {
+func (c *Config) processContent(list *ast.ObjectList) error {
 	return c.processEnvironments(list)
 }
 
-func (c *Config) buildInterpolation(pairs []string) error {
-	c.Interpolations = map[string]string{}
+func (c *Config) parseTemplateVariables(pairs []string) error {
+	c.templateVariables = map[string]string{}
 
 	for _, val := range pairs {
 		chunks := strings.SplitN(val, "=", 2)
@@ -191,7 +191,7 @@ func (c *Config) buildInterpolation(pairs []string) error {
 			return fmt.Errorf("Interpolation key/value pair '%s' is not valid", val)
 		}
 
-		c.Interpolations[chunks[0]] = chunks[1]
+		c.templateVariables[chunks[0]] = chunks[1]
 	}
 
 	return nil

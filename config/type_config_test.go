@@ -1,9 +1,10 @@
 package config
 
 import (
+	"errors"
+	"strings"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/require"
 )
 
@@ -78,24 +79,75 @@ environment "prod" "stag" {
 
 			TargetEnvironment = tt.env
 
-			got, err := c.ParseContent(tt.content)
+			got, err := c.parseContent(tt.content)
 			if tt.wantErr {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
 			}
 
-			err2 := c.ProcessContent(got)
+			err2 := c.processContent(got)
 			if tt.wantErr {
 				require.Error(t, err2)
 			} else {
 				require.NoError(t, err2)
 			}
 
-			spew.Dump(c)
 			require.Equal(t, tt.seenEnvironments, c.Environments.List())
 			require.Equal(t, tt.seenApplications, c.Applications.List())
 			require.Equal(t, tt.seenSecrets, c.VaultSecrets.List())
+		})
+	}
+}
+
+func TestConfig_renderContent(t *testing.T) {
+	tests := []struct {
+		name              string
+		template          string
+		templateVariables map[string]string
+		want              string
+		wantErr           error
+	}{
+		{
+			name:     "no templating, passthrough",
+			template: "hello world",
+			want:     "hello world",
+		},
+		{
+			name:              "test service func missing consul_domain",
+			template:          `[[ service "derp" ]]`,
+			templateVariables: map[string]string{},
+			wantErr:           errors.New("Missing interpolation key 'consul_domain'"),
+		},
+		{
+			name:     "test template func: service",
+			template: `[[ service "vault" ]]`,
+			templateVariables: map[string]string{
+				"consul_domain": "consul",
+			},
+			want: "vault.service.consul",
+		},
+		{
+			name:     "test template func:  service_with_tag",
+			template: `[[ service_with_tag "vault" "active" ]]`,
+			templateVariables: map[string]string{
+				"consul_domain": "consul",
+			},
+			want: "active.vault.service.consul",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &Config{
+				templateVariables: tt.templateVariables,
+			}
+			got, err := c.renderContent(tt.template)
+			if tt.wantErr != nil {
+				require.True(t, strings.Contains(err.Error(), tt.wantErr.Error()))
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.want, got)
+			}
 		})
 	}
 }
