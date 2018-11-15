@@ -15,6 +15,7 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
+	"github.com/hashicorp/hcl/hcl/printer"
 	"gopkg.in/urfave/cli.v1"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -121,7 +122,7 @@ func (c *Config) readAndProcess(file string) error {
 		return err
 	}
 
-	content, err = c.renderContent(content, 0)
+	content, err = c.renderContent(content, file, 0)
 	if err != nil {
 		return err
 	}
@@ -149,7 +150,7 @@ func (c *Config) readFile(file string) (string, error) {
 	return string(content), nil
 }
 
-func (c *Config) renderContent(content string, depth int) (string, error) {
+func (c *Config) renderContent(content, file string, depth int) (string, error) {
 	log.Debugf("Rendering content depth %d", depth)
 
 	if depth > 5 {
@@ -183,10 +184,16 @@ func (c *Config) renderContent(content string, depth int) (string, error) {
 	writer.Flush()
 
 	if strings.Contains(b.String(), "[[") {
-		return c.renderContent(b.String(), depth+1)
+		return c.renderContent(b.String(), file, depth+1)
 	}
 
-	return b.String(), nil
+	fmt.Println(b.String())
+	res, err := printer.Format(b.Bytes())
+	if err != nil {
+		return "", fmt.Errorf("Could not format HCL file %s: %s", file, err)
+	}
+
+	return strings.TrimSpace(string(res)), nil
 }
 
 func (c *Config) parseContent(content string) (*ast.ObjectList, error) {

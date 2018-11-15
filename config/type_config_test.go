@@ -110,8 +110,8 @@ func TestConfig_renderContent(t *testing.T) {
 	}{
 		{
 			name:         "no templating, passthrough",
-			template:     "hello world",
-			wantTemplate: "hello world",
+			template:     `hello="world"`,
+			wantTemplate: `hello = "world"`,
 		},
 		{
 			name:     "test service func missing consul_domain",
@@ -120,19 +120,19 @@ func TestConfig_renderContent(t *testing.T) {
 		},
 		{
 			name:     "test template func: service",
-			template: `[[ service "vault" ]]`,
+			template: `service="[[ service "vault" ]]"`,
 			templateVariables: map[string]interface{}{
 				"consul_domain": "consul",
 			},
-			wantTemplate: "vault.service.consul",
+			wantTemplate: `service = "vault.service.consul"`,
 		},
 		{
 			name:     "test template func: service_with_tag",
-			template: `[[ service_with_tag "vault" "active" ]]`,
+			template: `service="[[ service_with_tag "vault" "active" ]]"`,
 			templateVariables: map[string]interface{}{
 				"consul_domain": "consul",
 			},
-			wantTemplate: "active.vault.service.consul",
+			wantTemplate: `service = "active.vault.service.consul"`,
 		},
 		{
 			name:     "test template func: grant_credentials",
@@ -158,6 +158,16 @@ secret "/auth/ldap/groups/my-group" {
   value = "my-policy"
 }`,
 		},
+		{
+			name:     "test template func: grant_credentials_policy",
+			template: `[[ grant_credentials_policy "my-db" "full" ]]`,
+			wantTemplate: `
+policy "my-db-full" {
+  path "my-db/creds/full" {
+    capabilities = ["read"]
+  }
+}`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -165,7 +175,7 @@ secret "/auth/ldap/groups/my-group" {
 				templateVariables: tt.templateVariables,
 			}
 
-			got, err := c.renderContent(tt.template, 0)
+			got, err := c.renderContent(tt.template, "test", 0)
 			if tt.wantErr != nil {
 				require.True(t, strings.Contains(err.Error(), tt.wantErr.Error()))
 				require.Equal(t, "", tt.wantTemplate, "you should not expect a template during error tests")
@@ -173,7 +183,7 @@ secret "/auth/ldap/groups/my-group" {
 			}
 
 			require.NoError(t, err)
-			require.Equal(t, tt.wantTemplate, got)
+			require.Equal(t, strings.TrimSpace(tt.wantTemplate), got)
 		})
 	}
 }

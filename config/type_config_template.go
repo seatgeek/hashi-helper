@@ -44,9 +44,7 @@ path "%s/creds/%s" {
 func (c *Config) grantCredentialsPolicy(db, role string) (interface{}, error) {
 	tmpl := `
 policy "%s-%s" {
-  path "%s/creds/%s" {
-    capabilities = ["read"]
-  }
+	[[ grant_credentials "%s" "%s" ]]
 }`
 
 	return fmt.Sprintf(tmpl, db, role, db, role), nil
