@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/printer"
@@ -56,9 +55,9 @@ func (c *Config) processVaultPolicies(list *ast.ObjectList, environment *Environ
 
 		if c.VaultPolicies.Add(policy) == false {
 			if application != nil {
-				log.Warnf("      Ignored duplicate policy '%s' -> '%s' -> '%s' in line %s", environment.Name, application.Name, policy.Name, policyAST.Keys[0].Token.Pos)
+				c.logger.Warnf("      Ignored duplicate policy '%s' -> '%s' -> '%s' in line %s", environment.Name, application.Name, policy.Name, policyAST.Keys[0].Token.Pos)
 			} else {
-				log.Warnf("      Ignored duplicate policy '%s' -> '%s' line %s", environment.Name, policy.Name, policyAST.Keys[0].Token.Type)
+				c.logger.Warnf("      Ignored duplicate policy '%s' -> '%s' line %s", environment.Name, policy.Name, policyAST.Keys[0].Token.Type)
 			}
 		}
 	}

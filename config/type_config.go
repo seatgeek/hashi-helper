@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"gopkg.in/urfave/cli.v1"
@@ -13,6 +12,7 @@ import (
 // Config ...
 type Config struct {
 	templater         *templater
+	logger            *log.Entry
 	Applications      Applications
 	configDirectory   string
 	ConsulKVs         ConsulKVs
@@ -38,7 +38,6 @@ func NewConfigFromCLI(c *cli.Context) (*Config, error) {
 	}
 
 	// scan all config-dirs provided
-	spew.Dump(c.GlobalStringSlice("config-dir"))
 	for _, dir := range c.GlobalStringSlice("config-dir") {
 		scanner := newConfigScanner(dir, config, templater)
 		if err := scanner.scan(); err != nil {
@@ -57,9 +56,9 @@ func NewConfigFromCLI(c *cli.Context) (*Config, error) {
 	return config, nil
 }
 
-func (c *Config) parseContent(content string) (*ast.ObjectList, error) {
+func (c *Config) parseContent(content, file string) (*ast.ObjectList, error) {
 	// Parse into HCL AST
-	log.Debug("Parsing content")
+	log.WithField("file", file).Debug("Parsing content")
 	root, hclErr := hcl.Parse(content)
 	if hclErr != nil {
 		return nil, fmt.Errorf("Could not parse content: %s", hclErr)
@@ -73,6 +72,11 @@ func (c *Config) parseContent(content string) (*ast.ObjectList, error) {
 	return res, nil
 }
 
-func (c *Config) processContent(list *ast.ObjectList) error {
+func (c *Config) processContent(list *ast.ObjectList, file string) error {
+	c.logger = log.WithField("file", file)
+	defer func() {
+		c.logger = log.WithField("file", "")
+	}()
+
 	return c.processEnvironments(list)
 }

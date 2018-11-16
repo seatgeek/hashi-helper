@@ -82,10 +82,6 @@ func (t *templater) renderContent(content, file string, depth int) (string, erro
 		return t.renderContent(content, file, depth+1)
 	}
 
-	fmt.Println("-----")
-	fmt.Println(content)
-	fmt.Println("-----")
-
 	// HCL pretty print the rendered file
 	res, err := printer.Format(b.Bytes())
 	if err != nil {

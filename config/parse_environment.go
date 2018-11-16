@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
@@ -31,12 +30,12 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 		for _, envKey := range envAST.Keys {
 			// extract the name of the environment stanza
 			envName := envKey.Token.Value().(string)
-			log.Debugf("  Found environment %s", envName)
+			c.logger.Debugf("  Found environment %s", envName)
 
 			// check if we are limiting to a specific environment, and skip the current environment
 			// if it does not match the required environment name
 			if shouldSkipEnvironment(envName, TargetEnvironment) {
-				log.Debugf("  Skipping environment %s (%s != %s)", envName, envName, TargetEnvironment)
+				c.logger.Debugf("  Skipping environment %s (%s != %s)", envName, envName, TargetEnvironment)
 				continue
 			}
 
@@ -54,37 +53,37 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 
 			env := c.Environments.GetOrSet(&Environment{Name: envName})
 
-			log.Debug("  Scanning for applications")
+			c.logger.Debug("  Scanning for applications")
 			if err := c.processApplications(x.Filter("application"), env); err != nil {
 				return err
 			}
 
-			log.Debug("  Scanning for vault auth backends")
+			c.logger.Debug("  Scanning for vault auth backends")
 			if err := c.processVaultAuths(x.Filter("auth"), env); err != nil {
 				return err
 			}
 
-			log.Debug("  Scanning for vault secrets")
+			c.logger.Debug("  Scanning for vault secrets")
 			if err := c.processVaultSecrets(x.Filter("secret"), env, nil); err != nil {
 				return err
 			}
 
-			log.Debug("  Scanning for vault policies")
+			c.logger.Debug("  Scanning for vault policies")
 			if err := c.processVaultPolicies(x.Filter("policy"), env, nil); err != nil {
 				return err
 			}
 
-			log.Debug("  Scanning for vault mounts")
+			c.logger.Debug("  Scanning for vault mounts")
 			if err := c.processVaultMounts(x.Filter("mount"), env); err != nil {
 				return err
 			}
 
-			log.Debug("  Scanning for consul services")
+			c.logger.Debug("  Scanning for consul services")
 			if err := c.processConsulServices(x.Filter("service"), env); err != nil {
 				return err
 			}
 
-			log.Debug("  Scanning for consul KV")
+			c.logger.Debug("  Scanning for consul KV")
 			if err := c.processConsulKV(x.Filter("kv"), env, nil); err != nil {
 				return err
 			}

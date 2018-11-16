@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
@@ -20,7 +19,7 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 		appName := appAST.Keys[0].Token.Value().(string)
 
 		if TargetApplication != "" && appName != TargetApplication {
-			log.Debugf("Skipping application %s (!= %s)", appName, TargetApplication)
+			c.logger.Debugf("Skipping application %s (!= %s)", appName, TargetApplication)
 			continue
 		}
 
@@ -35,17 +34,17 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 
 		environment.Applications.Add(application)
 
-		log.Debug("    Scanning for secrets")
+		c.logger.Debug("    Scanning for secrets")
 		if err := c.processVaultSecrets(x.Filter("secret"), environment, application); err != nil {
 			return err
 		}
 
-		log.Debug("    Scanning for policy")
+		c.logger.Debug("    Scanning for policy")
 		if err := c.processVaultPolicies(x.Filter("policy"), environment, application); err != nil {
 			return err
 		}
 
-		log.Debug("    Scanning for consul KV")
+		c.logger.Debug("    Scanning for consul KV")
 		if err := c.processConsulKV(x.Filter("kv"), environment, application); err != nil {
 			return err
 		}

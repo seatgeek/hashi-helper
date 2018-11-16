@@ -87,6 +87,8 @@ func (cs *configScanner) readAndProcess(file string) error {
 		return nil
 	}
 
+	relativeFile := strings.TrimPrefix(strings.TrimPrefix(file, cs.path), "/")
+
 	content, err := cs.readFile(file)
 	if err != nil {
 		return err
@@ -97,16 +99,16 @@ func (cs *configScanner) readAndProcess(file string) error {
 		return err
 	}
 
-	log.
-		WithField("file", strings.TrimPrefix(file, cs.path)).
-		Debug(content)
+	if os.Getenv("PRINT_CONTENT") != "" {
+		log.WithField("file", relativeFile).Debug(content)
+	}
 
-	list, err := cs.config.parseContent(content)
+	list, err := cs.config.parseContent(content, relativeFile)
 	if err != nil {
 		return err
 	}
 
-	return cs.config.processContent(list)
+	return cs.config.processContent(list, relativeFile)
 }
 
 // Read File Content

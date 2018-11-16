@@ -5,8 +5,6 @@ import (
 
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
-
-	log "github.com/Sirupsen/logrus"
 	vault "github.com/hashicorp/vault/api"
 )
 
@@ -41,9 +39,9 @@ func (c *Config) processVaultSecrets(list *ast.ObjectList, env *Environment, app
 
 		if c.VaultSecrets.Add(secret) == false {
 			if secret.Application != nil {
-				log.Warnf("      Ignored duplicate secret '%s' -> '%s' -> '%s' in line %s", secret.Environment.Name, secret.Application.Name, secret.Key, secretData.Keys[0].Token.Pos)
+				c.logger.Warnf("      Ignored duplicate secret '%s' -> '%s' -> '%s' in line %s", secret.Environment.Name, secret.Application.Name, secret.Key, secretData.Keys[0].Token.Pos)
 			} else {
-				log.Warnf("      Ignored duplicate secret '%s' -> '%s' in line %s", secret.Environment.Name, secret.Key, secretData.Keys[0].Token.Pos)
+				c.logger.Warnf("      Ignored duplicate secret '%s' -> '%s' in line %s", secret.Environment.Name, secret.Key, secretData.Keys[0].Token.Pos)
 			}
 		}
 	}
