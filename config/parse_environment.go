@@ -46,7 +46,7 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 
 			// check for valid keys inside an environment stanza
 			x := envAST.Val.(*ast.ObjectType).List
-			valid := []string{"application", "auth", "policy", "mount", "secret", "service", "kv"}
+			valid := []string{"application", "auth", "policy", "mount", "secret", "secrets", "service", "kv"}
 			if err := checkHCLKeys(x, valid); err != nil {
 				return err
 			}
@@ -58,32 +58,37 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for vault auth backends")
+			c.logger.Debug("  Scanning for vault auth{}")
 			if err := c.processVaultAuths(x.Filter("auth"), env); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for vault secrets")
-			if err := c.processVaultSecrets(x.Filter("secret"), env, nil); err != nil {
+			c.logger.Debug("  Scanning for vault secret{}")
+			if err := c.processVaultSecret(x.Filter("secret"), env, nil); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for vault policies")
+			c.logger.Debug("  Scanning for vault secrets{}")
+			if err := c.processVaultSecrets(x.Filter("secrets"), env, nil); err != nil {
+				return err
+			}
+
+			c.logger.Debug("  Scanning for vault policy{}")
 			if err := c.processVaultPolicies(x.Filter("policy"), env, nil); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for vault mounts")
+			c.logger.Debug("  Scanning for vault mount{}")
 			if err := c.processVaultMounts(x.Filter("mount"), env); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for consul services")
+			c.logger.Debug("  Scanning for consul service{}")
 			if err := c.processConsulServices(x.Filter("service"), env); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for consul KV")
+			c.logger.Debug("  Scanning for consul kv{}")
 			if err := c.processConsulKV(x.Filter("kv"), env, nil); err != nil {
 				return err
 			}
