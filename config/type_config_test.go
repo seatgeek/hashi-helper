@@ -171,11 +171,11 @@ policy "my-db-full" {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Config{
+			templater := &templater{
 				templateVariables: tt.templateVariables,
 			}
 
-			got, err := c.renderContent(tt.template, "test", 0)
+			got, err := templater.renderContent(tt.template, "test", 0)
 			if tt.wantErr != nil {
 				require.True(t, strings.Contains(err.Error(), tt.wantErr.Error()))
 				require.Equal(t, "", tt.wantTemplate, "you should not expect a template during error tests")

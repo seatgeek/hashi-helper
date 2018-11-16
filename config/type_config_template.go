@@ -5,17 +5,25 @@ import (
 	"fmt"
 )
 
-func (c *Config) consulDomain() (string, error) {
-	val, ok := c.templateVariables["consul_domain"]
+func (t *templater) consulDomain() (string, error) {
+	val, ok := t.templateVariables["consul_domain"]
 	if !ok {
 		return "", errors.New("Missing interpolation key 'consul_domain'")
 	}
 
-	return fmt.Sprintf("%+v", val), nil
+	return fmt.Sprintf("%s", val), nil
 }
 
-func (c *Config) service(service string) (interface{}, error) {
-	domain, err := c.consulDomain()
+func (t *templater) lookupVar(key string) (interface{}, error) {
+	val, ok := t.templateVariables[key]
+	if !ok {
+		return "", fmt.Errorf("Missing interpolation key '%s'", key)
+	}
+	return val, nil
+}
+
+func (t *templater) service(service string) (interface{}, error) {
+	domain, err := t.consulDomain()
 	if err != nil {
 		return nil, err
 	}
@@ -23,8 +31,8 @@ func (c *Config) service(service string) (interface{}, error) {
 	return fmt.Sprintf("%s.service.%s", service, domain), nil
 }
 
-func (c *Config) serviceWithTag(service, tag string) (interface{}, error) {
-	domain, err := c.consulDomain()
+func (t *templater) serviceWithTag(service, tag string) (interface{}, error) {
+	domain, err := t.consulDomain()
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +40,7 @@ func (c *Config) serviceWithTag(service, tag string) (interface{}, error) {
 	return fmt.Sprintf("%s.%s.service.%s", tag, service, domain), nil
 }
 
-func (c *Config) grantCredentials(db, role string) (interface{}, error) {
+func (t *templater) grantCredentials(db, role string) (interface{}, error) {
 	tmpl := `
 path "%s/creds/%s" {
   capabilities = ["read"]
@@ -41,7 +49,7 @@ path "%s/creds/%s" {
 	return fmt.Sprintf(tmpl, db, role), nil
 }
 
-func (c *Config) grantCredentialsPolicy(db, role string) (interface{}, error) {
+func (t *templater) grantCredentialsPolicy(db, role string) (interface{}, error) {
 	tmpl := `
 policy "%s-%s" {
 	[[ grant_credentials "%s" "%s" ]]
@@ -50,7 +58,7 @@ policy "%s-%s" {
 	return fmt.Sprintf(tmpl, db, role, db, role), nil
 }
 
-func (c *Config) githubAssignTeamPolicy(team, policy string) (interface{}, error) {
+func (t *templater) githubAssignTeamPolicy(team, policy string) (interface{}, error) {
 	tmpl := `
 secret "/auth/github/map/teams/%s" {
   value = "%s"
@@ -59,7 +67,7 @@ secret "/auth/github/map/teams/%s" {
 	return fmt.Sprintf(tmpl, team, policy), nil
 }
 
-func (c *Config) ldapAssignTeamPolicy(group, policy string) (interface{}, error) {
+func (t *templater) ldapAssignTeamPolicy(group, policy string) (interface{}, error) {
 	tmpl := `
 secret "/auth/ldap/groups/%s" {
   value = "%s"

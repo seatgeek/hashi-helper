@@ -33,15 +33,13 @@ func main() {
 			Usage:  "Debug level (debug, info, warn/warning, error, fatal, panic)",
 			EnvVar: "LOG_LEVEL",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name:   "config-dir",
-			Value:  "./conf.d",
-			Usage:  "Config directory to read and write from",
+			Usage:  "Config directories to read and write from",
 			EnvVar: "CONFIG_DIR",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name:   "config-file",
-			Value:  "",
 			Usage:  "Config file to read from, if you don't want to scan a directory recursively",
 			EnvVar: "CONFIG_FILE",
 		},
@@ -138,13 +136,6 @@ func main() {
 					Usage:  "Only show keys, or also expand and show the secret values (highly sensitive!)",
 					EnvVar: "DETAILED",
 				},
-			},
-		},
-		{
-			Name:  "vault-pull-secrets",
-			Usage: "Write remote secrets to local disk",
-			Action: func(c *cli.Context) error {
-				return vaultCommand.SecretsPull(c)
 			},
 		},
 		{
