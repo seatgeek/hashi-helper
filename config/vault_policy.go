@@ -61,7 +61,7 @@ func (p *VaultPolicies) Exists(policy *Policy) bool {
 	return false
 }
 
-func (c *Config) processVaultPolicies(list *ast.ObjectList, environment *Environment, application *Application) error {
+func (c *Config) parseVaultPolicyStanza(list *ast.ObjectList, environment *Environment, application *Application) error {
 	if len(list.Items) < 1 {
 		return nil
 	}
@@ -73,7 +73,7 @@ func (c *Config) processVaultPolicies(list *ast.ObjectList, environment *Environ
 
 		// Check for invalid top-level keys
 		valid := []string{"name", "path"}
-		if err := checkHCLKeys(x, valid); err != nil {
+		if err := c.checkHCLKeys(x, valid); err != nil {
 			return fmt.Errorf("Failed to parse policy: %s", err)
 		}
 
@@ -101,7 +101,7 @@ func (c *Config) processVaultPolicies(list *ast.ObjectList, environment *Environ
 		}
 
 		if o := list.Filter("path"); len(o.Items) > 0 {
-			if err := parsePaths(policy, o); err != nil {
+			if err := c.parsePaths(policy, o); err != nil {
 				return fmt.Errorf("Failed to parse policy: %s", err)
 			}
 		}

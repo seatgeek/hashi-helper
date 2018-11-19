@@ -30,7 +30,7 @@ func secretListLocal(c *cli.Context) error {
 			"secret": secret.Key,
 		})
 
-		for k, v := range secret.Secret.Data {
+		for k, v := range secret.VaultSecret.Data {
 			logger.Printf("%s = %s", k, v)
 		}
 
@@ -69,7 +69,7 @@ func printDetailedSecrets(paths config.VaultSecrets) {
 		log.Println()
 		log.Infof("%s @ %s: %s", secret.Application, secret.Environment, secret.Path)
 
-		for k, v := range secret.Secret.Data {
+		for k, v := range secret.VaultSecret.Data {
 			switch vv := v.(type) {
 			case string:
 				log.Info("  ⇛ ", k, " = ", vv)

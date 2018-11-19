@@ -1,13 +1,11 @@
 package helper
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"sync"
-
 	"time"
-
-	"fmt"
 
 	log "github.com/Sirupsen/logrus"
 	api "github.com/hashicorp/vault/api"
@@ -121,7 +119,7 @@ func remoteSecretReader(readCh chan *config.Secret, completeCh chan interface{},
 				log.Fatal(err)
 			}
 
-			secret.Secret = remoteSecret
+			secret.VaultSecret = remoteSecret
 			wg.Done()
 		}
 	}

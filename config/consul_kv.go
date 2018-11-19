@@ -39,7 +39,7 @@ func (cs *ConsulKVs) Add(kv *ConsulKV) {
 	*cs = append(*cs, kv)
 }
 
-func (c *Config) processConsulKV(list *ast.ObjectList, env *Environment, app *Application) error {
+func (c *Config) parseConsulKVStanza(list *ast.ObjectList, env *Environment, app *Application) error {
 	if len(list.Items) == 0 {
 		return nil
 	}
@@ -49,7 +49,7 @@ func (c *Config) processConsulKV(list *ast.ObjectList, env *Environment, app *Ap
 		x := kvAST.Val.(*ast.ObjectType).List
 
 		valid := []string{"value"}
-		if err := checkHCLKeys(x, valid); err != nil {
+		if err := c.checkHCLKeys(x, valid); err != nil {
 			return err
 		}
 

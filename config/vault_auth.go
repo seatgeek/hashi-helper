@@ -51,7 +51,7 @@ type AuthRole struct {
 	Data map[string]interface{}
 }
 
-func (c *Config) processVaultAuths(list *ast.ObjectList, environment *Environment) error {
+func (c *Config) parseVaultAuthStanza(list *ast.ObjectList, environment *Environment) error {
 	if len(list.Items) == 0 {
 		return nil
 	}
@@ -62,7 +62,7 @@ func (c *Config) processVaultAuths(list *ast.ObjectList, environment *Environmen
 		x := authAST.Val.(*ast.ObjectType).List
 
 		valid := []string{"config", "role", "type", "path"}
-		if err := checkHCLKeys(x, valid); err != nil {
+		if err := c.checkHCLKeys(x, valid); err != nil {
 			return err
 		}
 

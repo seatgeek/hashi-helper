@@ -16,7 +16,7 @@ type Secret struct {
 	Environment *Environment
 	Path        string
 	Key         string
-	Secret      *vault.Secret
+	VaultSecret *vault.Secret
 }
 
 // Equal ...
@@ -90,7 +90,7 @@ func (e *VaultSecrets) List() []string {
 
 // parseSecretStanza
 // parse out `environment -> application -> secret {}` stanza
-func (c *Config) processVaultSecret(list *ast.ObjectList, env *Environment, app *Application) error {
+func (c *Config) parseVaultSecretStanza(list *ast.ObjectList, env *Environment, app *Application) error {
 	if len(list.Items) == 0 {
 		return nil
 	}
@@ -114,23 +114,24 @@ func (c *Config) processVaultSecret(list *ast.ObjectList, env *Environment, app 
 			Environment: env,
 			Path:        secretName,
 			Key:         secretName,
-			Secret: &vault.Secret{
+			VaultSecret: &vault.Secret{
 				Data: m,
 			},
 		}
 
 		if c.VaultSecrets.Add(secret) == false {
 			if secret.Application != nil {
-				c.logger.Warnf("      Ignored duplicate secret '%s' -> '%s' -> '%s' in line %s", secret.Environment.Name, secret.Application.Name, secret.Key, secretData.Keys[0].Token.Pos)
+				c.logger.Warnf("Ignored duplicate secret '%s' -> '%s' -> '%s' in line %s", secret.Environment.Name, secret.Application.Name, secret.Key, secretData.Keys[0].Token.Pos)
 			} else {
-				c.logger.Warnf("      Ignored duplicate secret '%s' -> '%s' in line %s", secret.Environment.Name, secret.Key, secretData.Keys[0].Token.Pos)
+				c.logger.Warnf("Ignored duplicate secret '%s' -> '%s' in line %s", secret.Environment.Name, secret.Key, secretData.Keys[0].Token.Pos)
 			}
 		}
 	}
 
 	return nil
 }
-func (c *Config) processVaultSecrets(list *ast.ObjectList, env *Environment, app *Application) error {
+
+func (c *Config) parseVaultSecretsStanza(list *ast.ObjectList, env *Environment, app *Application) error {
 	if len(list.Items) == 0 {
 		return nil
 	}
@@ -152,7 +153,7 @@ func (c *Config) processVaultSecrets(list *ast.ObjectList, env *Environment, app
 				Environment: env,
 				Path:        k,
 				Key:         k,
-				Secret: &vault.Secret{
+				VaultSecret: &vault.Secret{
 					Data: map[string]interface{}{"value": v},
 				},
 			}

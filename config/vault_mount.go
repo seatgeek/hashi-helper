@@ -76,7 +76,7 @@ type MountRole struct {
 	Data map[string]interface{}
 }
 
-func (c *Config) processVaultMounts(list *ast.ObjectList, environment *Environment) error {
+func (c *Config) parseVaultMountStanza(list *ast.ObjectList, environment *Environment) error {
 	if len(list.Items) == 0 {
 		return nil
 	}
@@ -87,7 +87,7 @@ func (c *Config) processVaultMounts(list *ast.ObjectList, environment *Environme
 		x := mountAST.Val.(*ast.ObjectType).List
 
 		valid := []string{"config", "role", "type", "path", "max_lease_ttl", "default_lease_ttl", "force_no_cache"}
-		if err := checkHCLKeys(x, valid); err != nil {
+		if err := c.checkHCLKeys(x, valid); err != nil {
 			return err
 		}
 

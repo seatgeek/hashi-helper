@@ -84,7 +84,7 @@ func (e *Environments) List() []string {
 // Parse root environment stanza
 func (c *Config) processEnvironments(list *ast.ObjectList) error {
 	valid := []string{"environment"}
-	if err := checkHCLKeys(list, valid); err != nil {
+	if err := c.checkHCLKeys(list, valid); err != nil {
 		return err
 	}
 
@@ -109,7 +109,7 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 
 			// check if we are limiting to a specific environment, and skip the current environment
 			// if it does not match the required environment name
-			if shouldSkipEnvironment(envName, TargetEnvironment) {
+			if c.shouldSkipEnvironment(envName, TargetEnvironment) {
 				c.logger.Debugf("  Skipping environment %s (%s != %s)", envName, envName, TargetEnvironment)
 				continue
 			}
@@ -122,49 +122,49 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 			// check for valid keys inside an environment stanza
 			x := envAST.Val.(*ast.ObjectType).List
 			valid := []string{"application", "auth", "policy", "mount", "secret", "secrets", "service", "kv"}
-			if err := checkHCLKeys(x, valid); err != nil {
+			if err := c.checkHCLKeys(x, valid); err != nil {
 				return err
 			}
 
 			env := c.Environments.GetOrSet(&Environment{Name: envName})
 
-			c.logger.Debug("Scanning for applications")
-			if err := c.processApplications(x.Filter("application"), env); err != nil {
+			c.logger.Debug("Scanning for application{}")
+			if err := c.parseApplicationStanza(x.Filter("application"), env); err != nil {
 				return err
 			}
 
 			c.logger.Debug("Scanning for vault auth{}")
-			if err := c.processVaultAuths(x.Filter("auth"), env); err != nil {
+			if err := c.parseVaultAuthStanza(x.Filter("auth"), env); err != nil {
 				return err
 			}
 
 			c.logger.Debug("Scanning for vault secret{}")
-			if err := c.processVaultSecret(x.Filter("secret"), env, nil); err != nil {
+			if err := c.parseVaultSecretStanza(x.Filter("secret"), env, nil); err != nil {
 				return err
 			}
 
 			c.logger.Debug("Scanning for vault secrets{}")
-			if err := c.processVaultSecrets(x.Filter("secrets"), env, nil); err != nil {
+			if err := c.parseVaultSecretsStanza(x.Filter("secrets"), env, nil); err != nil {
 				return err
 			}
 
 			c.logger.Debug("Scanning for vault policy{}")
-			if err := c.processVaultPolicies(x.Filter("policy"), env, nil); err != nil {
+			if err := c.parseVaultPolicyStanza(x.Filter("policy"), env, nil); err != nil {
 				return err
 			}
 
 			c.logger.Debug("Scanning for vault mount{}")
-			if err := c.processVaultMounts(x.Filter("mount"), env); err != nil {
+			if err := c.parseVaultMountStanza(x.Filter("mount"), env); err != nil {
 				return err
 			}
 
 			c.logger.Debug("Scanning for consul service{}")
-			if err := c.processConsulServices(x.Filter("service"), env); err != nil {
+			if err := c.parseConsulServiceStanza(x.Filter("service"), env); err != nil {
 				return err
 			}
 
 			c.logger.Debug("Scanning for consul kv{}")
-			if err := c.processConsulKV(x.Filter("kv"), env, nil); err != nil {
+			if err := c.parseConsulKVStanza(x.Filter("kv"), env, nil); err != nil {
 				return err
 			}
 
@@ -177,7 +177,7 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 	return nil
 }
 
-func shouldSkipEnvironment(parsedEnv, targetEnv string) bool {
+func (c *Config) shouldSkipEnvironment(parsedEnv, targetEnv string) bool {
 	// * env mean it applies to any filtered environment
 	if parsedEnv == "*" {
 		return false

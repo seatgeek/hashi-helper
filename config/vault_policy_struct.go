@@ -81,7 +81,7 @@ type Permissions struct {
 	DeniedParameters   map[string][]interface{}
 }
 
-func parsePaths(result *Policy, list *ast.ObjectList) error {
+func (c *Config) parsePaths(result *Policy, list *ast.ObjectList) error {
 	paths := make([]*PathCapabilities, 0, len(list.Items))
 	for _, item := range list.Items {
 		key := "path"
@@ -96,7 +96,7 @@ func parsePaths(result *Policy, list *ast.ObjectList) error {
 			"min_wrapping_ttl",
 			"max_wrapping_ttl",
 		}
-		if err := checkHCLKeys(item.Val, valid); err != nil {
+		if err := c.checkHCLKeys(item.Val, valid); err != nil {
 			return multierror.Prefix(err, fmt.Sprintf("path %q:", key))
 		}
 

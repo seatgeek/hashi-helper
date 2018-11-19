@@ -78,7 +78,7 @@ func (a *Applications) List() []string {
 	return res
 }
 
-func (c *Config) processApplications(applicationsAST *ast.ObjectList, environment *Environment) error {
+func (c *Config) parseApplicationStanza(applicationsAST *ast.ObjectList, environment *Environment) error {
 	if len(applicationsAST.Items) > 1 {
 		return fmt.Errorf("only one application stanza is allowed per file")
 	}
@@ -100,7 +100,7 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 		// Check for valid keys inside an application stanza
 		x := appAST.Val.(*ast.ObjectType).List
 		valid := []string{"secret", "secrets", "policy", "kv"}
-		if err := checkHCLKeys(x, valid); err != nil {
+		if err := c.checkHCLKeys(x, valid); err != nil {
 			return err
 		}
 
@@ -109,22 +109,22 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 		environment.Applications.Add(application)
 
 		c.logger.Debug("Scanning for vault secret{}")
-		if err := c.processVaultSecret(x.Filter("secret"), environment, application); err != nil {
+		if err := c.parseVaultSecretStanza(x.Filter("secret"), environment, application); err != nil {
 			return err
 		}
 
 		c.logger.Debug("Scanning for vault secrets{}")
-		if err := c.processVaultSecrets(x.Filter("secrets"), environment, application); err != nil {
+		if err := c.parseVaultSecretsStanza(x.Filter("secrets"), environment, application); err != nil {
 			return err
 		}
 
 		c.logger.Debug("Scanning for policy{}")
-		if err := c.processVaultPolicies(x.Filter("policy"), environment, application); err != nil {
+		if err := c.parseVaultPolicyStanza(x.Filter("policy"), environment, application); err != nil {
 			return err
 		}
 
 		c.logger.Debug("Scanning for kv{}")
-		if err := c.processConsulKV(x.Filter("kv"), environment, application); err != nil {
+		if err := c.parseConsulKVStanza(x.Filter("kv"), environment, application); err != nil {
 			return err
 		}
 
