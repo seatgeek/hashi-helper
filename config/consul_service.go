@@ -8,6 +8,29 @@ import (
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
+// ConsulService ...
+type ConsulService api.CatalogRegistration
+
+// ToConsulService ...
+func (c *ConsulService) ToConsulService() *api.CatalogRegistration {
+	return &api.CatalogRegistration{
+		ID:      c.ID,
+		Node:    c.Node,
+		Address: c.Address,
+		Service: c.Service,
+		Check:   c.Check,
+	}
+}
+
+// ConsulServices struct
+//
+type ConsulServices []*ConsulService
+
+// Add ...
+func (cs *ConsulServices) Add(service *ConsulService) {
+	*cs = append(*cs, service)
+}
+
 func (c *Config) processConsulServices(list *ast.ObjectList, environment *Environment) error {
 	if len(list.Items) == 0 {
 		return nil
