@@ -308,13 +308,13 @@ here_doc: |
 
 `lookup` is used to lookup template variables inside a template. If the key do not exist, the template rendering will fail.
 
-`[[ lookup "my-key" ]]` will return `hello-world`
+`[[ lookup "my-key" ]]` will output `hello-world`
 
 #### lookup_default
 
 `lookup_default` is used to lookup template variables inside a template. If the key do not exist, the `default` (2nd argument) will be returned.
 
-`[[ lookup_default "my-key" "something" ]]` will return `hello-world`
+`[[ lookup_default "my-key" "something" ]]` will output `hello-world`
 
 #### service
 
@@ -322,19 +322,29 @@ here_doc: |
 
 By default `consul` is used as the domain, but can be overwritten with a variable `consul_domain`
 
-`[[ service "test" ]]` will return `test.service.consul`
+`[[ service "test" ]]` will output `test.service.consul`
 
 Given `--variable consul_domain=test.consul`
 
-`[[ service "test" ]]` will return `test.service.test.consul`
+`[[ service "test" ]]` will output `test.service.test.consul`
 
 #### service_with_tag
 
-`[[ service_with_tag "test" "tag ]]` will return `tag.test.service.consul`
+Also see [service](#service) documentation above.
+
+`[[ service_with_tag "test" "tag" ]]` will output `tag.test.service.consul`
+
+Given `--variable consul_domain=test.consul`
+
+`[[ service_with_tag "test" "tag" ]]` will output `tag.test.service.test.consul`
 
 #### grant_credentials
 
-`[[ grant_credentials "db-test" "full" ]]` will return
+Helper to output a policy path for credentials access.
+
+This is useful for `database` and `rabbitmq` access policies.
+
+`[[ grant_credentials "db-test" "full" ]]` will output
 
 ```hcl
 path "db-test/creds/full" {
@@ -344,7 +354,11 @@ path "db-test/creds/full" {
 
 #### grant_credentials_policy
 
-`[[ grant_credentials_policy "db-test" "full" ]]` will return
+Helper to output a full policy (with path) for credentials access.
+
+This is useful for `database` and `rabbitmq` access policies.
+
+`[[ grant_credentials_policy "db-test" "full" ]]` will output
 
 ```hcl
 policy "db-test-full" {
@@ -356,7 +370,9 @@ policy "db-test-full" {
 
 #### github_assign_team_policy
 
-`[[ github_assign_team_policy "infra" "infra-policy" ]]` will return
+Helper to output a github team to vault policy mapping.
+
+`[[ github_assign_team_policy "infra" "infra-policy" ]]` will output
 
 ```hcl
 secret "/auth/github/map/teams/infra" {
@@ -366,7 +382,9 @@ secret "/auth/github/map/teams/infra" {
 
 #### ldap_assign_group_policy
 
-`[[ ldap_assign_group_policy "infra" "infra-policy" ]]` will return
+Helper to output a ldap group to vault policy mapping.
+
+`[[ ldap_assign_group_policy "infra" "infra-policy" ]]` will output
 
 ```hcl
 secret "/auth/ldap/groups/infra" {
