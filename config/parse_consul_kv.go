@@ -11,6 +11,7 @@ func (c *Config) processConsulKV(list *ast.ObjectList, env *Environment, app *Ap
 		return nil
 	}
 
+	c.logger.Debugf("Found %d kv{}", len(list.Items))
 	for _, kvAST := range list.Items {
 		x := kvAST.Val.(*ast.ObjectType).List
 

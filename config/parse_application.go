@@ -11,6 +11,8 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 		return fmt.Errorf("only one application stanza is allowed per file")
 	}
 
+	c.logger = c.logger.WithField("stanza", "application")
+	c.logger.Debugf("Found %d application{}", len(applicationsAST.Items))
 	for _, appAST := range applicationsAST.Items {
 		if len(appAST.Keys) != 1 {
 			return fmt.Errorf("Missing application name in line %+v", appAST.Keys[0].Pos())
@@ -34,22 +36,22 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 
 		environment.Applications.Add(application)
 
-		c.logger.Debug("    Scanning for vault secret{}")
+		c.logger.Debug("Scanning for vault secret{}")
 		if err := c.processVaultSecret(x.Filter("secret"), environment, application); err != nil {
 			return err
 		}
 
-		c.logger.Debug("    Scanning for vault secrets{}")
+		c.logger.Debug("Scanning for vault secrets{}")
 		if err := c.processVaultSecrets(x.Filter("secrets"), environment, application); err != nil {
 			return err
 		}
 
-		c.logger.Debug("    Scanning for policy")
+		c.logger.Debug("Scanning for policy")
 		if err := c.processVaultPolicies(x.Filter("policy"), environment, application); err != nil {
 			return err
 		}
 
-		c.logger.Debug("    Scanning for consul KV")
+		c.logger.Debug("Scanning for consul KV")
 		if err := c.processConsulKV(x.Filter("kv"), environment, application); err != nil {
 			return err
 		}

@@ -16,6 +16,8 @@ func (c *Config) processVaultSecret(list *ast.ObjectList, env *Environment, app 
 		return nil
 	}
 
+	c.logger = c.logger.WithField("stanza", "secrets")
+	c.logger.Debugf("Found %d secrets{}", len(list.Items))
 	for _, secretData := range list.Items {
 		if len(secretData.Keys) != 1 {
 			return fmt.Errorf("Missing secret name in line %+v", secretData.Keys[0].Pos())
@@ -54,6 +56,7 @@ func (c *Config) processVaultSecrets(list *ast.ObjectList, env *Environment, app
 		return nil
 	}
 
+	c.logger.Debugf("Found %d secrets{}", len(list.Items))
 	for _, secretData := range list.Items {
 		if len(secretData.Keys) != 0 {
 			return errors.New("secrets{} stanza must not be named")

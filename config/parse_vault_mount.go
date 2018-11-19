@@ -13,6 +13,8 @@ func (c *Config) processVaultMounts(list *ast.ObjectList, environment *Environme
 		return nil
 	}
 
+	c.logger = c.logger.WithField("stanza", "mount")
+	c.logger.Debugf("Found %d mount{}", len(list.Items))
 	for _, mountAST := range list.Items {
 		x := mountAST.Val.(*ast.ObjectType).List
 

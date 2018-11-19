@@ -13,6 +13,8 @@ func (c *Config) processVaultAuths(list *ast.ObjectList, environment *Environmen
 		return nil
 	}
 
+	c.logger = c.logger.WithField("stanza", "auth")
+	c.logger.Debugf("Found %d auth{}", len(list.Items))
 	for _, authAST := range list.Items {
 		x := authAST.Val.(*ast.ObjectType).List
 

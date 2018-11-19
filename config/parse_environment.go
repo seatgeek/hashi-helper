@@ -53,42 +53,42 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 
 			env := c.Environments.GetOrSet(&Environment{Name: envName})
 
-			c.logger.Debug("  Scanning for applications")
+			c.logger.Debug("Scanning for applications")
 			if err := c.processApplications(x.Filter("application"), env); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for vault auth{}")
+			c.logger.Debug("Scanning for vault auth{}")
 			if err := c.processVaultAuths(x.Filter("auth"), env); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for vault secret{}")
+			c.logger.Debug("Scanning for vault secret{}")
 			if err := c.processVaultSecret(x.Filter("secret"), env, nil); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for vault secrets{}")
+			c.logger.Debug("Scanning for vault secrets{}")
 			if err := c.processVaultSecrets(x.Filter("secrets"), env, nil); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for vault policy{}")
+			c.logger.Debug("Scanning for vault policy{}")
 			if err := c.processVaultPolicies(x.Filter("policy"), env, nil); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for vault mount{}")
+			c.logger.Debug("Scanning for vault mount{}")
 			if err := c.processVaultMounts(x.Filter("mount"), env); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for consul service{}")
+			c.logger.Debug("Scanning for consul service{}")
 			if err := c.processConsulServices(x.Filter("service"), env); err != nil {
 				return err
 			}
 
-			c.logger.Debug("  Scanning for consul kv{}")
+			c.logger.Debug("Scanning for consul kv{}")
 			if err := c.processConsulKV(x.Filter("kv"), env, nil); err != nil {
 				return err
 			}

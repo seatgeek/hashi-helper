@@ -99,7 +99,7 @@ func (cs *configScanner) readAndProcess(file string) error {
 		return err
 	}
 
-	if os.Getenv("PRINT_CONTENT") != "" {
+	if os.Getenv("PRINT_CONTENT") == "1" {
 		log.WithField("file", relativeFile).Debug(content)
 	}
 

@@ -15,6 +15,8 @@ func (c *Config) processVaultPolicies(list *ast.ObjectList, environment *Environ
 		return nil
 	}
 
+	c.logger = c.logger.WithField("stanza", "policy")
+	c.logger.Debugf("Found %d policy{}", len(list.Items))
 	for _, policyAST := range list.Items {
 		x := policyAST.Val.(*ast.ObjectType).List
 

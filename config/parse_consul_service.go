@@ -13,6 +13,8 @@ func (c *Config) processConsulServices(list *ast.ObjectList, environment *Enviro
 		return nil
 	}
 
+	c.logger = c.logger.WithField("stanza", "service")
+	c.logger.Debugf("Found %d service{}", len(list.Items))
 	for _, serviceAST := range list.Items {
 		x := serviceAST.Val.(*ast.ObjectType).List
 
