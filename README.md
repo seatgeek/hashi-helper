@@ -392,6 +392,99 @@ secret "/auth/ldap/groups/infra" {
 }
 ```
 
+### Example
+
+#### HCL Variable file
+
+```hcl
+environment_name = "staging"
+environment_tld  = "stag"
+
+db_default_ttl = "9h"
+db_max_ttl     = "72h"
+
+mysql_databases = [
+  "db-1",
+  "db-2",
+  "db-3"
+]
+
+mysql_irregular_database_names = {
+  db-1 = "some_other_db"
+}
+
+mysql_role_full = <<-SQL
+  CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';
+  GRANT ALL ON __DB__.* TO '{{name}}'@'%';
+  SQL
+
+mysql_role_read_only = <<-SQL
+  CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';
+  GRANT SELECT ON __DB__.* TO '{{name}}'@'%';
+  SQL
+
+mysql_role_read_write = <<-SQL
+  CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';
+  GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE, SHOW VIEW, CREATE TEMPORARY TABLES, LOCK TABLES ON __DB__.* TO '{{name}}'@'%';
+  GRANT PROCESS ON *.* TO '{{name}}'@'%';
+  SQL
+```
+
+#### HCL template file
+
+```hcl
+environment "*" {
+[[ range $k, $v := .mysql_databases ]]
+  [[- $name := printf "db-%s" $v -]]
+  [[- $environment_name := (lookup "environment_name") -]]
+
+  mount "[[ $name ]]" {
+    role "full" {
+      db_name             = "default"
+      default_ttl         = "[[ lookup "db_default_ttl" ]]"
+      max_ttl             = "[[ lookup "db_max_ttl" ]]"
+      creation_statements = <<-SQL
+        [[ lookup "mysql_role_full" | replace_all "__DB__" (lookup_map_default "mysql_irregular_database_names" $v $v ) ]]
+      SQL
+    }
+
+    role "read-write" {
+      db_name             = "default"
+      default_ttl         = "[[ lookup "db_default_ttl" ]]"
+      max_ttl             = "[[ lookup "db_max_ttl" ]]"
+      creation_statements = <<-SQL
+        [[ lookup "mysql_role_read_write" | replace_all "__DB__" (lookup_map_default "mysql_irregular_database_names" $v $v ) ]]
+      SQL
+    }
+
+    role "read-only" {
+      db_name             = "default"
+      default_ttl         = "[[ lookup "db_default_ttl" ]]"
+      max_ttl             = "[[ lookup "db_max_ttl" ]]"
+      creation_statements = <<-SQL
+        [[ lookup "mysql_role_read_only" | replace_all "__DB__" (lookup_map_default "mysql_irregular_database_names" $v $v ) ]]
+      SQL
+    }
+  }
+
+  # grant "full" access policies for "[[ $name ]]"
+  [[ grant_credentials_policy $name "full" ]]
+  [[ github_assign_team_policy (printf "rds-%s-%s-full" $environment_name $name) (printf "%s-full" $name) ]]
+  [[ ldap_assign_group_policy (printf "rds-%s-%s-full" $environment_name $name) (printf "%s-full" $name) ]]
+
+  # grant "read-write" access policies for "[[ $name ]]"
+  [[ grant_credentials_policy $name "read-write" ]]
+  [[ github_assign_team_policy (printf "rds-%s-%s-read-write" $environment_name $name) (printf "%s-read-write" $name) ]]
+  [[ ldap_assign_group_policy (printf "rds-%s-%s-read-write" $environment_name $name) (printf "%s-read-write" $name) ]]
+
+  # grant "read-only" access policies for "[[ $name ]]"
+  [[ grant_credentials_policy $name "read-only" ]]
+  [[ github_assign_team_policy (printf "rds-%s-%s-read-only" $environment_name $name) (printf "%s-read-only" $name) ]]
+  [[ ldap_assign_group_policy (printf "rds-%s-%s-read-only" $environment_name $name) (printf "%s-read-only" $name) ]]
+[[ end ]]
+}
+```
+
 ## Workflow
 
 The following is a sample workflow that may be used for organizations with Consul and Vault clusters in different environments. If your setup deviates from said description, feel free to modify your workflow.

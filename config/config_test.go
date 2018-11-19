@@ -167,6 +167,13 @@ policy "my-db-full" {
   }
 }`,
 		},
+		{
+			name: "test template func: scratch",
+			template: `[[ scratch.Set "foo" "bar" ]]
+test = "[[ scratch.Get "foo" ]]"
+`,
+			wantTemplate: `test = "bar"`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

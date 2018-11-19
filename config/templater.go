@@ -19,11 +19,14 @@ import (
 
 type templater struct {
 	templateVariables map[string]interface{}
+	templateScratch   *Scratch
+	scratch           *Scratch
 }
 
 func newTemplater(variables, variableFiles []string) (*templater, error) {
 	t := &templater{
 		templateVariables: map[string]interface{}{},
+		scratch:           &Scratch{},
 	}
 
 	if err := t.readTemplateVariablesFiles(variableFiles); err != nil {
@@ -45,14 +48,18 @@ func (t *templater) renderContent(content, file string, depth int) (string, erro
 	}
 
 	fns := template.FuncMap{
-		"service":                   t.service,
-		"service_with_tag":          t.serviceWithTag,
-		"grant_credentials":         t.grantCredentials,
-		"grant_credentials_policy":  t.grantCredentialsPolicy,
 		"github_assign_team_policy": t.githubAssignTeamPolicy,
+		"grant_credentials_policy":  t.grantCredentialsPolicy,
+		"grant_credentials":         t.grantCredentials,
 		"ldap_assign_group_policy":  t.ldapAssignTeamPolicy,
-		"lookup":                    t.lookupVar,
 		"lookup_default":            t.lookupVarDefault,
+		"lookup_map_default":        t.lookupVarMapDefault,
+		"lookup_map":                t.lookupVarMap,
+		"lookup":                    t.lookupVar,
+		"replace_all":               t.replaceAll,
+		"scratch":                   t.createScratch(),
+		"service_with_tag":          t.serviceWithTag,
+		"service":                   t.service,
 	}
 
 	tmpl, err := template.New(file).
@@ -246,4 +253,35 @@ secret "/auth/ldap/groups/%s" {
 }`
 
 	return fmt.Sprintf(tmpl, group, policy), nil
+}
+
+func (t *templater) createScratch() func() *Scratch {
+	return func() *Scratch {
+		if t.scratch == nil {
+			t.scratch = &Scratch{}
+		}
+		return t.scratch
+	}
+}
+
+func (t *templater) lookupVarMap(k, mk string) (interface{}, error) {
+	if t.templateScratch == nil {
+		t.templateScratch = &Scratch{values: t.templateVariables}
+	}
+
+	return t.templateScratch.MapGet(k, mk)
+}
+
+func (t *templater) lookupVarMapDefault(k, mk string, def interface{}) (interface{}, error) {
+	v, err := t.lookupVarMap(k, mk)
+	if err != nil {
+		return def, nil
+	}
+	return v, nil
+}
+
+// replaceAll replaces all occurrences of a value in a string with the given
+// replacement value.
+func (t *templater) replaceAll(f, x, s string) (string, error) {
+	return strings.Replace(s, f, x, -1), nil
 }
