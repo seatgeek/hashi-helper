@@ -79,14 +79,14 @@ environment "prod" "stag" {
 
 			TargetEnvironment = tt.env
 
-			got, err := c.parseContent(tt.content)
+			got, err := c.parseContent(tt.content, "test.hcl")
 			if tt.wantErr {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
 			}
 
-			err2 := c.processContent(got)
+			err2 := c.processContent(got, "test.hcl")
 			if tt.wantErr {
 				require.Error(t, err2)
 			} else {

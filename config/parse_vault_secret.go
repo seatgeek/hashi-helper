@@ -80,9 +80,9 @@ func (c *Config) processVaultSecrets(list *ast.ObjectList, env *Environment, app
 
 			if c.VaultSecrets.Add(secret) == false {
 				if secret.Application != nil {
-					c.logger.Warnf("      Ignored duplicate secret '%s' -> '%s' -> '%s' in line %s", secret.Environment.Name, secret.Application.Name, secret.Key, secretData.Pos)
+					c.logger.Warnf("Ignored duplicate secret '%s' -> '%s' -> '%s' in line %s", secret.Environment.Name, secret.Application.Name, secret.Key, secretData.Pos())
 				} else {
-					c.logger.Warnf("      Ignored duplicate secret '%s' -> '%s' in line %s", secret.Environment.Name, secret.Key, secretData.Pos)
+					c.logger.Warnf("Ignored duplicate secret '%s' -> '%s' in line %s", secret.Environment.Name, secret.Key, secretData.Pos())
 				}
 			}
 		}
