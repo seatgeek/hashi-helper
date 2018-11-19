@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"strings"
 	"testing"
 
@@ -114,25 +113,25 @@ func TestConfig_renderContent(t *testing.T) {
 			wantTemplate: `hello = "world"`,
 		},
 		{
-			name:     "test service func missing consul_domain",
-			template: `[[ service "derp" ]]`,
-			wantErr:  errors.New("Missing interpolation key 'consul_domain'"),
+			name:         "test service func missing consul_domain",
+			template:     `service = "[[ service "derp" ]]"`,
+			wantTemplate: `service = "derp.service.consul"`,
 		},
 		{
 			name:     "test template func: service",
 			template: `service="[[ service "vault" ]]"`,
 			templateVariables: map[string]interface{}{
-				"consul_domain": "consul",
+				"consul_domain": "test.consul",
 			},
-			wantTemplate: `service = "vault.service.consul"`,
+			wantTemplate: `service = "vault.service.test.consul"`,
 		},
 		{
 			name:     "test template func: service_with_tag",
 			template: `service="[[ service_with_tag "vault" "active" ]]"`,
 			templateVariables: map[string]interface{}{
-				"consul_domain": "consul",
+				"consul_domain": "test.consul",
 			},
-			wantTemplate: `service = "active.vault.service.consul"`,
+			wantTemplate: `service = "active.vault.service.test.consul"`,
 		},
 		{
 			name:     "test template func: grant_credentials",

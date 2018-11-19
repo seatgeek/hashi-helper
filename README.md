@@ -2,50 +2,47 @@
 
 `hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
 
-<!-- TOC -->
-
 - [hashi-helper](#hashi-helper)
 - [Requirements](#requirements)
 - [Building](#building)
 - [Configuration](#configuration)
 - [Usage](#usage)
-    - [Global Flags](#global-flags)
-    - [Global Commands](#global-commands)
-        - [`push-all`](#push-all)
-    - [Consul](#consul)
-        - [`consul-push-all`](#consul-push-all)
-        - [`consul-push-services`](#consul-push-services)
-        - [`consul-push-kv`](#consul-push-kv)
-    - [vault commands](#vault-commands)
-        - [`vault-create-token`](#vault-create-token)
-        - [`vault-find-token`](#vault-find-token)
-        - [`vault-list-secrets`](#vault-list-secrets)
-        - [`vault-profile-edit`](#vault-profile-edit)
-        - [`vault-profile-use`](#vault-profile-use)
-        - [`vault-pull-secrets`](#vault-pull-secrets)
-        - [`vault-push-all`](#vault-push-all)
-        - [`vault-push-auth`](#vault-push-auth)
-        - [`vault-push-mounts`](#vault-push-mounts)
-        - [`vault-push-policies`](#vault-push-policies)
-        - [`vault-push-secrets`](#vault-push-secrets)
-        - [`vault-unseal-keybase`](#vault-unseal-keybase)
-            - [Options](#options)
-            - [Examples](#examples)
+  - [Global Flags](#global-flags)
+  - [Global Commands](#global-commands)
+    - [`push-all`](#push-all)
+  - [Consul](#consul)
+    - [`consul-push-all`](#consul-push-all)
+    - [`consul-push-services`](#consul-push-services)
+    - [`consul-push-kv`](#consul-push-kv)
+  - [vault commands](#vault-commands)
+    - [`vault-create-token`](#vault-create-token)
+    - [`vault-find-token`](#vault-find-token)
+    - [`vault-list-secrets`](#vault-list-secrets)
+    - [`vault-profile-edit`](#vault-profile-edit)
+    - [`vault-profile-use`](#vault-profile-use)
+    - [`vault-pull-secrets`](#vault-pull-secrets)
+    - [`vault-push-all`](#vault-push-all)
+    - [`vault-push-auth`](#vault-push-auth)
+    - [`vault-push-mounts`](#vault-push-mounts)
+    - [`vault-push-policies`](#vault-push-policies)
+    - [`vault-push-secrets`](#vault-push-secrets)
+    - [`vault-unseal-keybase`](#vault-unseal-keybase)
+      - [Options](#options)
+      - [Examples](#examples)
+- [Templating](#templating)
 - [Workflow](#workflow)
-    - [Directory Structure](#directory-structure)
-    - [Configuration Examples](#configuration-examples)
-    - [Vault app secret](#vault-app-secret)
-    - [Consul app KV](#consul-app-kv)
-    - [Vault auth](#vault-auth)
-    - [Consul services](#consul-services)
-    - [Vault mount](#vault-mount)
-    - [Vault mount role](#vault-mount-role)
-
-<!-- /TOC -->
+  - [Directory Structure](#directory-structure)
+  - [Configuration Examples](#configuration-examples)
+  - [Vault app secret](#vault-app-secret)
+  - [Consul app KV](#consul-app-kv)
+  - [Vault auth](#vault-auth)
+  - [Consul services](#consul-services)
+  - [Vault mount](#vault-mount)
+  - [Vault mount role](#vault-mount-role)
 
 ## Requirements
 
-- Go 1.8
+- Go 1.11
 
 ## Building
 
@@ -228,6 +225,154 @@ All `VAULT_*` env keys are preserved when using `CONSUL_SERVICE_TAG`, `address` 
 - `hashi-helper vault-unseal-keybase --unseal-key=$key`
 - `VAULT_CONSUL_SERVICE=vault VAULT_UNSEAL_KEY=$token hashi-helper vault-unseal-keybase`
 - `hashi-helper vault-unseal-keybase --unseal-key=$key --consul-service-name vault`
+
+## Templating
+
+`hashi-helper` version >= 2.0 support templating for configuration files. All configuration files loaded are automatically rendered as a template using [go text/template](https://golang.org/pkg/text/template/).
+
+Templates use `[[ ]]` brackes instead of the default `{{ }}` style to avoid clashes with HCL `{ }` stanza definitions.
+
+### Variables
+
+You can provide variables for templating through the CLI in various ways. All of these options can be provided any number of times
+
+`--variable-file <file>` or `--var-file <file>`
+
+`--variable key=value` or `--var key=value`
+
+The tool can load files with extensions `.hcl`, `.yaml`/`.yml` and `.json`. Variables are loaded in the order they are provided in CLI, so it's possible to cascade / overwrite configuration files by using a specific loading order. `--variable-file <file>` are loaded **before** CLI `--variable key=value` arguments.
+
+#### HCL variable file
+
+```hcl
+consul_domain    = "consul"
+environment_name = "staging"
+environment_tld  = "stag"
+db_default_ttl   = "9h"
+db_max_ttl       = "72h"
+
+# a list of things
+
+stuff = ["a", "b", "c"]
+
+here_doc = <<-DOC
+  something multiline
+  that will be available
+  as a single string
+  DOC
+```
+
+#### YAML variable file
+
+```yaml
+---
+environment_name: "staging"
+environment_tld: "stag"
+db_default_ttl: "9h"
+db_max_ttl: "72h"
+
+# a list of things
+
+stuff:
+  - "a"
+  - "b"
+  - "c"
+
+here_doc: |
+  something multiline
+  that will be available
+  as a single string
+```
+
+#### JSON variable file
+
+```json
+---
+{
+  "db_default_ttl": "9h",
+  "db_max_ttl": "72h",
+  "environment_name": "staging",
+  "environment_tld": "stag",
+  "here_doc": "something multiline\nthat will be available\nas a single string",
+  "stuff": [
+    "a",
+    "b",
+    "c"
+  ]
+}
+```
+
+### Functions
+
+#### lookup
+
+`lookup` is used to lookup template variables inside a template. If the key do not exist, the template rendering will fail.
+
+`[[ lookup "my-key" ]]` will return `hello-world`
+
+#### lookup_default
+
+`lookup_default` is used to lookup template variables inside a template. If the key do not exist, the `default` (2nd argument) will be returned.
+
+`[[ lookup_default "my-key" "something" ]]` will return `hello-world`
+
+#### service
+
+`service` is used to construct Consul service names programatically.
+
+By default `consul` is used as the domain, but can be overwritten with a variable `consul_domain`
+
+`[[ service "test" ]]` will return `test.service.consul`
+
+Given `--variable consul_domain=test.consul`
+
+`[[ service "test" ]]` will return `test.service.test.consul`
+
+#### service_with_tag
+
+`[[ service_with_tag "test" "tag ]]` will return `tag.test.service.consul`
+
+#### grant_credentials
+
+`[[ grant_credentials "db-test" "full" ]]` will return
+
+```hcl
+path "db-test/creds/full" {
+  capabilities = ["read"]
+}
+```
+
+#### grant_credentials_policy
+
+`[[ grant_credentials_policy "db-test" "full" ]]` will return
+
+```hcl
+policy "db-test-full" {
+  path "db-test/creds/full" {
+    capabilities = ["read"]
+  }
+}
+```
+
+#### github_assign_team_policy
+
+`[[ github_assign_team_policy "infra" "infra-policy" ]]` will return
+
+```hcl
+secret "/auth/github/map/teams/infra" {
+  value = "infra-policy"
+}
+```
+
+#### ldap_assign_group_policy
+
+`[[ ldap_assign_group_policy "infra" "infra-policy" ]]` will return
+
+```hcl
+secret "/auth/ldap/groups/infra" {
+  value = "infra-policy"
+}
+```
 
 ## Workflow
 

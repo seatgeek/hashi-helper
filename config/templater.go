@@ -52,6 +52,7 @@ func (t *templater) renderContent(content, file string, depth int) (string, erro
 		"github_assign_team_policy": t.githubAssignTeamPolicy,
 		"ldap_assign_group_policy":  t.ldapAssignTeamPolicy,
 		"lookup":                    t.lookupVar,
+		"lookup_default":            t.lookupVarDefault,
 	}
 
 	tmpl, err := template.New(file).
@@ -181,7 +182,7 @@ func (t *templater) parseHCLVars(variableFile string) (variables map[string]inte
 func (t *templater) consulDomain() (string, error) {
 	val, ok := t.templateVariables["consul_domain"]
 	if !ok {
-		return "", errors.New("Missing interpolation key 'consul_domain'")
+		return "", errors.New("Missing template variable 'consul_domain'")
 	}
 
 	return fmt.Sprintf("%s", val), nil
@@ -190,27 +191,25 @@ func (t *templater) consulDomain() (string, error) {
 func (t *templater) lookupVar(key string) (interface{}, error) {
 	val, ok := t.templateVariables[key]
 	if !ok {
-		return "", fmt.Errorf("Missing interpolation key '%s'", key)
+		return "", fmt.Errorf("Missing template variable '%s'", key)
+	}
+	return val, nil
+}
+
+func (t *templater) lookupVarDefault(key string, def interface{}) (interface{}, error) {
+	val, ok := t.templateVariables[key]
+	if !ok {
+		return def, nil
 	}
 	return val, nil
 }
 
 func (t *templater) service(service string) (interface{}, error) {
-	domain, err := t.consulDomain()
-	if err != nil {
-		return nil, err
-	}
-
-	return fmt.Sprintf("%s.service.%s", service, domain), nil
+	return fmt.Sprintf(`%s.service.[[ lookup_default "consul_domain" "consul" ]]`, service), nil
 }
 
 func (t *templater) serviceWithTag(service, tag string) (interface{}, error) {
-	domain, err := t.consulDomain()
-	if err != nil {
-		return nil, err
-	}
-
-	return fmt.Sprintf("%s.%s.service.%s", tag, service, domain), nil
+	return fmt.Sprintf(`%s.%s.service.[[ lookup_default "consul_domain" "consul" ]]`, tag, service), nil
 }
 
 func (t *templater) grantCredentials(db, role string) (interface{}, error) {
