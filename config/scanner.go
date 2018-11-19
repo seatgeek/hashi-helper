@@ -10,22 +10,22 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 )
 
-type configScanner struct {
+type scanner struct {
 	config    *Config
 	templater *templater
 	path      string
 }
 
-func newConfigScanner(directory string, config *Config, templater *templater) *configScanner {
-	return &configScanner{
+func newConfigScanner(directory string, config *Config, templater *templater) *scanner {
+	return &scanner{
 		config:    config,
 		templater: templater,
 		path:      directory,
 	}
 }
 
-func (cs *configScanner) scan() error {
-	p, err := os.Open(cs.path)
+func (s *scanner) scan() error {
+	p, err := os.Open(s.path)
 	if err != nil {
 		return err
 	}
@@ -36,14 +36,14 @@ func (cs *configScanner) scan() error {
 	}
 
 	if i.IsDir() {
-		return cs.scanDirectory(cs.path)
+		return s.scanDirectory(s.path)
 	}
 
-	return cs.readAndProcess(cs.path)
+	return s.readAndProcess(s.path)
 }
 
 // scanDirectory ...
-func (cs *configScanner) scanDirectory(directory string) error {
+func (s *scanner) scanDirectory(directory string) error {
 	log.Debugf("Scanning directory %s", directory)
 
 	d, err := os.Open(directory)
@@ -60,15 +60,15 @@ func (cs *configScanner) scanDirectory(directory string) error {
 	var result error
 	for _, fi := range fi {
 		if fi.Mode().IsRegular() && strings.HasSuffix(fi.Name(), ".hcl") {
-			if err := cs.readAndProcess(directory + "/" + fi.Name()); err != nil {
-				result = multierror.Append(result, fmt.Errorf("[%s] %s", strings.TrimPrefix(directory, cs.path)+"/"+fi.Name(), err))
+			if err := s.readAndProcess(directory + "/" + fi.Name()); err != nil {
+				result = multierror.Append(result, fmt.Errorf("[%s] %s", strings.TrimPrefix(directory, s.path)+"/"+fi.Name(), err))
 			}
 
 			continue
 		}
 
 		if fi.IsDir() {
-			if err := cs.scanDirectory(directory + "/" + fi.Name()); err != nil {
+			if err := s.scanDirectory(directory + "/" + fi.Name()); err != nil {
 				result = multierror.Append(result, err)
 			}
 
@@ -81,20 +81,20 @@ func (cs *configScanner) scanDirectory(directory string) error {
 	return result
 }
 
-func (cs *configScanner) readAndProcess(file string) error {
+func (s *scanner) readAndProcess(file string) error {
 	if strings.HasSuffix(file, ".var.hcl") {
 		log.Warnf("Ignoring files with .var.hcl extension")
 		return nil
 	}
 
-	relativeFile := strings.TrimPrefix(strings.TrimPrefix(file, cs.path), "/")
+	relativeFile := strings.TrimPrefix(strings.TrimPrefix(file, s.path), "/")
 
-	content, err := cs.readFile(file)
+	content, err := s.readFile(file)
 	if err != nil {
 		return err
 	}
 
-	content, err = cs.templater.renderContent(content, file, 0)
+	content, err = s.templater.renderContent(content, file, 0)
 	if err != nil {
 		return err
 	}
@@ -103,16 +103,16 @@ func (cs *configScanner) readAndProcess(file string) error {
 		log.WithField("file", relativeFile).Debug(content)
 	}
 
-	list, err := cs.config.parseContent(content, relativeFile)
+	list, err := s.config.parseContent(content, relativeFile)
 	if err != nil {
 		return err
 	}
 
-	return cs.config.processContent(list, relativeFile)
+	return s.config.processContent(list, relativeFile)
 }
 
 // Read File Content
-func (cs *configScanner) readFile(file string) (string, error) {
+func (s *scanner) readFile(file string) (string, error) {
 	log.Debugf("Parsing file %s", file)
 
 	// read file from disk

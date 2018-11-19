@@ -41,7 +41,7 @@ func NewConfigFromCLI(c *cli.Context) (*Config, error) {
 	}
 
 	// create a templater we can use for future rendering
-	templater, err := newTemplater(config, c.GlobalStringSlice("variable"), c.GlobalStringSlice("variable-file"))
+	templater, err := newTemplater(c.GlobalStringSlice("variable"), c.GlobalStringSlice("variable-file"))
 	if err != nil {
 		return nil, err
 	}

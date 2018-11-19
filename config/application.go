@@ -118,12 +118,12 @@ func (c *Config) processApplications(applicationsAST *ast.ObjectList, environmen
 			return err
 		}
 
-		c.logger.Debug("Scanning for policy")
+		c.logger.Debug("Scanning for policy{}")
 		if err := c.processVaultPolicies(x.Filter("policy"), environment, application); err != nil {
 			return err
 		}
 
-		c.logger.Debug("Scanning for consul KV")
+		c.logger.Debug("Scanning for kv{}")
 		if err := c.processConsulKV(x.Filter("kv"), environment, application); err != nil {
 			return err
 		}

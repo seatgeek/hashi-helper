@@ -21,7 +21,7 @@ type templater struct {
 	templateVariables map[string]interface{}
 }
 
-func newTemplater(c *Config, variables, variableFiles []string) (*templater, error) {
+func newTemplater(variables, variableFiles []string) (*templater, error) {
 	t := &templater{
 		templateVariables: map[string]interface{}{},
 	}
