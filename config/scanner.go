@@ -12,11 +12,11 @@ import (
 
 type scanner struct {
 	config    *Config
-	templater *templater
+	templater *renderer
 	path      string
 }
 
-func newConfigScanner(directory string, config *Config, templater *templater) *scanner {
+func newConfigScanner(directory string, config *Config, templater *renderer) *scanner {
 	return &scanner{
 		config:    config,
 		templater: templater,

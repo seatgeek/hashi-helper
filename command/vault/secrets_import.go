@@ -13,9 +13,9 @@ import (
 
 // SecretsImport ...
 func SecretsImport(c *cli.Context) error {
-	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"))
+	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"), c.GlobalInt("concurrency"))
 
-	secrets, err := helper.ReadRemoteSecrets(secrets)
+	secrets, err := helper.ReadRemoteSecrets(secrets, c.GlobalInt("concurrency"))
 	if err != nil {
 		return err
 	}

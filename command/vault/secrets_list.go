@@ -44,10 +44,10 @@ func secretListLocal(c *cli.Context) error {
 
 // secretListRemote ...
 func secretListRemote(c *cli.Context) error {
-	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"))
+	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"), c.GlobalInt("concurrency"))
 
 	if c.Bool("detailed") {
-		printDetailedSecrets(secrets)
+		printDetailedSecrets(secrets, c.GlobalInt("concurrency"))
 		return nil
 	}
 
@@ -59,8 +59,8 @@ func secretListRemote(c *cli.Context) error {
 	return nil
 }
 
-func printDetailedSecrets(paths config.VaultSecrets) {
-	secrets, err := helper.ReadRemoteSecrets(paths)
+func printDetailedSecrets(paths config.VaultSecrets, concurrency int) {
+	secrets, err := helper.ReadRemoteSecrets(paths, concurrency)
 	if err != nil {
 		log.Fatal(err)
 	}

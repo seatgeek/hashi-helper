@@ -92,8 +92,8 @@ func (c *Config) parseApplicationStanza(applicationsAST *ast.ObjectList, environ
 
 		appName := appAST.Keys[0].Token.Value().(string)
 
-		if TargetApplication != "" && appName != TargetApplication {
-			c.logger.Debugf("Skipping application %s (!= %s)", appName, TargetApplication)
+		if c.TargetApplication != "" && appName != c.TargetApplication {
+			c.logger.Debugf("Skipping application %s (!= %s)", appName, c.TargetApplication)
 			continue
 		}
 

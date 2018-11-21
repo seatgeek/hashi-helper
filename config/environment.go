@@ -109,14 +109,14 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 
 			// check if we are limiting to a specific environment, and skip the current environment
 			// if it does not match the required environment name
-			if c.shouldSkipEnvironment(envName, TargetEnvironment) {
-				c.logger.Debugf("  Skipping environment %s (%s != %s)", envName, envName, TargetEnvironment)
+			if c.shouldSkipEnvironment(envName, c.TargetEnvironment) {
+				c.logger.Debugf("  Skipping environment %s (%s != %s)", envName, envName, c.TargetEnvironment)
 				continue
 			}
 
 			// Rewrite "*" to the actual target environment
 			if envName == "*" {
-				envName = TargetEnvironment
+				envName = c.TargetEnvironment
 			}
 
 			// check for valid keys inside an environment stanza

@@ -17,14 +17,14 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-type templater struct {
+type renderer struct {
 	templateVariables map[string]interface{}
 	templateScratch   *Scratch
 	scratch           *Scratch
 }
 
-func newTemplater(variables, variableFiles []string) (*templater, error) {
-	t := &templater{
+func newRenderer(variables, variableFiles []string) (*renderer, error) {
+	t := &renderer{
 		templateVariables: map[string]interface{}{},
 		scratch:           &Scratch{},
 	}
@@ -40,7 +40,7 @@ func newTemplater(variables, variableFiles []string) (*templater, error) {
 	return t, nil
 }
 
-func (t *templater) renderContent(content, file string, depth int) (string, error) {
+func (t *renderer) renderContent(content, file string, depth int) (string, error) {
 	log.Debugf("Rendering file %s (depth %d)", file, depth)
 
 	if depth > 5 {
@@ -101,7 +101,7 @@ func (t *templater) renderContent(content, file string, depth int) (string, erro
 	return strings.TrimSpace(string(res)), nil
 }
 
-func (t *templater) parseTemplateVariables(pairs []string) error {
+func (t *renderer) parseTemplateVariables(pairs []string) error {
 	for _, val := range pairs {
 		chunks := strings.SplitN(val, "=", 2)
 		if len(chunks) != 2 {
@@ -114,7 +114,7 @@ func (t *templater) parseTemplateVariables(pairs []string) error {
 	return nil
 }
 
-func (t *templater) readTemplateVariablesFiles(files []string) error {
+func (t *renderer) readTemplateVariablesFiles(files []string) error {
 	for _, variableFile := range files {
 		ext := path.Ext(variableFile)
 
@@ -144,7 +144,7 @@ func (t *templater) readTemplateVariablesFiles(files []string) error {
 	return nil
 }
 
-func (t *templater) parseJSONVars(variableFile string) (variables map[string]interface{}, err error) {
+func (t *renderer) parseJSONVars(variableFile string) (variables map[string]interface{}, err error) {
 	jsonFile, err := ioutil.ReadFile(variableFile)
 	if err != nil {
 		return
@@ -158,7 +158,7 @@ func (t *templater) parseJSONVars(variableFile string) (variables map[string]int
 	return variables, nil
 }
 
-func (t *templater) parseYAMLVars(variableFile string) (variables map[string]interface{}, err error) {
+func (t *renderer) parseYAMLVars(variableFile string) (variables map[string]interface{}, err error) {
 	yamlFile, err := ioutil.ReadFile(variableFile)
 	if err != nil {
 		return
@@ -172,7 +172,7 @@ func (t *templater) parseYAMLVars(variableFile string) (variables map[string]int
 	return variables, nil
 }
 
-func (t *templater) parseHCLVars(variableFile string) (variables map[string]interface{}, err error) {
+func (t *renderer) parseHCLVars(variableFile string) (variables map[string]interface{}, err error) {
 	hclFile, err := ioutil.ReadFile(variableFile)
 	if err != nil {
 		return
@@ -186,7 +186,7 @@ func (t *templater) parseHCLVars(variableFile string) (variables map[string]inte
 	return variables, nil
 }
 
-func (t *templater) consulDomain() (string, error) {
+func (t *renderer) consulDomain() (string, error) {
 	val, ok := t.templateVariables["consul_domain"]
 	if !ok {
 		return "", errors.New("Missing template variable 'consul_domain'")
@@ -195,7 +195,7 @@ func (t *templater) consulDomain() (string, error) {
 	return fmt.Sprintf("%s", val), nil
 }
 
-func (t *templater) lookupVar(key string) (interface{}, error) {
+func (t *renderer) lookupVar(key string) (interface{}, error) {
 	val, ok := t.templateVariables[key]
 	if !ok {
 		return "", fmt.Errorf("Missing template variable '%s'", key)
@@ -203,7 +203,7 @@ func (t *templater) lookupVar(key string) (interface{}, error) {
 	return val, nil
 }
 
-func (t *templater) lookupVarDefault(key string, def interface{}) (interface{}, error) {
+func (t *renderer) lookupVarDefault(key string, def interface{}) (interface{}, error) {
 	val, ok := t.templateVariables[key]
 	if !ok {
 		return def, nil
@@ -211,15 +211,15 @@ func (t *templater) lookupVarDefault(key string, def interface{}) (interface{}, 
 	return val, nil
 }
 
-func (t *templater) service(service string) (interface{}, error) {
+func (t *renderer) service(service string) (interface{}, error) {
 	return fmt.Sprintf(`%s.service.[[ lookup_default "consul_domain" "consul" ]]`, service), nil
 }
 
-func (t *templater) serviceWithTag(service, tag string) (interface{}, error) {
+func (t *renderer) serviceWithTag(service, tag string) (interface{}, error) {
 	return fmt.Sprintf(`%s.%s.service.[[ lookup_default "consul_domain" "consul" ]]`, tag, service), nil
 }
 
-func (t *templater) grantCredentials(db, role string) (interface{}, error) {
+func (t *renderer) grantCredentials(db, role string) (interface{}, error) {
 	tmpl := `
 path "%s/creds/%s" {
   capabilities = ["read"]
@@ -228,7 +228,7 @@ path "%s/creds/%s" {
 	return fmt.Sprintf(tmpl, db, role), nil
 }
 
-func (t *templater) grantCredentialsPolicy(db, role string) (interface{}, error) {
+func (t *renderer) grantCredentialsPolicy(db, role string) (interface{}, error) {
 	tmpl := `
 policy "%s-%s" {
 	[[ grant_credentials "%s" "%s" ]]
@@ -237,7 +237,7 @@ policy "%s-%s" {
 	return fmt.Sprintf(tmpl, db, role, db, role), nil
 }
 
-func (t *templater) githubAssignTeamPolicy(team, policy string) (interface{}, error) {
+func (t *renderer) githubAssignTeamPolicy(team, policy string) (interface{}, error) {
 	tmpl := `
 secret "/auth/github/map/teams/%s" {
   value = "%s"
@@ -246,7 +246,7 @@ secret "/auth/github/map/teams/%s" {
 	return fmt.Sprintf(tmpl, team, policy), nil
 }
 
-func (t *templater) ldapAssignTeamPolicy(group, policy string) (interface{}, error) {
+func (t *renderer) ldapAssignTeamPolicy(group, policy string) (interface{}, error) {
 	tmpl := `
 secret "/auth/ldap/groups/%s" {
   value = "%s"
@@ -255,7 +255,7 @@ secret "/auth/ldap/groups/%s" {
 	return fmt.Sprintf(tmpl, group, policy), nil
 }
 
-func (t *templater) createScratch() func() *Scratch {
+func (t *renderer) createScratch() func() *Scratch {
 	return func() *Scratch {
 		if t.scratch == nil {
 			t.scratch = &Scratch{}
@@ -264,7 +264,7 @@ func (t *templater) createScratch() func() *Scratch {
 	}
 }
 
-func (t *templater) lookupVarMap(k, mk string) (interface{}, error) {
+func (t *renderer) lookupVarMap(k, mk string) (interface{}, error) {
 	if t.templateScratch == nil {
 		t.templateScratch = &Scratch{values: t.templateVariables}
 	}
@@ -272,7 +272,7 @@ func (t *templater) lookupVarMap(k, mk string) (interface{}, error) {
 	return t.templateScratch.MapGet(k, mk)
 }
 
-func (t *templater) lookupVarMapDefault(k, mk string, def interface{}) (interface{}, error) {
+func (t *renderer) lookupVarMapDefault(k, mk string, def interface{}) (interface{}, error) {
 	v, err := t.lookupVarMap(k, mk)
 	if err != nil {
 		return def, nil
@@ -282,6 +282,6 @@ func (t *templater) lookupVarMapDefault(k, mk string, def interface{}) (interfac
 
 // replaceAll replaces all occurrences of a value in a string with the given
 // replacement value.
-func (t *templater) replaceAll(f, x, s string) (string, error) {
+func (t *renderer) replaceAll(f, x, s string) (string, error) {
 	return strings.Replace(s, f, x, -1), nil
 }

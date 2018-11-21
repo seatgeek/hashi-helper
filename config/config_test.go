@@ -74,9 +74,9 @@ environment "prod" "stag" {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Config{}
-
-			TargetEnvironment = tt.env
+			c := &Config{
+				TargetEnvironment: tt.env,
+			}
 
 			got, err := c.parseContent(tt.content, "test.hcl")
 			if tt.wantErr {
@@ -177,7 +177,7 @@ test = "[[ scratch.Get "foo" ]]"
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			templater := &templater{
+			templater := &renderer{
 				templateVariables: tt.templateVariables,
 			}
 
