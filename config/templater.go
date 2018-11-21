@@ -11,9 +11,9 @@ import (
 	"strings"
 	"text/template"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/printer"
+	log "github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
 

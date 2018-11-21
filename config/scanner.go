@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	multierror "github.com/hashicorp/go-multierror"
+	log "github.com/sirupsen/logrus"
 )
 
 type scanner struct {

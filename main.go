@@ -5,11 +5,11 @@ import (
 	"runtime"
 	"sort"
 
-	log "github.com/Sirupsen/logrus"
 	allCommand "github.com/seatgeek/hashi-helper/command"
 	consulCommand "github.com/seatgeek/hashi-helper/command/consul"
 	vaultCommand "github.com/seatgeek/hashi-helper/command/vault"
 	"github.com/seatgeek/hashi-helper/config"
+	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
 )
 

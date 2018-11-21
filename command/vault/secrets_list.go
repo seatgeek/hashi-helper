@@ -1,10 +1,10 @@
 package vault
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/seatgeek/hashi-helper/command/vault/helper"
 	"github.com/seatgeek/hashi-helper/config"
+	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
 )
 

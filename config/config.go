@@ -3,10 +3,10 @@ package config
 import (
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/urfave/cli.v1"
 )
 

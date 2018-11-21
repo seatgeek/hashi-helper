@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	api "github.com/hashicorp/vault/api"
 	"github.com/seatgeek/hashi-helper/config"
 	"github.com/seatgeek/hashi-helper/support"
+	log "github.com/sirupsen/logrus"
 )
 
 var environmentMatch = regexp.MustCompile(`^secret/(?P<Environment>.*?)/(?P<Application>.*?)/(?P<Path>.+)$`)

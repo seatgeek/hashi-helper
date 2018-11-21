@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/vault/api"
 	"github.com/seatgeek/hashi-helper/config"
+	log "github.com/sirupsen/logrus"
 )
 
 // SecretWriter ...
