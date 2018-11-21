@@ -12,27 +12,27 @@ import (
 
 // Config ...
 type Config struct {
-	renderer           *renderer
-	logger             *log.Entry
-	Applications       Applications
-	ConsulKVs          ConsulKVs
-	ConsulServices     ConsulServices
-	Environments       Environments
-	TargetEnvironment  string
-	TargetApplication  string
-	DefaultConcurrency int
-	VaultAuths         VaultAuths
-	VaultMounts        VaultMounts
-	VaultPolicies      VaultPolicies
-	VaultSecrets       VaultSecrets
+	Applications      Applications
+	concurrency       int
+	ConsulKVs         ConsulKVs
+	ConsulServices    ConsulServices
+	Environments      Environments
+	logger            *log.Entry
+	renderer          *renderer
+	targetApplication string
+	targetEnvironment string
+	VaultAuths        VaultAuths
+	VaultMounts       VaultMounts
+	VaultPolicies     VaultPolicies
+	VaultSecrets      VaultSecrets
 }
 
 // NewConfigFromCLI will take a CLI context and create config from it
 func NewConfigFromCLI(c *cli.Context) (*Config, error) {
 	config := &Config{
-		TargetEnvironment:  c.GlobalString("environment"),
-		TargetApplication:  c.GlobalString("application"),
-		DefaultConcurrency: c.GlobalInt("concurrency"),
+		targetEnvironment: c.GlobalString("environment"),
+		targetApplication: c.GlobalString("application"),
+		concurrency:       c.GlobalInt("concurrency"),
 	}
 
 	// create a templater we can use for future rendering

@@ -75,7 +75,7 @@ environment "prod" "stag" {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
-				TargetEnvironment: tt.env,
+				targetEnvironment: tt.env,
 			}
 
 			got, err := c.parseContent(tt.content, "test.hcl")
