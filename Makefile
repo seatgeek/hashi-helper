@@ -13,20 +13,16 @@ ifeq (, $(shell which dep))
 	@echo "=> installing 'dep'"
 	go get github.com/golang/dep/cmd/dep
 endif
-	dep ensure -vendor-only
+	@echo "=> installing dependencies"
+	@dep ensure -v -vendor-only
 
 .PHONY: build
 build: install
 	go install
 
-.PHONY: fmt
-fmt:
-	@echo "=> Running go fmt" ;
-	@go fmt ./... || (echo "go fmt updated formatting. Please commit formatted code first" ; exit 1)
-
-.PHONY: vet
-vet: fmt
-	@echo "=> Running go vet"
+.PHONY: ci
+ci: install
+	@echo "=> Running CI"
 	@./ci.sh
 
 BINARIES = $(addprefix $(BUILD_DIR)/hashi-helper-, $(GOBUILD))

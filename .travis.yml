@@ -22,6 +22,7 @@ env:
     - secure: "GYbB1rILVLa3SyuZbqunukI8fO/QSPcjXl/RmklzVAlZXeKePs8dHYljC96zk3psXw9SL9y4H/uHLc9xItjLCtrbyn7jur++MX/7DqJlvLHlx+B/wezPCbP8uzd+yGRhdjQ4Bme0UoxwIYK4jMCy0ewsu7fh7++OQFKJ3LiUAfnASw7m9m2piyP3MMld5JyqZtfj0GOca5NyNucrXa9dp6rrE5WkTCSK6GTf+tJ9XKGv5fDsRXRbPIqaRDQWhL2UO+dNzxVP7cLsi+2+QIr0Wjwwlvy2pcn14uq8SwvcbvWoak9YV0smDfVautX39+4Sb4aeWd9PmZF0Vj9euuQIBsgh6AnOHaCGuqsv4rZXcSOc01/Qg5Gto4QnvUMzfu7UNqNUBDhUO8jDMJ2w5CgwCZHFByRPYGuhLRZFxdPgTU8ZG4LaZbJ9e84L3+1HhjfcNpy0tMtHmuuUc4jKoYgDDY3QbzvhdT8MFPuY0pvBUNYXovT1lSua36BJnOZKut0Pj8v+lnNRVbV5jJNNQQ7o9zsjup2HmJJMFnF+eLDkn4D8/jLu014TvY8JAIIrGH6dLELVXbcUVyDans9LHJ76eBOBmIGxPGHBF13rnhCPK+LF65tqRpIi+1yZifSmmx2vHLWJkBLMR6WsqNS2upzLCQ7P/fL66N/2R8xzXPJzBjw="
 
 script:
+  - make -j ci
   - GOBUILD=${GOBUILD} make -j dist
   - ls -la build
 
