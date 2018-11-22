@@ -554,6 +554,17 @@ environment "production" {
     secret "API_URL" {
       value = "http://localhost:8181"
     }
+
+    # an sample secret, will be written to secrets/api-admin/TEST in Vault
+    secret "TEST" {
+      value = "http://localhost:8282"
+    }
+
+    # shorthand for API_URL and TEST above
+    secrets {
+      API_URL = "http://localhost:8181"
+      TEST    = "http://localhost:8282"
+    }
   }
 }
 ```
