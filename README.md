@@ -93,10 +93,12 @@ hashi-helper [--global-flags] command [--command-flags]
 ### Global Flags
 
 - `--lint` Only process configuration, do not push any changes to Consul or Vault
+- `--variable key=value, --var key=value`: List of key=value pairs to expose during file parsing as go-template (can be repeated)
+- `--variable-file value, --var-file value, --varf value`: List of files to load as variable sources (can be repeated)
 - `--concurrency` / `CONCURRENCY`: How many parallel requests to run in parallel against remote servers (optional, default: `2 * CPU Cores`)
 - `--log-level` / `LOG_LEVEL`: Debug level of `debug`, `info`, `warn/warning`, `error`, `fatal`, `panic` (optional, default: `info`)
-- `--config-dir` / `CONFIG_DIR`: A directory to recursively scan for `hcl` configuration files (optional; default: `./conf.d`)
-- `--config-file` / `CONFIG_FILE`: A single `hcl` configuration file to parse instead of a directory (optional; default: `<empty>`)
+- `--config-dir` / `CONFIG_DIR`: One or more directories to recursively scan for `hcl` configuration files (optional; default: `./conf.d`) (can be repated)
+- `--config-file` / `CONFIG_FILE`: One or more `hcl` configuration file to parse instead of a directory (optional; default: `<empty>`) (can be repeated)
 - `--environment` / `ENVIRONMENT`: The environment to process for (optional; default: `all`)
 - `--application` / `APPLICATION`: The application to process for (optional; default: `all`)
 
