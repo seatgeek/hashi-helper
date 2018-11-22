@@ -28,7 +28,7 @@ func (p *Policy) Equal(o *Policy) bool {
 	}
 
 	// environmet must same
-	if p.Environment.Equal(o.Environment) == false {
+	if p.Environment.equal(o.Environment) == false {
 		return false
 	}
 

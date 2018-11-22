@@ -12,13 +12,13 @@ type Application struct {
 	Environment *Environment
 }
 
-// Equal ...
-func (a *Application) Equal(o *Application) bool {
+// equal ...
+func (a *Application) equal(o *Application) bool {
 	if a.Name != o.Name {
 		return false
 	}
 
-	if !a.Environment.Equal(o.Environment) {
+	if !a.Environment.equal(o.Environment) {
 		return false
 	}
 
@@ -28,17 +28,17 @@ func (a *Application) Equal(o *Application) bool {
 // Applications ...
 type Applications []*Application
 
-// Add ...
-func (a *Applications) Add(application *Application) {
-	if !a.Exists(application) {
+// add ...
+func (a *Applications) add(application *Application) {
+	if !a.exists(application) {
 		*a = append(*a, application)
 	}
 }
 
-// Exists ...
-func (a *Applications) Exists(application *Application) bool {
+// exists ...
+func (a *Applications) exists(application *Application) bool {
 	for _, existing := range *a {
-		if application.Equal(existing) {
+		if application.equal(existing) {
 			return true
 		}
 	}
@@ -46,10 +46,10 @@ func (a *Applications) Exists(application *Application) bool {
 	return false
 }
 
-// Get ...
-func (a *Applications) Get(application *Application) *Application {
+// get ...
+func (a *Applications) get(application *Application) *Application {
 	for _, existing := range *a {
-		if application.Equal(existing) {
+		if application.equal(existing) {
 			return existing
 		}
 	}
@@ -57,18 +57,18 @@ func (a *Applications) Get(application *Application) *Application {
 	return nil
 }
 
-// GetOrSet ...
-func (a *Applications) GetOrSet(application *Application) *Application {
-	existing := a.Get(application)
+// getOrSet ...
+func (a *Applications) getOrSet(application *Application) *Application {
+	existing := a.get(application)
 	if existing != nil {
 		return existing
 	}
 
-	a.Add(application)
+	a.add(application)
 	return application
 }
 
-func (a *Applications) List() []string {
+func (a *Applications) list() []string {
 	res := []string{}
 
 	for _, app := range *a {
@@ -104,9 +104,9 @@ func (c *Config) parseApplicationStanza(applicationsAST *ast.ObjectList, environ
 			return err
 		}
 
-		application := c.Applications.GetOrSet(&Application{Environment: environment, Name: appName})
+		application := c.Applications.getOrSet(&Application{Environment: environment, Name: appName})
 
-		environment.Applications.Add(application)
+		environment.Applications.add(application)
 
 		c.logger.Debug("Scanning for vault secret{}")
 		if err := c.parseVaultSecretStanza(x.Filter("secret"), environment, application); err != nil {
@@ -128,7 +128,7 @@ func (c *Config) parseApplicationStanza(applicationsAST *ast.ObjectList, environ
 			return err
 		}
 
-		c.Applications.Add(application)
+		c.Applications.add(application)
 	}
 
 	return nil

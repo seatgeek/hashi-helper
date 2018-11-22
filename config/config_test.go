@@ -92,8 +92,8 @@ environment "prod" "stag" {
 				require.NoError(t, err2)
 			}
 
-			require.Equal(t, tt.seenEnvironments, c.Environments.List())
-			require.Equal(t, tt.seenApplications, c.Applications.List())
+			require.Equal(t, tt.seenEnvironments, c.Environments.list())
+			require.Equal(t, tt.seenApplications, c.Applications.list())
 			require.Equal(t, tt.seenSecrets, c.VaultSecrets.List())
 		})
 	}

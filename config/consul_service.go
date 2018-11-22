@@ -26,8 +26,8 @@ func (c *ConsulService) ToConsulService() *api.CatalogRegistration {
 //
 type ConsulServices []*ConsulService
 
-// Add ...
-func (cs *ConsulServices) Add(service *ConsulService) {
+// add ...
+func (cs *ConsulServices) add(service *ConsulService) {
 	*cs = append(*cs, service)
 }
 
@@ -106,7 +106,7 @@ func (c *Config) parseConsulServiceStanza(list *ast.ObjectList, environment *Env
 			},
 		}
 
-		c.ConsulServices.Add(service)
+		c.ConsulServices.add(service)
 	}
 
 	return nil

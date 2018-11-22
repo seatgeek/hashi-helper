@@ -22,7 +22,7 @@ type Secret struct {
 // Equal ...
 func (s *Secret) Equal(o *Secret) bool {
 	if s.Application != nil && o.Application != nil {
-		if s.Application.Equal(o.Application) == false {
+		if s.Application.equal(o.Application) == false {
 			return false
 		}
 	}

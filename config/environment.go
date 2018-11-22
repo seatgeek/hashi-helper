@@ -12,25 +12,25 @@ type Environment struct {
 	Applications Applications
 }
 
-// Equal ...
-func (e *Environment) Equal(o *Environment) bool {
+// equal ...
+func (e *Environment) equal(o *Environment) bool {
 	return e.Name == o.Name
 }
 
 // Environments struct
 type Environments []*Environment
 
-// Add ...
-func (e *Environments) Add(environment *Environment) {
-	if !e.Exists(environment) {
+// add ...
+func (e *Environments) add(environment *Environment) {
+	if !e.exists(environment) {
 		*e = append(*e, environment)
 	}
 }
 
-// Exists ...
-func (e *Environments) Exists(environment *Environment) bool {
+// exists ...
+func (e *Environments) exists(environment *Environment) bool {
 	for _, existing := range *e {
-		if environment.Equal(existing) {
+		if environment.equal(existing) {
 			return true
 		}
 	}
@@ -49,10 +49,10 @@ func (e *Environments) Contains(environmentName string) bool {
 	return false
 }
 
-// Get ...
-func (e *Environments) Get(environment *Environment) *Environment {
+// get ...
+func (e *Environments) get(environment *Environment) *Environment {
 	for _, existing := range *e {
-		if environment.Equal(existing) {
+		if environment.equal(existing) {
 			return existing
 		}
 	}
@@ -60,18 +60,18 @@ func (e *Environments) Get(environment *Environment) *Environment {
 	return nil
 }
 
-// GetOrSet ...
-func (e *Environments) GetOrSet(environment *Environment) *Environment {
-	existing := e.Get(environment)
+// getOrSet ...
+func (e *Environments) getOrSet(environment *Environment) *Environment {
+	existing := e.get(environment)
 	if existing != nil {
 		return existing
 	}
 
-	e.Add(environment)
+	e.add(environment)
 	return environment
 }
 
-func (e *Environments) List() []string {
+func (e *Environments) list() []string {
 	res := []string{}
 
 	for _, env := range *e {
@@ -126,7 +126,7 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 				return err
 			}
 
-			env := c.Environments.GetOrSet(&Environment{Name: envName})
+			env := c.Environments.getOrSet(&Environment{Name: envName})
 
 			c.logger.Debug("Scanning for application{}")
 			if err := c.parseApplicationStanza(x.Filter("application"), env); err != nil {
@@ -168,7 +168,7 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 				return err
 			}
 
-			c.Environments.Add(env)
+			c.Environments.add(env)
 		}
 
 		// spew.Dump(c)

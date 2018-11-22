@@ -34,8 +34,8 @@ func (c *ConsulKV) toPath() string {
 //
 type ConsulKVs []*ConsulKV
 
-// Add ...
-func (cs *ConsulKVs) Add(kv *ConsulKV) {
+// add ...
+func (cs *ConsulKVs) add(kv *ConsulKV) {
 	*cs = append(*cs, kv)
 }
 
@@ -80,7 +80,7 @@ func (c *Config) parseConsulKVStanza(list *ast.ObjectList, env *Environment, app
 			Value:       []byte(value),
 		}
 
-		c.ConsulKVs.Add(kv)
+		c.ConsulKVs.add(kv)
 	}
 
 	return nil

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -48,6 +47,7 @@ func (t *renderer) renderContent(content, file string, depth int) (string, error
 	}
 
 	fns := template.FuncMap{
+		"consul_domain":             t.consulDomain,
 		"github_assign_team_policy": t.githubAssignTeamPolicy,
 		"grant_credentials_policy":  t.grantCredentialsPolicy,
 		"grant_credentials":         t.grantCredentials,
@@ -58,8 +58,8 @@ func (t *renderer) renderContent(content, file string, depth int) (string, error
 		"lookup":                    t.lookupVar,
 		"replace_all":               t.replaceAll,
 		"scratch":                   t.createScratch(),
-		"service_with_tag":          t.serviceWithTag,
-		"service":                   t.service,
+		"service_with_tag":          t.consulServiceWithTag,
+		"service":                   t.consulService,
 	}
 
 	tmpl, err := template.New(file).
@@ -144,38 +144,41 @@ func (t *renderer) readTemplateVariablesFiles(files []string) error {
 	return nil
 }
 
+// parseJSONVars will read a file from disk and JSON unmarshal it into a map[string]interface{}
 func (t *renderer) parseJSONVars(variableFile string) (variables map[string]interface{}, err error) {
 	jsonFile, err := ioutil.ReadFile(variableFile)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	variables = make(map[string]interface{})
 	if err = json.Unmarshal(jsonFile, &variables); err != nil {
-		return
+		return nil, err
 	}
 
 	return variables, nil
 }
 
+// parseYAMLVars will read a file from disk and yaml unmarshal it into a map[string]interface{}
 func (t *renderer) parseYAMLVars(variableFile string) (variables map[string]interface{}, err error) {
 	yamlFile, err := ioutil.ReadFile(variableFile)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	variables = make(map[string]interface{})
 	if err = yaml.Unmarshal(yamlFile, &variables); err != nil {
-		return
+		return nil, err
 	}
 
 	return variables, nil
 }
 
+// parseHCLVars will read a file from disk and hcl unmarshal it into a map[string]interface{}
 func (t *renderer) parseHCLVars(variableFile string) (variables map[string]interface{}, err error) {
 	hclFile, err := ioutil.ReadFile(variableFile)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	variables = make(map[string]interface{})
@@ -186,37 +189,71 @@ func (t *renderer) parseHCLVars(variableFile string) (variables map[string]inter
 	return variables, nil
 }
 
-func (t *renderer) consulDomain() (string, error) {
-	val, ok := t.templateVariables["consul_domain"]
-	if !ok {
-		return "", errors.New("Missing template variable 'consul_domain'")
-	}
-
-	return fmt.Sprintf("%s", val), nil
-}
-
+// lookupVar will return the template variable identified by `key` or return an error
+// which will abort the template rendering.
 func (t *renderer) lookupVar(key string) (interface{}, error) {
 	val, ok := t.templateVariables[key]
 	if !ok {
 		return "", fmt.Errorf("Missing template variable '%s'", key)
 	}
+
 	return val, nil
 }
 
+// lookupVarDefault will return the template variable identified by `key` or a default value
+// provided in `def`.
 func (t *renderer) lookupVarDefault(key string, def interface{}) (interface{}, error) {
 	val, ok := t.templateVariables[key]
 	if !ok {
 		return def, nil
 	}
+
 	return val, nil
 }
 
-func (t *renderer) service(service string) (interface{}, error) {
-	return fmt.Sprintf(`%s.service.[[ lookup_default "consul_domain" "consul" ]]`, service), nil
+// lookupVarMap will return the value of "mapKey" within the template variable
+// identified by "key"`.
+//
+// If "key" is not a template variable, an error will be returned
+// If "key" is not a map[string]interface{}, an error will be returned
+// if "mapKey" do not exist in the map of "key", an error will be returnedd
+func (t *renderer) lookupVarMap(key, mapKey string) (interface{}, error) {
+	if t.templateScratch == nil {
+		t.templateScratch = &Scratch{values: t.templateVariables}
+	}
+
+	return t.templateScratch.MapGet(key, mapKey)
 }
 
-func (t *renderer) serviceWithTag(service, tag string) (interface{}, error) {
-	return fmt.Sprintf(`%s.%s.service.[[ lookup_default "consul_domain" "consul" ]]`, tag, service), nil
+// lookupVarMapDefault will return the value of "mapKey" within the template variable
+// identified by "key"`.
+//
+// If "key" is not a template variable, an error will be returned
+// If "key" is not a map[string]interface{}, an error will be returned
+// if "mapKey" do not exist in the map of "key", the default value provided in "def" is returned.
+func (t *renderer) lookupVarMapDefault(key, mapKey string, def interface{}) (interface{}, error) {
+	v, err := t.lookupVarMap(key, mapKey)
+	if err != nil {
+		return def, nil
+	}
+
+	return v, nil
+}
+
+// consulDomain will return the Consul DNS Domain.
+// It will default to "consul" unless template variable key "consul_domain" is defined
+func (t *renderer) consulDomain() (interface{}, error) {
+	return t.lookupVarDefault("consul_domain", "consul")
+}
+
+// consulService will return a Consul Service hostname
+func (t *renderer) consulService(service string) (interface{}, error) {
+	return fmt.Sprintf(`%s.service.[[ consul_domain ]]`, service), nil
+}
+
+// consulService will return a Consul Service with provided tag
+func (t *renderer) consulServiceWithTag(service, tag string) (interface{}, error) {
+	return fmt.Sprintf(`%s.%s.service.[[ consul_domain ]]`, tag, service), nil
 }
 
 func (t *renderer) grantCredentials(db, role string) (interface{}, error) {
@@ -262,22 +299,6 @@ func (t *renderer) createScratch() func() *Scratch {
 		}
 		return t.scratch
 	}
-}
-
-func (t *renderer) lookupVarMap(k, mk string) (interface{}, error) {
-	if t.templateScratch == nil {
-		t.templateScratch = &Scratch{values: t.templateVariables}
-	}
-
-	return t.templateScratch.MapGet(k, mk)
-}
-
-func (t *renderer) lookupVarMapDefault(k, mk string, def interface{}) (interface{}, error) {
-	v, err := t.lookupVarMap(k, mk)
-	if err != nil {
-		return def, nil
-	}
-	return v, nil
 }
 
 // replaceAll replaces all occurrences of a value in a string with the given
