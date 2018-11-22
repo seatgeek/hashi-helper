@@ -59,6 +59,9 @@ func main() {
 			Name:  "variable-file, var-file, varf",
 			Usage: "List of files to load as variable sources",
 		},
+		cli.BoolTFlag{
+			Name: "lint",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -273,5 +276,7 @@ func main() {
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))
-	app.Run(os.Args)
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
 }

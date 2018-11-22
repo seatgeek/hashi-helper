@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl"
@@ -55,6 +56,11 @@ func NewConfigFromCLI(c *cli.Context) (*Config, error) {
 		if err := scanner.scan(); err != nil {
 			return nil, err
 		}
+	}
+
+	if c.GlobalBool("lint") {
+		log.Warn("Lint mode detected, shutting down")
+		os.Exit(0)
 	}
 
 	return config, nil

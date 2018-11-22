@@ -126,40 +126,40 @@ func TestConfig_renderContent(t *testing.T) {
 			wantTemplate: `service = "vault.service.test.consul"`,
 		},
 		{
-			name:     "test template func: service_with_tag",
-			template: `service="[[ service_with_tag "vault" "active" ]]"`,
+			name:     "test template func: serviceWithTag",
+			template: `service="[[ serviceWithTag "vault" "active" ]]"`,
 			templateVariables: map[string]interface{}{
 				"consul_domain": "test.consul",
 			},
 			wantTemplate: `service = "active.vault.service.test.consul"`,
 		},
 		{
-			name:     "test template func: grant_credentials",
-			template: `[[ grant_credentials "my-db" "full" ]]`,
+			name:     "test template func: grantCredentials",
+			template: `[[ grantCredentials "my-db" "full" ]]`,
 			wantTemplate: `
 path "my-db/creds/full" {
   capabilities = ["read"]
 }`,
 		},
 		{
-			name:     "test template func: github_assign_team_policy",
-			template: `[[ github_assign_team_policy "my-team" "my-policy" ]]`,
+			name:     "test template func: githubAssignTeamPolicy",
+			template: `[[ githubAssignTeamPolicy "my-team" "my-policy" ]]`,
 			wantTemplate: `
 secret "/auth/github/map/teams/my-team" {
   value = "my-policy"
 }`,
 		},
 		{
-			name:     "test template func: ldap_assign_group_policy",
-			template: `[[ ldap_assign_group_policy "my-group" "my-policy" ]]`,
+			name:     "test template func: ldapAssignGroupPolicy",
+			template: `[[ ldapAssignGroupPolicy "my-group" "my-policy" ]]`,
 			wantTemplate: `
 secret "/auth/ldap/groups/my-group" {
   value = "my-policy"
 }`,
 		},
 		{
-			name:     "test template func: grant_credentials_policy",
-			template: `[[ grant_credentials_policy "my-db" "full" ]]`,
+			name:     "test template func: grantCredentialsPolicy",
+			template: `[[ grantCredentialsPolicy "my-db" "full" ]]`,
 			wantTemplate: `
 policy "my-db-full" {
   path "my-db/creds/full" {

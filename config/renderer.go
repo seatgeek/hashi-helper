@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -17,29 +18,30 @@ import (
 )
 
 type renderer struct {
-	variables       map[string]interface{}
-	templateScratch *Scratch
-	scratch         *Scratch
+	variables        map[string]interface{}
+	variablesScratch *Scratch
+	scratch          *Scratch
+	readConfigFiles  []string
 }
 
 func newRenderer(variables, variableFiles []string) (*renderer, error) {
-	t := &renderer{
+	r := &renderer{
 		variables: map[string]interface{}{},
 		scratch:   &Scratch{},
 	}
 
-	if err := t.readTemplateVariablesFiles(variableFiles); err != nil {
+	if err := r.readTemplateVariablesFiles(variableFiles); err != nil {
 		return nil, err
 	}
 
-	if err := t.parseTemplateVariables(variables); err != nil {
+	if err := r.parseTemplateVariables(variables); err != nil {
 		return nil, err
 	}
 
-	return t, nil
+	return r, nil
 }
 
-func (t *renderer) renderContent(content, file string, depth int) (string, error) {
+func (r *renderer) renderContent(content, file string, depth int) (string, error) {
 	log.Debugf("Rendering file %s (depth %d)", file, depth)
 
 	if depth > 10 {
@@ -47,19 +49,48 @@ func (t *renderer) renderContent(content, file string, depth int) (string, error
 	}
 
 	fns := template.FuncMap{
-		"consul_domain":             t.consulDomain,
-		"github_assign_team_policy": t.githubAssignTeamPolicy,
-		"grant_credentials_policy":  t.grantCredentialsPolicy,
-		"grant_credentials":         t.grantCredentials,
-		"ldap_assign_group_policy":  t.ldapAssignTeamPolicy,
-		"lookup_default":            t.lookupVarDefault,
-		"lookup_map_default":        t.lookupVarMapDefault,
-		"lookup_map":                t.lookupVarMap,
-		"lookup":                    t.lookupVar,
-		"replace_all":               t.replaceAll,
-		"scratch":                   t.createScratch(),
-		"service_with_tag":          t.consulServiceWithTag,
-		"service":                   t.consulService,
+		"base64Decode":           r.base64DecodeFunc,
+		"base64Encode":           r.base64EncodeFunc,
+		"base64URLDecode":        r.base64URLDecodeFunc,
+		"base64URLEncode":        r.base64URLEncodeFunc,
+		"consulDomain":           r.consulDomainFunc,
+		"contains":               r.containsFunc,
+		"containsAll":            r.containsSomeFunc(true, true),
+		"containsAny":            r.containsSomeFunc(false, false),
+		"containsNone":           r.containsSomeFunc(true, false),
+		"containsNotAll":         r.containsSomeFunc(false, true),
+		"env":                    r.envFunc,
+		"githubAssignTeamPolicy": r.githubAssignTeamPolicyFunc,
+		"grantCredentials":       r.grantCredentialsFunc,
+		"grantCredentialsPolicy": r.grantCredentialsPolicyFunc,
+		"in":                     r.in,
+		"join":                   r.joinFunc,
+		"ldapAssignGroupPolicy":  r.ldapAssignTeamPolicyFunc,
+		"lookup":                 r.lookupVarFunc,
+		"lookupDefault":          r.lookupVarDefaultFunc,
+		"lookupMap":              r.lookupVarMapFunc,
+		"lookupMapDefault":       r.lookupVarMapDefaultFunc,
+		"parseBool":              r.parseBoolFunc,
+		"parseFloat":             r.parseFloatFunc,
+		"parseInt":               r.parseIntFunc,
+		"parseJSON":              r.parseJSONFunc,
+		"parseUint":              r.parseUintFunc,
+		"plugin":                 r.pluginFunc,
+		"regexMatch":             r.regexMatchFunc,
+		"regexReplaceAll":        r.regexReplaceAllFunc,
+		"replaceAll":             r.replaceAllFunc,
+		"scratch":                r.createScratch(),
+		"service":                r.consulServiceFunc,
+		"serviceWithTag":         r.consulServiceWithTagFunc,
+		"split":                  r.splitFunc,
+		"timestamp":              r.timestampFunc,
+		"toJSON":                 r.toJSONFunc,
+		"toJSONPretty":           r.toJSONPrettyFunc,
+		"toLower":                r.toLowerFunc,
+		"toTitle":                r.toTitleFunc,
+		"toUpper":                r.toUpperFunc,
+		"toYAML":                 r.toYAMLFunc,
+		"trimSpace":              r.trimSpaceFunc,
 	}
 
 	tmpl, err := template.New(file).
@@ -74,7 +105,7 @@ func (t *renderer) renderContent(content, file string, depth int) (string, error
 	// render the template to an internal buffer
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
-	if err := tmpl.Execute(writer, t.variables); err != nil {
+	if err := tmpl.Execute(writer, r.variables); err != nil {
 		return "", err
 	}
 
@@ -88,7 +119,7 @@ func (t *renderer) renderContent(content, file string, depth int) (string, error
 	// check if we got any recursive rendering to do
 	// we basically check if our delimiters exist in the file or not
 	if strings.Contains(content, "[[") && strings.Contains(content, "]]") {
-		return t.renderContent(content, file, depth+1)
+		return r.renderContent(content, file, depth+1)
 	}
 
 	// HCL pretty print the rendered file
@@ -101,20 +132,20 @@ func (t *renderer) renderContent(content, file string, depth int) (string, error
 	return strings.TrimSpace(string(res)), nil
 }
 
-func (t *renderer) parseTemplateVariables(pairs []string) error {
+func (r *renderer) parseTemplateVariables(pairs []string) error {
 	for _, val := range pairs {
 		chunks := strings.SplitN(val, "=", 2)
 		if len(chunks) != 2 {
 			return fmt.Errorf("Interpolation key/value pair '%s' is not valid", val)
 		}
 
-		t.variables[chunks[0]] = chunks[1]
+		r.variables[chunks[0]] = chunks[1]
 	}
 
 	return nil
 }
 
-func (t *renderer) readTemplateVariablesFiles(files []string) error {
+func (r *renderer) readTemplateVariablesFiles(files []string) error {
 	for _, variableFile := range files {
 		ext := path.Ext(variableFile)
 
@@ -123,11 +154,11 @@ func (t *renderer) readTemplateVariablesFiles(files []string) error {
 
 		switch ext {
 		case ".hcl":
-			variables, err = t.parseHCLVars(variableFile)
+			variables, err = r.parseHCLVars(variableFile)
 		case ".yaml", ".yml":
-			variables, err = t.parseYAMLVars(variableFile)
+			variables, err = r.parseYAMLVars(variableFile)
 		case ".json":
-			variables, err = t.parseJSONVars(variableFile)
+			variables, err = r.parseJSONVars(variableFile)
 		default:
 			err = fmt.Errorf("variables file extension %v not supported", ext)
 		}
@@ -136,8 +167,11 @@ func (t *renderer) readTemplateVariablesFiles(files []string) error {
 			return err
 		}
 
+		read, _ := filepath.Abs(variableFile)
+		r.readConfigFiles = append(r.readConfigFiles, read)
+
 		for k, v := range variables {
-			t.variables[k] = v
+			r.variables[k] = v
 		}
 	}
 
@@ -145,7 +179,7 @@ func (t *renderer) readTemplateVariablesFiles(files []string) error {
 }
 
 // parseJSONVars will read a file from disk and JSON unmarshal it into a map[string]interface{}
-func (t *renderer) parseJSONVars(variableFile string) (variables map[string]interface{}, err error) {
+func (r *renderer) parseJSONVars(variableFile string) (variables map[string]interface{}, err error) {
 	jsonFile, err := ioutil.ReadFile(variableFile)
 	if err != nil {
 		return nil, err
@@ -160,7 +194,7 @@ func (t *renderer) parseJSONVars(variableFile string) (variables map[string]inte
 }
 
 // parseYAMLVars will read a file from disk and yaml unmarshal it into a map[string]interface{}
-func (t *renderer) parseYAMLVars(variableFile string) (variables map[string]interface{}, err error) {
+func (r *renderer) parseYAMLVars(variableFile string) (variables map[string]interface{}, err error) {
 	yamlFile, err := ioutil.ReadFile(variableFile)
 	if err != nil {
 		return nil, err
@@ -175,7 +209,7 @@ func (t *renderer) parseYAMLVars(variableFile string) (variables map[string]inte
 }
 
 // parseHCLVars will read a file from disk and hcl unmarshal it into a map[string]interface{}
-func (t *renderer) parseHCLVars(variableFile string) (variables map[string]interface{}, err error) {
+func (r *renderer) parseHCLVars(variableFile string) (variables map[string]interface{}, err error) {
 	hclFile, err := ioutil.ReadFile(variableFile)
 	if err != nil {
 		return nil, err
@@ -189,120 +223,11 @@ func (t *renderer) parseHCLVars(variableFile string) (variables map[string]inter
 	return variables, nil
 }
 
-// lookupVar will return the template variable identified by `key` or return an error
-// which will abort the template rendering.
-func (t *renderer) lookupVar(key string) (interface{}, error) {
-	val, ok := t.variables[key]
-	if !ok {
-		return "", fmt.Errorf("Missing template variable '%s'", key)
-	}
-
-	return val, nil
-}
-
-// lookupVarDefault will return the template variable identified by `key` or a default value
-// provided in `def`.
-func (t *renderer) lookupVarDefault(key string, def interface{}) (interface{}, error) {
-	val, ok := t.variables[key]
-	if !ok {
-		return def, nil
-	}
-
-	return val, nil
-}
-
-// lookupVarMap will return the value of "mapKey" within the template variable
-// identified by "key"`.
-//
-// If "key" is not a template variable, an error will be returned
-// If "key" is not a map[string]interface{}, an error will be returned
-// if "mapKey" do not exist in the map of "key", an error will be returnedd
-func (t *renderer) lookupVarMap(key, mapKey string) (interface{}, error) {
-	if t.templateScratch == nil {
-		t.templateScratch = &Scratch{values: t.variables}
-	}
-
-	return t.templateScratch.MapGet(key, mapKey)
-}
-
-// lookupVarMapDefault will return the value of "mapKey" within the template variable
-// identified by "key"`.
-//
-// If "key" is not a template variable, an error will be returned
-// If "key" is not a map[string]interface{}, an error will be returned
-// if "mapKey" do not exist in the map of "key", the default value provided in "def" is returned.
-func (t *renderer) lookupVarMapDefault(key, mapKey string, def interface{}) (interface{}, error) {
-	v, err := t.lookupVarMap(key, mapKey)
-	if err != nil {
-		return def, nil
-	}
-
-	return v, nil
-}
-
-// consulDomain will return the Consul DNS Domain.
-// It will default to "consul" unless template variable key "consul_domain" is defined
-func (t *renderer) consulDomain() (interface{}, error) {
-	return t.lookupVarDefault("consul_domain", "consul")
-}
-
-// consulService will return a Consul Service hostname
-func (t *renderer) consulService(service string) (interface{}, error) {
-	return fmt.Sprintf(`%s.service.[[ consul_domain ]]`, service), nil
-}
-
-// consulService will return a Consul Service with provided tag
-func (t *renderer) consulServiceWithTag(service, tag string) (interface{}, error) {
-	return fmt.Sprintf(`%s.%s.service.[[ consul_domain ]]`, tag, service), nil
-}
-
-func (t *renderer) grantCredentials(db, role string) (interface{}, error) {
-	tmpl := `
-path "%s/creds/%s" {
-  capabilities = ["read"]
-}`
-
-	return fmt.Sprintf(tmpl, db, role), nil
-}
-
-func (t *renderer) grantCredentialsPolicy(db, role string) (interface{}, error) {
-	tmpl := `
-policy "%s-%s" {
-	[[ grant_credentials "%s" "%s" ]]
-}`
-
-	return fmt.Sprintf(tmpl, db, role, db, role), nil
-}
-
-func (t *renderer) githubAssignTeamPolicy(team, policy string) (interface{}, error) {
-	tmpl := `
-secret "/auth/github/map/teams/%s" {
-  value = "%s"
-}`
-
-	return fmt.Sprintf(tmpl, team, policy), nil
-}
-
-func (t *renderer) ldapAssignTeamPolicy(group, policy string) (interface{}, error) {
-	tmpl := `
-secret "/auth/ldap/groups/%s" {
-  value = "%s"
-}`
-
-	return fmt.Sprintf(tmpl, group, policy), nil
-}
-
-func (t *renderer) createScratch() func() *Scratch {
+func (r *renderer) createScratch() func() *Scratch {
 	return func() *Scratch {
-		if t.scratch == nil {
-			t.scratch = &Scratch{}
+		if r.scratch == nil {
+			r.scratch = &Scratch{}
 		}
-		return t.scratch
+		return r.scratch
 	}
-}
-
-// replaceAll replaces all occurrences of a value in a string with the given
-// replacement value.
-func (t *renderer) replaceAll(f, x, s string) (string, error) {
-	return strings.Replace(s, f, x, -1), nil
 }

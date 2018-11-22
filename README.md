@@ -1,4 +1,57 @@
-## hashi-helper
+# hashi-helper
+
+- [hashi-helper](#hashi-helper)
+  * [Requirements](#requirements)
+  * [Building](#building)
+  * [Configuration](#configuration)
+  * [Usage](#usage)
+    + [Global Flags](#global-flags)
+    + [Global Commands](#global-commands)
+      - [`push-all`](#-push-all-)
+    + [Consul](#consul)
+      - [`consul-push-all`](#-consul-push-all-)
+      - [`consul-push-services`](#-consul-push-services-)
+      - [`consul-push-kv`](#-consul-push-kv-)
+    + [vault commands](#vault-commands)
+      - [`vault-create-token`](#-vault-create-token-)
+      - [`vault-find-token`](#-vault-find-token-)
+      - [`vault-list-secrets`](#-vault-list-secrets-)
+      - [`vault-profile-edit`](#-vault-profile-edit-)
+      - [`vault-profile-use`](#-vault-profile-use-)
+      - [`vault-pull-secrets`](#-vault-pull-secrets-)
+      - [`vault-push-all`](#-vault-push-all-)
+      - [`vault-push-auth`](#-vault-push-auth-)
+      - [`vault-push-mounts`](#-vault-push-mounts-)
+      - [`vault-push-policies`](#-vault-push-policies-)
+      - [`vault-push-secrets`](#-vault-push-secrets-)
+      - [`vault-unseal-keybase`](#-vault-unseal-keybase-)
+        * [Options](#options)
+        * [Examples](#examples)
+  * [Templating](#templating)
+    + [Variables](#variables)
+      - [HCL variable file](#hcl-variable-file)
+      - [YAML variable file](#yaml-variable-file)
+      - [JSON variable file](#json-variable-file)
+    + [Functions](#functions)
+      - [consul-template compatability](#consul-template-compatability)
+      - [lookup](#lookup)
+      - [lookupDefault](#lookupdefault)
+      - [service](#service)
+      - [serviceWithTag](#servicewithtag)
+      - [grantCredentials](#grantcredentials)
+      - [grantCredentialsPolicy](#grantcredentialspolicy)
+      - [githubAssignTeamPolicy](#githubassignteampolicy)
+      - [ldapAssignGroupPolicy](#ldapassigngrouppolicy)
+    + [Example](#example)
+  * [Workflow](#workflow)
+    + [Directory Structure](#directory-structure)
+    + [Configuration Examples](#configuration-examples)
+    + [Vault app secret](#vault-app-secret)
+    + [Consul app KV](#consul-app-kv)
+    + [Vault auth](#vault-auth)
+    + [Consul services](#consul-services)
+    + [Vault mount](#vault-mount)
+    + [Vault mount role](#vault-mount-role)
 
 `hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
 
@@ -228,7 +281,11 @@ All `VAULT_*` env keys are preserved when using `CONSUL_SERVICE_TAG`, `address` 
 
 ## Templating
 
-`hashi-helper` version >= 2.0 support templating for configuration files. All configuration files loaded are automatically rendered as a template using [go text/template](https://golang.org/pkg/text/template/).
+`hashi-helper` version >= 2.0 support templating for configuration files.
+
+All configuration files loaded are automatically rendered as a template using [go text/template](https://golang.org/pkg/text/template/).
+
+This is identical to how [hashicorp/consul-template](https://github.com/hashicorp/consul-template) renders content.
 
 Templates use `[[ ]]` brackes instead of the default `{{ }}` style to avoid clashes with HCL `{ }` stanza definitions.
 
@@ -304,17 +361,57 @@ here_doc: |
 
 ### Functions
 
+This tool implement most of the features available in [hashicorp/consul-template](https://github.com/hashicorp/consul-template).
+
+Additionally some useful functions in the context of hashi-helper is available, please see the list further down
+
+#### consul-template compatability
+
+The functions currently implemented can be found below.
+
+- [base64Decode](https://github.com/hashicorp/consul-template#base64Decode)
+- [base64Encode](https://github.com/hashicorp/consul-template#base64Encode)
+- [base64URLDecode](https://github.com/hashicorp/consul-template#base64URLDecode)
+- [base64URLEncode](https://github.com/hashicorp/consul-template#base64URLEncode)
+- [contains](https://github.com/hashicorp/consul-template#contains)
+- [containsAll](https://github.com/hashicorp/consul-template#containsAll)
+- [containsAny](https://github.com/hashicorp/consul-template#containsAny)
+- [containsNone](https://github.com/hashicorp/consul-template#containsNone)
+- [containsNotAll](https://github.com/hashicorp/consul-template#containsNotAll)
+- [env](https://github.com/hashicorp/consul-template#env)
+- [in](https://github.com/hashicorp/consul-template#in)
+- [join](https://github.com/hashicorp/consul-template#join)
+- [parseBool](https://github.com/hashicorp/consul-template#parseBool)
+- [parseFloat](https://github.com/hashicorp/consul-template#parseFloat)
+- [parseInt](https://github.com/hashicorp/consul-template#parseInt)
+- [parseJSON](https://github.com/hashicorp/consul-template#parseJSON)
+- [parseUint](https://github.com/hashicorp/consul-template#parseUint)
+- [plugin](https://github.com/hashicorp/consul-template#plugin)
+- [regexMatch](https://github.com/hashicorp/consul-template#regexMatch)
+- [regexReplaceAll](https://github.com/hashicorp/consul-template#regexReplaceAll)
+- [replaceAll](https://github.com/hashicorp/consul-template#replaceAll)
+- [scratch](https://github.com/hashicorp/consul-template#scratch)
+- [split](https://github.com/hashicorp/consul-template#split)
+- [timestamp](https://github.com/hashicorp/consul-template#timestamp)
+- [toJSON](https://github.com/hashicorp/consul-template#toJSON)
+- [toJSONPretty](https://github.com/hashicorp/consul-template#toJSONPretty)
+- [toLower](https://github.com/hashicorp/consul-template#toLower)
+- [toTitle](https://github.com/hashicorp/consul-template#toTitle)
+- [toUpper](https://github.com/hashicorp/consul-template#toUpper)
+- [toYAML](https://github.com/hashicorp/consul-template#toYAML)
+- [trimSpace](https://github.com/hashicorp/consul-template#trimSpace)
+
 #### lookup
 
 `lookup` is used to lookup template variables inside a template. If the key do not exist, the template rendering will fail.
 
 `[[ lookup "my-key" ]]` will output `hello-world`
 
-#### lookup_default
+#### lookupDefault
 
-`lookup_default` is used to lookup template variables inside a template. If the key do not exist, the `default` (2nd argument) will be returned.
+`lookupDefault` is used to lookup template variables inside a template. If the key do not exist, the `default` (2nd argument) will be returned.
 
-`[[ lookup_default "my-key" "something" ]]` will output `hello-world`
+`[[ lookupDefault "my-key" "something" ]]` will output `hello-world`
 
 #### service
 
@@ -328,23 +425,23 @@ Given `--variable consul_domain=test.consul`
 
 `[[ service "test" ]]` will output `test.service.test.consul`
 
-#### service_with_tag
+#### serviceWithTag
 
 Also see [service](#service) documentation above.
 
-`[[ service_with_tag "test" "tag" ]]` will output `tag.test.service.consul`
+`[[ serviceWithTag "test" "tag" ]]` will output `tag.test.service.consul`
 
 Given `--variable consul_domain=test.consul`
 
-`[[ service_with_tag "test" "tag" ]]` will output `tag.test.service.test.consul`
+`[[ serviceWithTag "test" "tag" ]]` will output `tag.test.service.test.consul`
 
-#### grant_credentials
+#### grantCredentials
 
 Helper to output a policy path for credentials access.
 
 This is useful for `database` and `rabbitmq` access policies.
 
-`[[ grant_credentials "db-test" "full" ]]` will output
+`[[ grantCredentials "db-test" "full" ]]` will output
 
 ```hcl
 path "db-test/creds/full" {
@@ -352,13 +449,13 @@ path "db-test/creds/full" {
 }
 ```
 
-#### grant_credentials_policy
+#### grantCredentialsPolicy
 
 Helper to output a full policy (with path) for credentials access.
 
 This is useful for `database` and `rabbitmq` access policies.
 
-`[[ grant_credentials_policy "db-test" "full" ]]` will output
+`[[ grantCredentialsPolicy "db-test" "full" ]]` will output
 
 ```hcl
 policy "db-test-full" {
@@ -368,11 +465,11 @@ policy "db-test-full" {
 }
 ```
 
-#### github_assign_team_policy
+#### githubAssignTeamPolicy
 
 Helper to output a github team to vault policy mapping.
 
-`[[ github_assign_team_policy "infra" "infra-policy" ]]` will output
+`[[ githubAssignTeamPolicy "infra" "infra-policy" ]]` will output
 
 ```hcl
 secret "/auth/github/map/teams/infra" {
@@ -380,11 +477,11 @@ secret "/auth/github/map/teams/infra" {
 }
 ```
 
-#### ldap_assign_group_policy
+#### ldapAssignGroupPolicy
 
 Helper to output a ldap group to vault policy mapping.
 
-`[[ ldap_assign_group_policy "infra" "infra-policy" ]]` will output
+`[[ ldapAssignGroupPolicy "infra" "infra-policy" ]]` will output
 
 ```hcl
 secret "/auth/ldap/groups/infra" {
@@ -394,95 +491,21 @@ secret "/auth/ldap/groups/infra" {
 
 ### Example
 
-#### HCL Variable file
+Please see `examples/` folder for a working example on how templates work.
 
-```hcl
-environment_name = "staging"
-environment_tld  = "stag"
+Each file is heavily documented explaining each step of the way.
 
-db_default_ttl = "9h"
-db_max_ttl     = "72h"
+When in the `examples/` folder, you can run the following command to try it out.
 
-mysql_databases = [
-  "db-1",
-  "db-2",
-  "db-3"
-]
-
-mysql_irregular_database_names = {
-  db-1 = "some_other_db"
-}
-
-mysql_role_full = <<-SQL
-  CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';
-  GRANT ALL ON __DB__.* TO '{{name}}'@'%';
-  SQL
-
-mysql_role_read_only = <<-SQL
-  CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';
-  GRANT SELECT ON __DB__.* TO '{{name}}'@'%';
-  SQL
-
-mysql_role_read_write = <<-SQL
-  CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';
-  GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE, SHOW VIEW, CREATE TEMPORARY TABLES, LOCK TABLES ON __DB__.* TO '{{name}}'@'%';
-  GRANT PROCESS ON *.* TO '{{name}}'@'%';
-  SQL
-```
-
-#### HCL template file
-
-```hcl
-environment "*" {
-[[ range $k, $v := .mysql_databases ]]
-  [[- $name := printf "db-%s" $v -]]
-  [[- $environment_name := (lookup "environment_name") -]]
-
-  mount "[[ $name ]]" {
-    role "full" {
-      db_name             = "default"
-      default_ttl         = "[[ lookup "db_default_ttl" ]]"
-      max_ttl             = "[[ lookup "db_max_ttl" ]]"
-      creation_statements = <<-SQL
-        [[ lookup "mysql_role_full" | replace_all "__DB__" (lookup_map_default "mysql_irregular_database_names" $v $v ) ]]
-      SQL
-    }
-
-    role "read-write" {
-      db_name             = "default"
-      default_ttl         = "[[ lookup "db_default_ttl" ]]"
-      max_ttl             = "[[ lookup "db_max_ttl" ]]"
-      creation_statements = <<-SQL
-        [[ lookup "mysql_role_read_write" | replace_all "__DB__" (lookup_map_default "mysql_irregular_database_names" $v $v ) ]]
-      SQL
-    }
-
-    role "read-only" {
-      db_name             = "default"
-      default_ttl         = "[[ lookup "db_default_ttl" ]]"
-      max_ttl             = "[[ lookup "db_max_ttl" ]]"
-      creation_statements = <<-SQL
-        [[ lookup "mysql_role_read_only" | replace_all "__DB__" (lookup_map_default "mysql_irregular_database_names" $v $v ) ]]
-      SQL
-    }
-  }
-
-  # grant "full" access policies for "[[ $name ]]"
-  [[ grant_credentials_policy $name "full" ]]
-  [[ github_assign_team_policy (printf "rds-%s-%s-full" $environment_name $name) (printf "%s-full" $name) ]]
-  [[ ldap_assign_group_policy (printf "rds-%s-%s-full" $environment_name $name) (printf "%s-full" $name) ]]
-
-  # grant "read-write" access policies for "[[ $name ]]"
-  [[ grant_credentials_policy $name "read-write" ]]
-  [[ github_assign_team_policy (printf "rds-%s-%s-read-write" $environment_name $name) (printf "%s-read-write" $name) ]]
-  [[ ldap_assign_group_policy (printf "rds-%s-%s-read-write" $environment_name $name) (printf "%s-read-write" $name) ]]
-
-  # grant "read-only" access policies for "[[ $name ]]"
-  [[ grant_credentials_policy $name "read-only" ]]
-  [[ github_assign_team_policy (printf "rds-%s-%s-read-only" $environment_name $name) (printf "%s-read-only" $name) ]]
-  [[ ldap_assign_group_policy (printf "rds-%s-%s-read-only" $environment_name $name) (printf "%s-read-only" $name) ]]
-[[ end ]]
-}
+```bash
+hashi-helper \
+  --lint \
+  --log-level debug \
+  --environment staging \
+  -var-file ./staging/config.var.hcl \
+  -config-dir ./staging/ \
+  -config-dir ./shared \
+  push-all
 ```
 
 ## Workflow
@@ -560,7 +583,6 @@ EOF
 ```
 
 ### Vault auth
-
 
 ```hcl
 environment "production" {
