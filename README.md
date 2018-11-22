@@ -345,7 +345,6 @@ here_doc: |
 #### JSON variable file
 
 ```json
----
 {
   "db_default_ttl": "9h",
   "db_max_ttl": "72h",
