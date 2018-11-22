@@ -130,6 +130,7 @@ hashi-helper [--global-flags] command [--command-flags]
 
 ### Global Flags
 
+- `--lint` Only process configuration, do not push any changes to Consul or Vault
 - `--concurrency` / `CONCURRENCY`: How many parallel requests to run in parallel against remote servers (optional, default: `2 * CPU Cores`)
 - `--log-level` / `LOG_LEVEL`: Debug level of `debug`, `info`, `warn/warning`, `error`, `fatal`, `panic` (optional, default: `info`)
 - `--config-dir` / `CONFIG_DIR`: A directory to recursively scan for `hcl` configuration files (optional; default: `./conf.d`)
