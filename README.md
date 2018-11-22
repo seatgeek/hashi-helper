@@ -1,5 +1,7 @@
 # hashi-helper
 
+`hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
+
 - [hashi-helper](#hashi-helper)
   * [Requirements](#requirements)
   * [Building](#building)
@@ -52,46 +54,6 @@
     + [Consul services](#consul-services)
     + [Vault mount](#vault-mount)
     + [Vault mount role](#vault-mount-role)
-
-`hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
-
-- [hashi-helper](#hashi-helper)
-- [Requirements](#requirements)
-- [Building](#building)
-- [Configuration](#configuration)
-- [Usage](#usage)
-  - [Global Flags](#global-flags)
-  - [Global Commands](#global-commands)
-    - [`push-all`](#push-all)
-  - [Consul](#consul)
-    - [`consul-push-all`](#consul-push-all)
-    - [`consul-push-services`](#consul-push-services)
-    - [`consul-push-kv`](#consul-push-kv)
-  - [vault commands](#vault-commands)
-    - [`vault-create-token`](#vault-create-token)
-    - [`vault-find-token`](#vault-find-token)
-    - [`vault-list-secrets`](#vault-list-secrets)
-    - [`vault-profile-edit`](#vault-profile-edit)
-    - [`vault-profile-use`](#vault-profile-use)
-    - [`vault-pull-secrets`](#vault-pull-secrets)
-    - [`vault-push-all`](#vault-push-all)
-    - [`vault-push-auth`](#vault-push-auth)
-    - [`vault-push-mounts`](#vault-push-mounts)
-    - [`vault-push-policies`](#vault-push-policies)
-    - [`vault-push-secrets`](#vault-push-secrets)
-    - [`vault-unseal-keybase`](#vault-unseal-keybase)
-      - [Options](#options)
-      - [Examples](#examples)
-- [Templating](#templating)
-- [Workflow](#workflow)
-  - [Directory Structure](#directory-structure)
-  - [Configuration Examples](#configuration-examples)
-  - [Vault app secret](#vault-app-secret)
-  - [Consul app KV](#consul-app-kv)
-  - [Vault auth](#vault-auth)
-  - [Consul services](#consul-services)
-  - [Vault mount](#vault-mount)
-  - [Vault mount role](#vault-mount-role)
 
 ## Requirements
 
@@ -308,6 +270,7 @@ environment_name = "staging"
 environment_tld  = "stag"
 db_default_ttl   = "9h"
 db_max_ttl       = "72h"
+my_key           = "hello world"
 
 # a list of things
 
@@ -328,6 +291,7 @@ environment_name: "staging"
 environment_tld: "stag"
 db_default_ttl: "9h"
 db_max_ttl: "72h"
+my_key: "hello world"
 
 # a list of things
 
@@ -351,6 +315,7 @@ here_doc: |
   "environment_name": "staging",
   "environment_tld": "stag",
   "here_doc": "something multiline\nthat will be available\nas a single string",
+  "my_key":"hello world",
   "stuff": [
     "a",
     "b",
@@ -405,13 +370,13 @@ The functions currently implemented can be found below.
 
 `lookup` is used to lookup template variables inside a template. If the key do not exist, the template rendering will fail.
 
-`[[ lookup "my-key" ]]` will output `hello-world`
+`[[ lookup "my_key" ]]` will output `hello-world`
 
 #### lookupDefault
 
 `lookupDefault` is used to lookup template variables inside a template. If the key do not exist, the `default` (2nd argument) will be returned.
 
-`[[ lookupDefault "my-key" "something" ]]` will output `hello-world`
+`[[ lookupDefault "my_key" "something" ]]` will output `hello-world`
 
 #### service
 
