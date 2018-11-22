@@ -2,58 +2,66 @@
 
 `hashi-helper` is a tool meant to enable Disaster Recovery and Configuration Management for Consul and Vault clusters, by exposing configuration via a simple to use and share hcl format.
 
-- [hashi-helper](#hashi-helper)
-  * [Requirements](#requirements)
-  * [Building](#building)
-  * [Configuration](#configuration)
-  * [Usage](#usage)
-    + [Global Flags](#global-flags)
-    + [Global Commands](#global-commands)
-      - [`push-all`](#-push-all-)
-    + [Consul](#consul)
-      - [`consul-push-all`](#-consul-push-all-)
-      - [`consul-push-services`](#-consul-push-services-)
-      - [`consul-push-kv`](#-consul-push-kv-)
-    + [vault commands](#vault-commands)
-      - [`vault-create-token`](#-vault-create-token-)
-      - [`vault-find-token`](#-vault-find-token-)
-      - [`vault-list-secrets`](#-vault-list-secrets-)
-      - [`vault-profile-edit`](#-vault-profile-edit-)
-      - [`vault-profile-use`](#-vault-profile-use-)
-      - [`vault-pull-secrets`](#-vault-pull-secrets-)
-      - [`vault-push-all`](#-vault-push-all-)
-      - [`vault-push-auth`](#-vault-push-auth-)
-      - [`vault-push-mounts`](#-vault-push-mounts-)
-      - [`vault-push-policies`](#-vault-push-policies-)
-      - [`vault-push-secrets`](#-vault-push-secrets-)
-      - [`vault-unseal-keybase`](#-vault-unseal-keybase-)
-        * [Options](#options)
-        * [Examples](#examples)
-  * [Templating](#templating)
-    + [Variables](#variables)
-      - [HCL variable file](#hcl-variable-file)
-      - [YAML variable file](#yaml-variable-file)
-      - [JSON variable file](#json-variable-file)
-    + [Functions](#functions)
-      - [consul-template compatability](#consul-template-compatability)
-      - [lookup](#lookup)
-      - [lookupDefault](#lookupdefault)
-      - [service](#service)
-      - [serviceWithTag](#servicewithtag)
-      - [grantCredentials](#grantcredentials)
-      - [grantCredentialsPolicy](#grantcredentialspolicy)
-      - [githubAssignTeamPolicy](#githubassignteampolicy)
-      - [ldapAssignGroupPolicy](#ldapassigngrouppolicy)
-    + [Example](#example)
-  * [Workflow](#workflow)
-    + [Directory Structure](#directory-structure)
-    + [Configuration Examples](#configuration-examples)
-    + [Vault app secret](#vault-app-secret)
-    + [Consul app KV](#consul-app-kv)
-    + [Vault auth](#vault-auth)
-    + [Consul services](#consul-services)
-    + [Vault mount](#vault-mount)
-    + [Vault mount role](#vault-mount-role)
+* [Requirements](#requirements)
+* [Building](#building)
+* [Configuration](#configuration)
+* [Usage](#usage)
+  + [Global Flags](#global-flags)
+    - [`--lint`](#---lint-)
+    - [`--variable`](#---variable-)
+    - [`--variable-file`](#---variable-file-)
+    - [`--concurrency`](#---concurrency-)
+    - [`--log-level`](#---log-level-)
+    - [`--config-dir`](#---config-dir-)
+    - [`--config-file`](#---config-file-)
+    - [`--environment`](#---environment-)
+    - [`--application`](#---application-)
+  + [Global Commands](#global-commands)
+    - [`push-all`](#-push-all-)
+  + [Consul](#consul)
+    - [`consul-push-all`](#-consul-push-all-)
+    - [`consul-push-services`](#-consul-push-services-)
+    - [`consul-push-kv`](#-consul-push-kv-)
+  + [vault commands](#vault-commands)
+    - [`vault-create-token`](#-vault-create-token-)
+    - [`vault-find-token`](#-vault-find-token-)
+    - [`vault-list-secrets`](#-vault-list-secrets-)
+    - [`vault-profile-edit`](#-vault-profile-edit-)
+    - [`vault-profile-use`](#-vault-profile-use-)
+    - [`vault-pull-secrets`](#-vault-pull-secrets-)
+    - [`vault-push-all`](#-vault-push-all-)
+    - [`vault-push-auth`](#-vault-push-auth-)
+    - [`vault-push-mounts`](#-vault-push-mounts-)
+    - [`vault-push-policies`](#-vault-push-policies-)
+    - [`vault-push-secrets`](#-vault-push-secrets-)
+    - [`vault-unseal-keybase`](#-vault-unseal-keybase-)
+      * [Options](#options)
+      * [Examples](#examples)
+* [Templating](#templating)
+  + [Variables](#variables)
+    - [HCL variable file](#hcl-variable-file)
+    - [YAML variable file](#yaml-variable-file)
+    - [JSON variable file](#json-variable-file)
+  + [Functions](#functions)
+    - [consul-template compatability](#consul-template-compatability)
+    - [lookup](#lookup)
+    - [lookupDefault](#lookupdefault)
+    - [service](#service)
+    - [serviceWithTag](#servicewithtag)
+    - [grantCredentials](#grantcredentials)
+    - [grantCredentialsPolicy](#grantcredentialspolicy)
+    - [githubAssignTeamPolicy](#githubassignteampolicy)
+    - [ldapAssignGroupPolicy](#ldapassigngrouppolicy)
+  + [Example](#example)
+* [Workflow](#workflow)
+  + [Directory Structure](#directory-structure)
+  + [Configuration Examples](#configuration-examples)
+  + [Vault app secret](#vault-app-secret)
+  + [Consul app KV](#consul-app-kv)
+  + [Vault auth](#vault-auth)
+  + [Consul services](#consul-services)
+  + [Vault mount](#vault-mount)
+  + [Vault mount role](#vault-mount-role)
 
 ## Requirements
 
@@ -92,15 +100,89 @@ hashi-helper [--global-flags] command [--command-flags]
 
 ### Global Flags
 
-- `--lint` Only process configuration, do not push any changes to Consul or Vault
-- `--variable key=value, --var key=value`: List of key=value pairs to expose during file parsing as go-template (can be repeated)
-- `--variable-file value, --var-file value, --varf value`: List of files to load as variable sources (can be repeated)
-- `--concurrency` / `CONCURRENCY`: How many parallel requests to run in parallel against remote servers (optional, default: `2 * CPU Cores`)
-- `--log-level` / `LOG_LEVEL`: Debug level of `debug`, `info`, `warn/warning`, `error`, `fatal`, `panic` (optional, default: `info`)
-- `--config-dir` / `CONFIG_DIR`: One or more directories to recursively scan for `hcl` configuration files (optional; default: `./conf.d`) (can be repated)
-- `--config-file` / `CONFIG_FILE`: One or more `hcl` configuration file to parse instead of a directory (optional; default: `<empty>`) (can be repeated)
-- `--environment` / `ENVIRONMENT`: The environment to process for (optional; default: `all`)
-- `--application` / `APPLICATION`: The application to process for (optional; default: `all`)
+#### `--lint`
+
+Providing this flag will make `hashi-helper` only process configuration, and not push any changes to Consul or Vault
+
+This is useful for CI pipelines
+
+#### `--variable`
+
+A number of `key=value` pairs to expose as template variables during template rendering.
+
+The flag can be repeated any number of times. The order they are provided in is also the order they are read.
+
+`--var key1=value1 --var key2=value2`
+
+`--var key1=value1 --var key2=value2 --var key1=value2` - `key1` will be having the value `value2`
+
+Aliases: `--var key=value`
+
+#### `--variable-file`
+
+A number of files to parse and expose as template variables template rendering.
+
+The flag can be repeated any number of times. The order they are provided in is also the order they are read.
+
+`--variable-file example/conf.hcl --variable-file example/conf.json --variable-file example/conf.yaml`
+
+Aliases: `--var-file value` | `--varf value`
+
+#### `--concurrency`
+
+How many parallel requests to run in parallel against remote servers
+
+Default: `2 * CPU Cores`
+
+Environment Key: `CONCURRENCY`
+
+#### `--log-level`
+
+Debug level of `debug`, `info`, `warn/warning`, `error`, `fatal`, `panic`
+
+Default: `info`
+
+Environment Key: `LOG_LEVEL`
+
+#### `--config-dir`
+
+One or more directories to recursively scan for `hcl` configuration files.
+
+The flag can be repeated any number of times. The order they are provided in is also the order they are read.
+
+`--config-dir conf.d/`
+
+`--config-dir conf.d/ --config-dir shared/`
+
+Environment Key: `CONFIG_DIR`
+
+#### `--config-file`
+
+One or more `hcl` configuration file to parse instead of a directory
+
+The flag can be repeated any number of times. The order they are provided in is also the order they are read.
+
+`--config-file conf.d/config.hcl`
+
+`--config-file conf.d/config.hcl --config-file conf.d/another_config.hcl`
+
+Environment key: `CONFIG_FILE`
+
+#### `--environment`
+
+The environment to process configuration for
+
+Default: `all`
+
+Environment Key: `ENVIRONMENT`
+
+#### `--application`
+
+The application to process for
+
+Default: `all`
+
+Environment Key: `APPLICATION`
 
 ### Global Commands
 
