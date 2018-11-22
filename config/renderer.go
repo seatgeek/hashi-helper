@@ -17,15 +17,15 @@ import (
 )
 
 type renderer struct {
-	templateVariables map[string]interface{}
-	templateScratch   *Scratch
-	scratch           *Scratch
+	variables       map[string]interface{}
+	templateScratch *Scratch
+	scratch         *Scratch
 }
 
 func newRenderer(variables, variableFiles []string) (*renderer, error) {
 	t := &renderer{
-		templateVariables: map[string]interface{}{},
-		scratch:           &Scratch{},
+		variables: map[string]interface{}{},
+		scratch:   &Scratch{},
 	}
 
 	if err := t.readTemplateVariablesFiles(variableFiles); err != nil {
@@ -42,7 +42,7 @@ func newRenderer(variables, variableFiles []string) (*renderer, error) {
 func (t *renderer) renderContent(content, file string, depth int) (string, error) {
 	log.Debugf("Rendering file %s (depth %d)", file, depth)
 
-	if depth > 5 {
+	if depth > 10 {
 		return "", fmt.Errorf("recursive template rendering found, aborting")
 	}
 
@@ -74,7 +74,7 @@ func (t *renderer) renderContent(content, file string, depth int) (string, error
 	// render the template to an internal buffer
 	var b bytes.Buffer
 	writer := bufio.NewWriter(&b)
-	if err := tmpl.Execute(writer, t.templateVariables); err != nil {
+	if err := tmpl.Execute(writer, t.variables); err != nil {
 		return "", err
 	}
 
@@ -108,7 +108,7 @@ func (t *renderer) parseTemplateVariables(pairs []string) error {
 			return fmt.Errorf("Interpolation key/value pair '%s' is not valid", val)
 		}
 
-		t.templateVariables[chunks[0]] = chunks[1]
+		t.variables[chunks[0]] = chunks[1]
 	}
 
 	return nil
@@ -137,7 +137,7 @@ func (t *renderer) readTemplateVariablesFiles(files []string) error {
 		}
 
 		for k, v := range variables {
-			t.templateVariables[k] = v
+			t.variables[k] = v
 		}
 	}
 
@@ -192,7 +192,7 @@ func (t *renderer) parseHCLVars(variableFile string) (variables map[string]inter
 // lookupVar will return the template variable identified by `key` or return an error
 // which will abort the template rendering.
 func (t *renderer) lookupVar(key string) (interface{}, error) {
-	val, ok := t.templateVariables[key]
+	val, ok := t.variables[key]
 	if !ok {
 		return "", fmt.Errorf("Missing template variable '%s'", key)
 	}
@@ -203,7 +203,7 @@ func (t *renderer) lookupVar(key string) (interface{}, error) {
 // lookupVarDefault will return the template variable identified by `key` or a default value
 // provided in `def`.
 func (t *renderer) lookupVarDefault(key string, def interface{}) (interface{}, error) {
-	val, ok := t.templateVariables[key]
+	val, ok := t.variables[key]
 	if !ok {
 		return def, nil
 	}
@@ -219,7 +219,7 @@ func (t *renderer) lookupVarDefault(key string, def interface{}) (interface{}, e
 // if "mapKey" do not exist in the map of "key", an error will be returnedd
 func (t *renderer) lookupVarMap(key, mapKey string) (interface{}, error) {
 	if t.templateScratch == nil {
-		t.templateScratch = &Scratch{values: t.templateVariables}
+		t.templateScratch = &Scratch{values: t.variables}
 	}
 
 	return t.templateScratch.MapGet(key, mapKey)

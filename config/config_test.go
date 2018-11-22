@@ -177,11 +177,11 @@ test = "[[ scratch.Get "foo" ]]"
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			templater := &renderer{
-				templateVariables: tt.templateVariables,
-			}
+			renderer, err := newRenderer(nil, nil)
+			renderer.variables = tt.templateVariables
+			require.NoError(t, err)
 
-			got, err := templater.renderContent(tt.template, "test", 0)
+			got, err := renderer.renderContent(tt.template, "test", 0)
 			if tt.wantErr != nil {
 				require.True(t, strings.Contains(err.Error(), tt.wantErr.Error()))
 				require.Equal(t, "", tt.wantTemplate, "you should not expect a template during error tests")
