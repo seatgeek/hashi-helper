@@ -59,7 +59,7 @@ func main() {
 			Name:  "variable-file, var-file, varf",
 			Usage: "List of files to load as variable sources",
 		},
-		cli.BoolTFlag{
+		cli.BoolFlag{
 			Name: "lint",
 		},
 	}
