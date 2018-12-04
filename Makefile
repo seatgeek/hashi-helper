@@ -31,7 +31,7 @@ $(BINARIES): $(BUILD_DIR)/hashi-helper-%: $(BUILD_DIR)
 	GOOS=$(call GET_GOOS,$*) GOARCH=$(call GET_GOARCH,$*) CGO_ENABLED=0 go build -o $@
 
 .PHONY: dist
-dist: install fmt vet
+dist: install
 	@echo "=> building ..."
 	$(MAKE) -j $(BINARIES)
 
