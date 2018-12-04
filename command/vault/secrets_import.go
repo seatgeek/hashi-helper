@@ -4,19 +4,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/seatgeek/hashi-helper/command/vault/helper"
+	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
 // SecretsImport ...
 func SecretsImport(c *cli.Context) error {
-	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"))
+	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"), c.GlobalInt("concurrency"))
 
-	secrets, err := helper.ReadRemoteSecrets(secrets)
+	secrets, err := helper.ReadRemoteSecrets(secrets, c.GlobalInt("concurrency"))
 	if err != nil {
 		return err
 	}
@@ -43,7 +42,7 @@ func SecretsImport(c *cli.Context) error {
 
 		output[env][app] = output[env][app] + fmt.Sprintf("\t\tsecret \"%s\" {\n", secret.Key)
 
-		for k, v := range secret.Secret.Data {
+		for k, v := range secret.VaultSecret.Data {
 			switch vv := v.(type) {
 			case string:
 				output[env][app] = output[env][app] + fmt.Sprintf("\t\t\t%s = \"%s\"\n", k, helper.EscapeValue(vv))

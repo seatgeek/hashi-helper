@@ -5,11 +5,10 @@ import (
 	"runtime"
 	"sort"
 
-	log "github.com/Sirupsen/logrus"
 	allCommand "github.com/seatgeek/hashi-helper/command"
 	consulCommand "github.com/seatgeek/hashi-helper/command/consul"
 	vaultCommand "github.com/seatgeek/hashi-helper/command/vault"
-	"github.com/seatgeek/hashi-helper/config"
+	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -21,11 +20,10 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
-			Name:        "concurrency",
-			Value:       runtime.NumCPU() * 3,
-			Usage:       "How many parallel requests to run in parallel against remote servers (3 * CPU Cores)",
-			EnvVar:      "CONCURRENCY",
-			Destination: &config.DefaultConcurrency,
+			Name:   "concurrency",
+			Value:  runtime.NumCPU() * 3,
+			Usage:  "How many parallel requests to run in parallel against remote servers (3 * CPU Cores)",
+			EnvVar: "CONCURRENCY",
 		},
 		cli.StringFlag{
 			Name:   "log-level",
@@ -33,29 +31,36 @@ func main() {
 			Usage:  "Debug level (debug, info, warn/warning, error, fatal, panic)",
 			EnvVar: "LOG_LEVEL",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name:   "config-dir",
-			Value:  "./conf.d",
-			Usage:  "Config directory to read and write from",
+			Usage:  "Config directories to read and write from",
 			EnvVar: "CONFIG_DIR",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name:   "config-file",
-			Value:  "",
 			Usage:  "Config file to read from, if you don't want to scan a directory recursively",
 			EnvVar: "CONFIG_FILE",
 		},
 		cli.StringFlag{
-			Name:        "environment",
-			Usage:       "The environment to process for (default: all env)",
-			EnvVar:      "ENVIRONMENT",
-			Destination: &config.TargetEnvironment,
+			Name:   "environment",
+			Usage:  "The environment to process for (default: all env)",
+			EnvVar: "ENVIRONMENT",
 		},
 		cli.StringFlag{
-			Name:        "application",
-			Usage:       "The application to process for (default: all applications)",
-			EnvVar:      "APPLICATION",
-			Destination: &config.TargetApplication,
+			Name:   "application",
+			Usage:  "The application to process for (default: all applications)",
+			EnvVar: "APPLICATION",
+		},
+		cli.StringSliceFlag{
+			Name:  "variable, var",
+			Usage: "List of key=value pairs to expose during file parsing as go-template",
+		},
+		cli.StringSliceFlag{
+			Name:  "variable-file, var-file, varf",
+			Usage: "List of files to load as variable sources",
+		},
+		cli.BoolFlag{
+			Name: "lint",
 		},
 	}
 	app.Commands = []cli.Command{
@@ -130,13 +135,6 @@ func main() {
 					Usage:  "Only show keys, or also expand and show the secret values (highly sensitive!)",
 					EnvVar: "DETAILED",
 				},
-			},
-		},
-		{
-			Name:  "vault-pull-secrets",
-			Usage: "Write remote secrets to local disk",
-			Action: func(c *cli.Context) error {
-				return vaultCommand.SecretsPull(c)
 			},
 		},
 		{
@@ -278,5 +276,7 @@ func main() {
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))
-	app.Run(os.Args)
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
 }

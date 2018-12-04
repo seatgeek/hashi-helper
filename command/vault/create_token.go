@@ -6,8 +6,8 @@ import (
 	"os/exec"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/vault/api"
+	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -50,7 +50,7 @@ func CreateToken(c *cli.Context) error {
 
 	token := response.Auth.ClientToken
 	if len(c.StringSlice("keybase")) == 0 {
-		log.Info("New token: %s", token)
+		log.Infof("New token: %s", token)
 		return nil
 	}
 

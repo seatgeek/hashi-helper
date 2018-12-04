@@ -8,16 +8,41 @@ import (
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
-func (c *Config) processConsulServices(list *ast.ObjectList, environment *Environment) error {
+// ConsulService ...
+type ConsulService api.CatalogRegistration
+
+// ToConsulService ...
+func (c *ConsulService) ToConsulService() *api.CatalogRegistration {
+	return &api.CatalogRegistration{
+		ID:      c.ID,
+		Node:    c.Node,
+		Address: c.Address,
+		Service: c.Service,
+		Check:   c.Check,
+	}
+}
+
+// ConsulServices struct
+//
+type ConsulServices []*ConsulService
+
+// add ...
+func (cs *ConsulServices) add(service *ConsulService) {
+	*cs = append(*cs, service)
+}
+
+func (c *Config) parseConsulServiceStanza(list *ast.ObjectList, environment *Environment) error {
 	if len(list.Items) == 0 {
 		return nil
 	}
 
+	c.logger = c.logger.WithField("stanza", "service")
+	c.logger.Debugf("Found %d service{}", len(list.Items))
 	for _, serviceAST := range list.Items {
 		x := serviceAST.Val.(*ast.ObjectType).List
 
 		valid := []string{"id", "address", "node", "port", "tags"}
-		if err := checkHCLKeys(x, valid); err != nil {
+		if err := c.checkHCLKeys(x, valid); err != nil {
 			return err
 		}
 
@@ -81,7 +106,7 @@ func (c *Config) processConsulServices(list *ast.ObjectList, environment *Enviro
 			},
 		}
 
-		c.ConsulServices.Add(service)
+		c.ConsulServices.add(service)
 	}
 
 	return nil

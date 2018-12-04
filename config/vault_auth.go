@@ -5,19 +5,64 @@ import (
 
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
+	"github.com/hashicorp/vault/api"
 	"github.com/mitchellh/mapstructure"
 )
 
-func (c *Config) processVaultAuths(list *ast.ObjectList, environment *Environment) error {
+// Auth struct ...
+type Auth struct {
+	Environment     *Environment
+	Name            string
+	Type            string
+	Description     string
+	DefaultLeaseTTL string
+	MaxLeaseTTL     string
+	Config          []*AuthConfig
+	Roles           []*AuthRole
+}
+
+// AuthInput ...
+func (m *Mount) AuthInput() *api.MountInput {
+	return &api.MountInput{
+		Type:        m.Type,
+		Description: m.Description,
+	}
+}
+
+// VaultAuths struct
+//
+// environment
+type VaultAuths []*Auth
+
+// Add ...
+func (m *VaultAuths) Add(auth *Auth) {
+	*m = append(*m, auth)
+}
+
+// AuthConfig ...
+type AuthConfig struct {
+	Name string
+	Data map[string]interface{}
+}
+
+// AuthRole ...
+type AuthRole struct {
+	Name string
+	Data map[string]interface{}
+}
+
+func (c *Config) parseVaultAuthStanza(list *ast.ObjectList, environment *Environment) error {
 	if len(list.Items) == 0 {
 		return nil
 	}
 
+	c.logger = c.logger.WithField("stanza", "auth")
+	c.logger.Debugf("Found %d auth{}", len(list.Items))
 	for _, authAST := range list.Items {
 		x := authAST.Val.(*ast.ObjectType).List
 
 		valid := []string{"config", "role", "type", "path"}
-		if err := checkHCLKeys(x, valid); err != nil {
+		if err := c.checkHCLKeys(x, valid); err != nil {
 			return err
 		}
 

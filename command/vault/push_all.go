@@ -29,9 +29,5 @@ func PushAllWithConfig(cli *cli.Context, config *cfg.Config) error {
 		return err
 	}
 
-	if err := SecretsPushWithConfig(cli, config); err != nil {
-		return err
-	}
-
-	return nil
+	return SecretsPushWithConfig(cli, config)
 }

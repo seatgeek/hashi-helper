@@ -1,10 +1,10 @@
 package vault
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/seatgeek/hashi-helper/command/vault/helper"
 	"github.com/seatgeek/hashi-helper/config"
+	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -30,7 +30,7 @@ func secretListLocal(c *cli.Context) error {
 			"secret": secret.Key,
 		})
 
-		for k, v := range secret.Secret.Data {
+		for k, v := range secret.VaultSecret.Data {
 			logger.Printf("%s = %s", k, v)
 		}
 
@@ -44,10 +44,10 @@ func secretListLocal(c *cli.Context) error {
 
 // secretListRemote ...
 func secretListRemote(c *cli.Context) error {
-	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"))
+	secrets := helper.IndexRemoteSecrets(c.GlobalString("environment"), c.GlobalInt("concurrency"))
 
 	if c.Bool("detailed") {
-		printDetailedSecrets(secrets)
+		printDetailedSecrets(secrets, c.GlobalInt("concurrency"))
 		return nil
 	}
 
@@ -59,8 +59,8 @@ func secretListRemote(c *cli.Context) error {
 	return nil
 }
 
-func printDetailedSecrets(paths config.VaultSecrets) {
-	secrets, err := helper.ReadRemoteSecrets(paths)
+func printDetailedSecrets(paths config.VaultSecrets, concurrency int) {
+	secrets, err := helper.ReadRemoteSecrets(paths, concurrency)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func printDetailedSecrets(paths config.VaultSecrets) {
 		log.Println()
 		log.Infof("%s @ %s: %s", secret.Application, secret.Environment, secret.Path)
 
-		for k, v := range secret.Secret.Data {
+		for k, v := range secret.VaultSecret.Data {
 			switch vv := v.(type) {
 			case string:
 				log.Info("  ⇛ ", k, " = ", vv)

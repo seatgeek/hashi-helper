@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/vault/api"
 	"github.com/seatgeek/hashi-helper/config"
+	log "github.com/sirupsen/logrus"
 )
 
 // SecretWriter ...
@@ -31,7 +31,7 @@ func (w SecretWriter) WriteSecret(secret *config.Secret) error {
 
 	log.Info(path)
 
-	_, err := w.getClient().Logical().Write(path, secret.Secret.Data)
+	_, err := w.getClient().Logical().Write(path, secret.VaultSecret.Data)
 	return err
 }
 

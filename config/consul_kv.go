@@ -3,19 +3,53 @@ package config
 import (
 	"fmt"
 
+	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
-func (c *Config) processConsulKV(list *ast.ObjectList, env *Environment, app *Application) error {
+// ConsulKV ...
+type ConsulKV struct {
+	Application *Application
+	Environment *Environment
+	Key         string
+	Value       []byte
+}
+
+// ToConsulKV ...
+func (c *ConsulKV) ToConsulKV() *api.KVPair {
+	return &api.KVPair{
+		Key:   c.toPath(),
+		Value: c.Value,
+	}
+}
+
+func (c *ConsulKV) toPath() string {
+	if c.Application != nil {
+		return fmt.Sprintf("%v/%v", c.Application.Name, c.Key)
+	}
+	return c.Key
+}
+
+// ConsulKV struct
+//
+type ConsulKVs []*ConsulKV
+
+// add ...
+func (cs *ConsulKVs) add(kv *ConsulKV) {
+	*cs = append(*cs, kv)
+}
+
+func (c *Config) parseConsulKVStanza(list *ast.ObjectList, env *Environment, app *Application) error {
 	if len(list.Items) == 0 {
 		return nil
 	}
 
+	c.logger.Debugf("Found %d kv{}", len(list.Items))
 	for _, kvAST := range list.Items {
 		x := kvAST.Val.(*ast.ObjectType).List
 
 		valid := []string{"value"}
-		if err := checkHCLKeys(x, valid); err != nil {
+		if err := c.checkHCLKeys(x, valid); err != nil {
 			return err
 		}
 
@@ -46,7 +80,7 @@ func (c *Config) processConsulKV(list *ast.ObjectList, env *Environment, app *Ap
 			Value:       []byte(value),
 		}
 
-		c.ConsulKVs.Add(kv)
+		c.ConsulKVs.add(kv)
 	}
 
 	return nil

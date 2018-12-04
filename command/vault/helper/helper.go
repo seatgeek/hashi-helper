@@ -1,32 +1,30 @@
 package helper
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"sync"
-
 	"time"
 
-	"fmt"
-
-	log "github.com/Sirupsen/logrus"
 	api "github.com/hashicorp/vault/api"
 	"github.com/seatgeek/hashi-helper/config"
 	"github.com/seatgeek/hashi-helper/support"
+	log "github.com/sirupsen/logrus"
 )
 
 var environmentMatch = regexp.MustCompile(`^secret/(?P<Environment>.*?)/(?P<Application>.*?)/(?P<Path>.+)$`)
 
 // IndexRemoteSecrets ...
-func IndexRemoteSecrets(environment string) config.VaultSecrets {
+func IndexRemoteSecrets(environment string, concurrency int) config.VaultSecrets {
 	log.Info("Scanning for remote secrets")
 
 	// Create a WaitGroup so we automatically unblock when all tasks are done
 	var indexerWg sync.WaitGroup
-	indexerCh := make(chan string, config.DefaultConcurrency*2)
+	indexerCh := make(chan string, concurrency*2)
 
 	var resultWg sync.WaitGroup
-	resultCh := make(chan string, config.DefaultConcurrency*2)
+	resultCh := make(chan string, concurrency*2)
 
 	// channel for signaling our go routines should stop
 	completeCh := make(chan interface{})
@@ -39,7 +37,7 @@ func IndexRemoteSecrets(environment string) config.VaultSecrets {
 	indexerCh <- "/"
 
 	// Start go routines for workers
-	for i := 0; i <= config.DefaultConcurrency; i++ {
+	for i := 0; i <= concurrency; i++ {
 		go remoteSecretIndexer(indexerCh, resultCh, completeCh, &indexerWg, &resultWg, i)
 	}
 
@@ -64,7 +62,7 @@ func IndexRemoteSecrets(environment string) config.VaultSecrets {
 
 // readRemoteSecrets
 // Take an array of secret paths to read
-func ReadRemoteSecrets(secrets config.VaultSecrets) (config.VaultSecrets, error) {
+func ReadRemoteSecrets(secrets config.VaultSecrets, concurrency int) (config.VaultSecrets, error) {
 	log.Infof("Going to read %d remote secrets", len(secrets))
 
 	// Create a WaitGroup for the remote reader, so we automatically unblock when all tasks are done
@@ -79,7 +77,7 @@ func ReadRemoteSecrets(secrets config.VaultSecrets) (config.VaultSecrets, error)
 	readChan := make(chan *config.Secret, len(secrets))
 
 	// Start go routines for readers
-	for i := 0; i <= config.DefaultConcurrency; i++ {
+	for i := 0; i <= concurrency; i++ {
 		go remoteSecretReader(readChan, completeCh, &readerWg, i)
 	}
 
@@ -121,7 +119,7 @@ func remoteSecretReader(readCh chan *config.Secret, completeCh chan interface{},
 				log.Fatal(err)
 			}
 
-			secret.Secret = remoteSecret
+			secret.VaultSecret = remoteSecret
 			wg.Done()
 		}
 	}
