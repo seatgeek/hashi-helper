@@ -21,3 +21,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/pkg/errors"
+  revision = "059132a15dd08d6704c67711dae0cf35ab991756"
