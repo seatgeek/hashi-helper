@@ -82,11 +82,11 @@ func FindToken(c *cli.Context) error {
 				log.Infof("  explicit_max_ttl   : %s", token.Data["explicit_max_ttl"])
 				log.Infof("  num_uses           : %s", token.Data["num_uses"])
 
-				if meta, ok := token.Data["meta"]; ok {
-					for k, v := range meta.(map[string]interface{}) {
-						log.Infof("  meta[%s] %s: %v", k, strings.Repeat(" ", max(0, 12-len(k))), v)
+				if token.Data["meta"] != nil {
+						for k, v := range token.Data["meta"].(map[string]interface{}) {
+							log.Infof("  meta[%s] %s: %v", k, strings.Repeat(" ", max(0, 12-len(k))), v)
+						}
 					}
-				}
 
 				log.Info("")
 
