@@ -81,6 +81,7 @@ func FindToken(c *cli.Context) error {
 				log.Infof("  creation_ttl       : %s", token.Data["creation_ttl"])
 				log.Infof("  explicit_max_ttl   : %s", token.Data["explicit_max_ttl"])
 				log.Infof("  num_uses           : %s", token.Data["num_uses"])
+				log.Infof("  accessor           : %s", token.Data["accessor"])
 
 				if token.Data["meta"] != nil {
 						for k, v := range token.Data["meta"].(map[string]interface{}) {
