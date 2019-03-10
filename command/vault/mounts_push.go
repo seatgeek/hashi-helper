@@ -73,7 +73,11 @@ func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
 		// MOUNT ROLES
 
 		for _, role := range mount.Roles {
+
 			rolePath := fmt.Sprintf("%s/roles/%s", mount.Name, role.Name)
+			if mount.Type == "nomad" {
+				rolePath = fmt.Sprintf("%s/role/%s", mount.Name, role.Name)
+			}
 
 			log.Printf("  Writing role %s", rolePath)
 
