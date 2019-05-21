@@ -7,9 +7,10 @@ import (
 
 	allCommand "github.com/seatgeek/hashi-helper/command"
 	consulCommand "github.com/seatgeek/hashi-helper/command/consul"
+	profileCommand "github.com/seatgeek/hashi-helper/command/profile"
 	vaultCommand "github.com/seatgeek/hashi-helper/command/vault"
 	log "github.com/sirupsen/logrus"
-	cli "gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1"
 )
 
 var (
@@ -77,17 +78,17 @@ func main() {
 			},
 		},
 		{
-			Name:  "vault-profile-use",
+			Name:  "profile-use",
 			Usage: "Change your current vault env profile",
 			Action: func(c *cli.Context) error {
-				return vaultCommand.UseProfile(c)
+				return profileCommand.UseProfile(c)
 			},
 		},
 		{
-			Name:  "vault-profile-edit",
+			Name:  "profile-edit",
 			Usage: "Edit your current vault env profile",
 			Action: func(c *cli.Context) error {
-				return vaultCommand.EditProfile(c)
+				return profileCommand.EditProfile(c)
 			},
 		},
 		{

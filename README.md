@@ -18,6 +18,8 @@
     - [`--application`](#--application)
   - [Global Commands](#global-commands)
     - [`push-all`](#push-all)
+    - [`profile-edit`](#profile-edit)
+    - [`profile-use`](#profile-use)
   - [Consul](#consul)
     - [`consul-push-all`](#consul-push-all)
     - [`consul-push-services`](#consul-push-services)
@@ -26,8 +28,6 @@
     - [`vault-create-token`](#vault-create-token)
     - [`vault-find-token`](#vault-find-token)
     - [`vault-list-secrets`](#vault-list-secrets)
-    - [`vault-profile-edit`](#vault-profile-edit)
-    - [`vault-profile-use`](#vault-profile-use)
     - [`vault-pull-secrets`](#vault-pull-secrets)
     - [`vault-push-all`](#vault-push-all)
     - [`vault-push-auth`](#vault-push-auth)
@@ -190,6 +190,58 @@ Environment Key: `APPLICATION`
 
 Push all Consul and Vault data to remote servers (same as running `vault-push-all` and `consul-push-all`)
 
+#### `profile-edit`
+
+Decrypt (or create), open and encrypt the secure `HASHI_HELPER_PROFILE_FILE` (`~/.vault_profiles.pgp`) file containing your vault clusters
+
+File format is as described below, a simple yaml file
+
+```yml
+---
+# Sample config (yaml)
+#
+# all keys are optional
+#
+
+profile_name_1:
+  vault:
+    server: http://active.vault.service.consul:8200
+    auth:
+        token: <your vault token>
+        unseal_token: <your unseal token>
+  consul:
+    server: http://consul.service.consul:8500
+    auth:
+        token: <your consul token>
+  nomad:
+    server: http://nomad.service.consul:4646
+    auth:
+        token: <your nomad token>
+
+profile_name_2:
+  vault:
+    server: http://active.vault.service.consul:8200
+    auth:
+        method: github
+        github_token: <your github token>
+  consul:
+    server: http://consul.service.consul:8500
+    auth:
+      method: vault
+      creds_path: consul/creds/administrator
+  nomad:
+    server: http://nomad.service.consul:4646
+    auth:
+      method: vault
+      creds_path: nomad/creds/administrator
+```
+
+#### `profile-use`
+
+Decrypt the `HASHI_HELPER_PROFILE_FILE` and output bash/zsh compatible commands to set `VAULT_ADDR`, `VAULT_TOKEN`, `ENVIRONMENT` based on the profile you selected.
+
+Example: `$(hashi-helper profile-use name_1)`
+
 ### Consul
 
 #### `consul-push-all`
@@ -243,38 +295,6 @@ Action flags:
 Print a list of local from `conf.d/` (default) or remote secrets from Vault (`--remote`).
 
 Add `--detailed` / `DETAILED` to show secret data rather than just the key names.
-
-#### `vault-profile-edit`
-
-Decrypt (or create), open and encrypt the secure `VAULT_PROFILE_FILE` (`~/.vault_profiles.pgp`) file containing your vault clusters
-
-File format is as described below, a simple yaml file
-
-```yml
----
-# Sample config (yaml)
-#
-# all keys are optional
-#
-
-profile_name_1:
-  server: http://active.vault.service.consul:8200
-  consul_server: http://consul.service.consul:8500
-  token: <your vault token>
-  unseal_token: <your unseal token>
-
-profile_name_2:
-  server: http://active.vault.service.consul:8200
-  consul_server: http://consul.service.consul:8500
-  token: <your vault token>
-  unseal_token: <your unseal token>
-```
-
-#### `vault-profile-use`
-
-Decrypt the `VAULT_PROFILE_FILE` and output bash/zsh compatible commands to set `VAULT_ADDR`, `VAULT_TOKEN`, `ENVIRONMENT` based on the profile you selected.
-
-Example: `$(hashi-helper vault-profile-use name_1)`
 
 #### `vault-pull-secrets`
 
