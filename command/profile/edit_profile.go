@@ -13,7 +13,7 @@ import (
 func EditProfile(c *cli.Context) error {
 	filePath := getProfileFile()
 
-	file, err := ioutil.TempFile("", "vault")
+	file, err := ioutil.TempFile("", "hashi_helper_profile")
 	if err != nil {
 		return err
 	}

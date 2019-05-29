@@ -3,14 +3,26 @@ package profile
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 
-	cli "gopkg.in/urfave/cli.v1"
-	yaml "gopkg.in/yaml.v2"
+	"github.com/hashicorp/vault/api"
+	vault "github.com/hashicorp/vault/api"
+	vgh "github.com/hashicorp/vault/builtin/credential/github"
+	"github.com/mitchellh/go-homedir"
+	"gopkg.in/urfave/cli.v1"
+	"gopkg.in/yaml.v2"
 )
 
 type profiles map[string]profile
+
+type InternalTokenHelper struct {
+	tokenPath   string
+	profileName string
+}
 
 type authConfig struct {
 	Method      string `yaml:"method"`
@@ -18,6 +30,7 @@ type authConfig struct {
 	Token       string `yaml:"token"`
 	UnsealToken string `yaml:"unseal_token"`
 	GithubToken string `yaml:"github_token"`
+	GithubMount string `yaml:"mount"`
 }
 
 type vaultCreds struct {
@@ -65,12 +78,38 @@ func UseProfile(c *cli.Context) error {
 		return fmt.Errorf("No profile with the name '%s' was found", name)
 	}
 
+	// if vault_token file for this profile exists checking the saved creds
+
+	i := InternalTokenHelper{}
+	i.profileName = name
+	v, err := api.NewClient(vault.DefaultConfig())
+	if err != nil {
+		return err
+	}
+	storedToken, err := i.Get()
+	if err != nil {
+		return err
+	}
+
 	if profile.Vault.Server != "" {
+		v.SetAddress(profile.Vault.Server)
 		fmt.Printf("export VAULT_ADDR=%s\n", profile.Vault.Server)
 	}
 
 	if profile.Vault.Auth.Token != "" {
+		if storedToken != profile.Vault.Auth.Token {
+			fmt.Printf("Token stored in %s is different from the Token stored in %s for profile %s", i.tokenPath, getProfileFile(), name)
+			secret, _ := v.Auth().Token().LookupSelf()
+			if ttl, _ := secret.TokenTTL(); ttl > 0 {
+				v.Auth().Token().RenewSelf(0)
+			}
+		} else {
+
+		}
+		v.SetToken(storedToken)
+
 		fmt.Printf("export VAULT_TOKEN=%s\n", profile.Vault.Auth.Token)
+		// TODO: check token is valid
 	}
 
 	if profile.Vault.Auth.UnsealToken != "" {
@@ -80,10 +119,25 @@ func UseProfile(c *cli.Context) error {
 	if profile.Vault.Auth.Method != "" {
 		switch profile.Vault.Auth.Method {
 		case "github":
+			// TODO: check stored token - if it exists is valid and issued using github
+			m := make(map[string]string)
+			if profile.Vault.Auth.GithubMount != "" {
+				m["mount"] = profile.Vault.Auth.GithubMount
+			}
 			if profile.Vault.Auth.GithubToken == "" {
 				return fmt.Errorf("github_token should be provided when using GitHub Vault auth method")
 			} else {
-				fmt.Printf("vault login -no-print -method=github token=%s\n", profile.Vault.Auth.GithubToken)
+				m["token"] = profile.Vault.Auth.GithubToken
+				h := vgh.CLIHandler{}
+				secret, err := h.Auth(v, m)
+				if err != nil {
+					return err
+				}
+
+				os.Setenv("VAULT_TOKEN", secret.Auth.ClientToken)
+				fmt.Printf("export VAULT_AUTH_GITHUB_TOKEN=%s\n", profile.Vault.Auth.GithubToken)
+
+				fmt.Printf("export VAULT_TOKEN=$(vault login -field token -method=github)\n", profile.Vault.Auth.GithubToken)
 			}
 			// More Auth methods to be added here
 		}
@@ -139,7 +193,82 @@ func getProfileConfig() ([]byte, error) {
 func getProfileFile() string {
 	path := os.Getenv("HASHI_HELPER_PROFILE_FILE")
 	if path == "" {
-		path = os.Getenv("HOME") + "/.hashi_helper_profiles.pgp"
+		homePath, err := homedir.Dir()
+		if err != nil {
+			panic(fmt.Sprintf("error getting user's home directory: %v", err))
+		}
+		path = filepath.Join(homePath, "/.hashi_helper_profiles.pgp")
 	}
 	return path
+}
+
+func getVaultTokenFile(profileName string) string {
+	homePath, err := homedir.Dir()
+	if err != nil {
+		panic(fmt.Sprintf("error getting user's home directory: %v", err))
+	}
+	path := filepath.Join(homePath, "/.vault_token_", profileName)
+
+	return path
+}
+
+// populateTokenPath figures out the token path using homedir to get the user's
+// home directory
+func (i *InternalTokenHelper) populateTokenPath() {
+	homePath, err := homedir.Dir()
+	if err != nil {
+		panic(fmt.Sprintf("error getting user's home directory: %v", err))
+	}
+	i.tokenPath = filepath.Join(homePath, ".vault-token-", i.profileName)
+}
+
+func (i *InternalTokenHelper) Path() string {
+	return i.tokenPath
+}
+
+// Get gets the value of the stored token, if any
+func (i *InternalTokenHelper) Get() (string, error) {
+	i.populateTokenPath()
+	f, err := os.Open(i.tokenPath)
+	if os.IsNotExist(err) {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, f); err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(buf.String()), nil
+}
+
+// Store stores the value of the token to the file
+func (i *InternalTokenHelper) Store(input string) error {
+	i.populateTokenPath()
+	f, err := os.OpenFile(i.tokenPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	buf := bytes.NewBufferString(input)
+	if _, err := io.Copy(f, buf); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Erase erases the value of the token
+func (i *InternalTokenHelper) Erase() error {
+	i.populateTokenPath()
+	if err := os.Remove(i.tokenPath); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	return nil
 }
