@@ -12,11 +12,16 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
+var (
+	// Version is filled in by the compiler (git tag + changes)
+	Version = "local-dev"
+)
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "vault-manager"
 	app.Usage = "easily restore / snapshot your secrets"
-	app.Version = "0.1"
+	app.Version = Version
 
 	app.Flags = []cli.Flag{
 		cli.IntFlag{

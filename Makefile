@@ -3,6 +3,9 @@ BUILD_DIR 	?= $(abspath build)
 GET_GOARCH 	= $(word 2,$(subst -, ,$1))
 GET_GOOS 	= $(word 1,$(subst -, ,$1))
 GOBUILD 	?= $(shell go env GOOS)-$(shell go env GOARCH)
+GIT_COMMIT 	:= $(shell git describe --tags)
+GIT_DIRTY 	:= $(if $(shell git status --porcelain),+CHANGES)
+GO_LDFLAGS 	:= "-X main.Version=$(GIT_COMMIT)$(GIT_DIRTY)"
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -28,7 +31,7 @@ ci: install
 BINARIES = $(addprefix $(BUILD_DIR)/hashi-helper-, $(GOBUILD))
 $(BINARIES): $(BUILD_DIR)/hashi-helper-%: $(BUILD_DIR)
 	@echo "=> building $@ ..."
-	GOOS=$(call GET_GOOS,$*) GOARCH=$(call GET_GOARCH,$*) CGO_ENABLED=0 go build -o $@
+	GOOS=$(call GET_GOOS,$*) GOARCH=$(call GET_GOARCH,$*) CGO_ENABLED=0 go build -o $@ -ldflags $(GO_LDFLAGS)
 
 .PHONY: dist
 dist: install
