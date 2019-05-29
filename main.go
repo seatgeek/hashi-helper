@@ -19,8 +19,8 @@ var (
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "vault-manager"
-	app.Usage = "easily restore / snapshot your secrets"
+	app.Name = "hashi-helper"
+	app.Usage = "vault/consul helper"
 	app.Version = Version
 
 	app.Flags = []cli.Flag{
