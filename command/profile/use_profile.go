@@ -3,11 +3,11 @@ package profile
 import (
 	"bytes"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
+	"time"
 
 	"github.com/hashicorp/vault/api"
 	vault "github.com/hashicorp/vault/api"
@@ -17,7 +17,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type profiles map[string]profile
+type profiles map[string]profileStruct
+
+type profileStruct struct {
+	Vault  vaultCreds  `yaml:"vault"`
+	Consul consulCreds `yaml:"consul"`
+	Nomad  nomadCreds  `yaml:"nomad"`
+}
 
 type InternalTokenHelper struct {
 	tokenPath   string
@@ -47,11 +53,6 @@ type nomadCreds struct {
 	Auth   authConfig `yaml:"auth"`
 	Server string     `yaml:"server"`
 }
-type profile struct {
-	Vault  vaultCreds  `yaml:"vault"`
-	Consul consulCreds `yaml:"consul"`
-	Nomad  nomadCreds  `yaml:"nomad"`
-}
 
 // UseProfile ...
 func UseProfile(c *cli.Context) error {
@@ -64,32 +65,35 @@ func UseProfile(c *cli.Context) error {
 		return fmt.Errorf("Missing profile name")
 	}
 
-	var profiles profiles
-	dat, err := getProfileConfig()
+	// parsing profiles file
+	var parsedProfiles, profilesCache profiles
+	dat, err := decryptFile(getProfileFile())
 	if err != nil {
 		return err
 	}
-	if err := yaml.Unmarshal(dat, &profiles); err != nil {
+	if err := yaml.Unmarshal(dat, &parsedProfiles); err != nil {
 		return err
 	}
 
-	profile, ok := profiles[name]
+	profile, ok := parsedProfiles[name]
 	if !ok {
 		return fmt.Errorf("No profile with the name '%s' was found", name)
 	}
 
-	// if vault_token file for this profile exists checking the saved creds
+	cacheDat, err := decryptFile(getCacheFile())
 
-	i := InternalTokenHelper{}
-	i.profileName = name
+	if cacheDat != nil {
+		if err := yaml.Unmarshal(cacheDat, &profilesCache); err != nil {
+			return err
+		}
+	} else {
+		profilesCache = make(profiles)
+	}
+
+	// Creating Vault Token for checking creds
 	v, err := api.NewClient(vault.DefaultConfig())
-	if err != nil {
-		return err
-	}
-	storedToken, err := i.Get()
-	if err != nil {
-		return err
-	}
+	// setting Vault timeout to 5 seconds
+	v.SetClientTimeout(time.Second * 5)
 
 	if profile.Vault.Server != "" {
 		v.SetAddress(profile.Vault.Server)
@@ -97,19 +101,18 @@ func UseProfile(c *cli.Context) error {
 	}
 
 	if profile.Vault.Auth.Token != "" {
-		if storedToken != profile.Vault.Auth.Token {
-			fmt.Printf("Token stored in %s is different from the Token stored in %s for profile %s", i.tokenPath, getProfileFile(), name)
-			secret, _ := v.Auth().Token().LookupSelf()
-			if ttl, _ := secret.TokenTTL(); ttl > 0 {
-				v.Auth().Token().RenewSelf(0)
-			}
+		//if storedToken != profile.Vault.Auth.Token {
+		//	fmt.Printf("Token stored in %s is different from the Token stored in %s for profile %s", i.tokenPath, getProfileFile(), name)
+		v.SetToken(profile.Vault.Auth.Token)
+		secret, _ := v.Auth().Token().LookupSelf()
+		if ttl, _ := secret.TokenTTL(); ttl > 0 {
+			v.Auth().Token().RenewSelf(0)
 		} else {
-
+			fmt.Printf("Vault token stored for profile %s is revoked or wrong\n", name)
 		}
-		v.SetToken(storedToken)
 
 		fmt.Printf("export VAULT_TOKEN=%s\n", profile.Vault.Auth.Token)
-		// TODO: check token is valid
+
 	}
 
 	if profile.Vault.Auth.UnsealToken != "" {
@@ -119,25 +122,37 @@ func UseProfile(c *cli.Context) error {
 	if profile.Vault.Auth.Method != "" {
 		switch profile.Vault.Auth.Method {
 		case "github":
-			// TODO: check stored token - if it exists is valid and issued using github
-			m := make(map[string]string)
-			if profile.Vault.Auth.GithubMount != "" {
-				m["mount"] = profile.Vault.Auth.GithubMount
-			}
-			if profile.Vault.Auth.GithubToken == "" {
-				return fmt.Errorf("github_token should be provided when using GitHub Vault auth method")
+			if profilesCache[name].Vault.Auth.Token != "" {
+				v.SetToken(profilesCache[name].Vault.Auth.Token)
+				secret, _ := v.Auth().Token().LookupSelf()
+				if ttl, _ := secret.TokenTTL(); ttl > 0 {
+					v.Auth().Token().RenewSelf(0)
+					fmt.Printf("export VAULT_TOKEN=%s\n", profilesCache[name].Vault.Auth.Token)
+				}
 			} else {
-				m["token"] = profile.Vault.Auth.GithubToken
-				h := vgh.CLIHandler{}
-				secret, err := h.Auth(v, m)
-				if err != nil {
-					return err
+
+				m := make(map[string]string)
+				if profile.Vault.Auth.GithubMount != "" {
+					m["mount"] = profile.Vault.Auth.GithubMount
+				}
+				if profile.Vault.Auth.GithubToken == "" {
+					return fmt.Errorf("github_token should be provided when using GitHub Vault auth method")
+				} else {
+					m["token"] = profile.Vault.Auth.GithubToken
+					h := vgh.CLIHandler{}
+					secret, err := h.Auth(v, m)
+					if err != nil {
+						return err
+					}
+					fmt.Printf("export VAULT_TOKEN=%s\n", secret.Auth.ClientToken)
+
+					profileForCaching := profileStruct{}
+
+					profileForCaching.Vault.Auth.Token = secret.Auth.ClientToken
+
+					profilesCache[name] = profileForCaching
 				}
 
-				os.Setenv("VAULT_TOKEN", secret.Auth.ClientToken)
-				fmt.Printf("export VAULT_AUTH_GITHUB_TOKEN=%s\n", profile.Vault.Auth.GithubToken)
-
-				fmt.Printf("export VAULT_TOKEN=$(vault login -field token -method=github)\n", profile.Vault.Auth.GithubToken)
 			}
 			// More Auth methods to be added here
 		}
@@ -169,11 +184,48 @@ func UseProfile(c *cli.Context) error {
 
 	}
 
+	// Create a file for IO
+	cacheTemp, err := ioutil.TempFile("", "hashi_helper_cache")
+	if err != nil {
+		panic(err)
+	}
+
+	y, err := yaml.Marshal(&profilesCache)
+	if err != nil {
+		fmt.Errorf("bugga")
+	}
+
+	// Write to the file
+	if err := ioutil.WriteFile(cacheTemp.Name(), y, 600); err != nil {
+		panic(err)
+	}
+	cacheTemp.Close()
+
+	defer os.Remove(cacheTemp.Name())
+
+	encryptFile(cacheTemp.Name(), getCacheFile())
+
 	return nil
 }
 
-func getProfileConfig() ([]byte, error) {
-	cmd := exec.Command("keybase", "pgp", "decrypt", "--infile", getProfileFile())
+func getCacheFile() string {
+	path := os.Getenv("HASHI_HELPER_CACHE_FILE")
+	if path == "" {
+		homePath, err := homedir.Dir()
+		if err != nil {
+			panic(fmt.Sprintf("error getting user's home directory: %v", err))
+		}
+		path = filepath.Join(homePath, "/.hashi_helper_cache.pgp")
+	}
+	return path
+}
+
+func decryptFile(filePath string) ([]byte, error) {
+
+	if _, err := os.Stat(filePath); err != nil {
+		return nil, err
+	}
+	cmd := exec.Command("keybase", "pgp", "decrypt", "--infile", filePath)
 
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
@@ -181,13 +233,26 @@ func getProfileConfig() ([]byte, error) {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
-	fmt.Fprintf(os.Stdout, "# Starting keybase decrypt of %s\n", getProfileFile())
+	fmt.Fprintf(os.Stdout, "# Starting keybase decrypt of %s\n", filePath)
 	err := cmd.Run()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to run keybase gpg decrypt: %s - %s", err, stderr.String())
 	}
 
 	return stdout.Bytes(), nil
+}
+
+func encryptFile(inFile, outFile string) error {
+
+	encryptCmd := exec.Command("keybase", "pgp", "encrypt", "--infile", inFile, "--outfile", outFile)
+
+	encryptErr := encryptCmd.Run()
+	if encryptErr != nil {
+		return encryptErr
+	}
+
+	return nil
+
 }
 
 func getProfileFile() string {
@@ -200,75 +265,4 @@ func getProfileFile() string {
 		path = filepath.Join(homePath, "/.hashi_helper_profiles.pgp")
 	}
 	return path
-}
-
-func getVaultTokenFile(profileName string) string {
-	homePath, err := homedir.Dir()
-	if err != nil {
-		panic(fmt.Sprintf("error getting user's home directory: %v", err))
-	}
-	path := filepath.Join(homePath, "/.vault_token_", profileName)
-
-	return path
-}
-
-// populateTokenPath figures out the token path using homedir to get the user's
-// home directory
-func (i *InternalTokenHelper) populateTokenPath() {
-	homePath, err := homedir.Dir()
-	if err != nil {
-		panic(fmt.Sprintf("error getting user's home directory: %v", err))
-	}
-	i.tokenPath = filepath.Join(homePath, ".vault-token-", i.profileName)
-}
-
-func (i *InternalTokenHelper) Path() string {
-	return i.tokenPath
-}
-
-// Get gets the value of the stored token, if any
-func (i *InternalTokenHelper) Get() (string, error) {
-	i.populateTokenPath()
-	f, err := os.Open(i.tokenPath)
-	if os.IsNotExist(err) {
-		return "", nil
-	}
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-
-	buf := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buf, f); err != nil {
-		return "", err
-	}
-
-	return strings.TrimSpace(buf.String()), nil
-}
-
-// Store stores the value of the token to the file
-func (i *InternalTokenHelper) Store(input string) error {
-	i.populateTokenPath()
-	f, err := os.OpenFile(i.tokenPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	buf := bytes.NewBufferString(input)
-	if _, err := io.Copy(f, buf); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Erase erases the value of the token
-func (i *InternalTokenHelper) Erase() error {
-	i.populateTokenPath()
-	if err := os.Remove(i.tokenPath); err != nil && !os.IsNotExist(err) {
-		return err
-	}
-
-	return nil
 }

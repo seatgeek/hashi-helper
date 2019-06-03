@@ -25,7 +25,7 @@ func EditProfile(c *cli.Context) error {
 	if _, err := os.Stat(filePath); err == nil {
 		backup = true
 
-		b, err := getProfileConfig()
+		b, err := decryptFile(filePath)
 		if err != nil {
 			return err
 		}
@@ -100,11 +100,8 @@ func EditProfile(c *cli.Context) error {
 		copyFileContents(getProfileFile(), getProfileFile()+".old")
 	}
 
-	// encrypt the file
-	encryptCmd := exec.Command("keybase", "pgp", "encrypt", "--infile", file.Name(), "--outfile", getProfileFile())
-	encryptErr := encryptCmd.Run()
-	if encryptErr != nil {
-		return encryptErr
+	if err := encryptFile(file.Name(),getProfileFile()); err != nil {
+		return err
 	}
 
 	return nil
