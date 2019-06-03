@@ -34,6 +34,7 @@ type authConfig struct {
 	Method      string `yaml:"method"`
 	CredsPath   string `yaml:"creds_path"`
 	Token       string `yaml:"token"`
+	ExpireTime  string `yaml:"expire_time"` //used internal for cache files only
 	UnsealToken string `yaml:"unseal_token"`
 	GithubToken string `yaml:"github_token"`
 	GithubMount string `yaml:"mount"`
@@ -56,6 +57,7 @@ type nomadCreds struct {
 
 // UseProfile ...
 func UseProfile(c *cli.Context) error {
+
 	if !c.Args().Present() {
 		return fmt.Errorf("Please provide a profile name as first argument")
 	}
@@ -90,7 +92,9 @@ func UseProfile(c *cli.Context) error {
 		profilesCache = make(profiles)
 	}
 
-	// Creating Vault Token for checking creds
+	profileForCaching := profilesCache[name]
+
+	// Creating Vault Client for checking creds
 	v, err := api.NewClient(vault.DefaultConfig())
 	// setting Vault timeout to 5 seconds
 	v.SetClientTimeout(time.Second * 5)
@@ -101,18 +105,7 @@ func UseProfile(c *cli.Context) error {
 	}
 
 	if profile.Vault.Auth.Token != "" {
-		//if storedToken != profile.Vault.Auth.Token {
-		//	fmt.Printf("Token stored in %s is different from the Token stored in %s for profile %s", i.tokenPath, getProfileFile(), name)
-		v.SetToken(profile.Vault.Auth.Token)
-		secret, _ := v.Auth().Token().LookupSelf()
-		if ttl, _ := secret.TokenTTL(); ttl > 0 {
-			v.Auth().Token().RenewSelf(0)
-		} else {
-			fmt.Printf("Vault token stored for profile %s is revoked or wrong\n", name)
-		}
-
 		fmt.Printf("export VAULT_TOKEN=%s\n", profile.Vault.Auth.Token)
-
 	}
 
 	if profile.Vault.Auth.UnsealToken != "" {
@@ -124,37 +117,37 @@ func UseProfile(c *cli.Context) error {
 		case "github":
 			if profilesCache[name].Vault.Auth.Token != "" {
 				v.SetToken(profilesCache[name].Vault.Auth.Token)
-				secret, _ := v.Auth().Token().LookupSelf()
-				if ttl, _ := secret.TokenTTL(); ttl > 0 {
-					v.Auth().Token().RenewSelf(0)
-					fmt.Printf("export VAULT_TOKEN=%s\n", profilesCache[name].Vault.Auth.Token)
-				}
-			} else {
-
-				m := make(map[string]string)
-				if profile.Vault.Auth.GithubMount != "" {
-					m["mount"] = profile.Vault.Auth.GithubMount
-				}
-				if profile.Vault.Auth.GithubToken == "" {
-					return fmt.Errorf("github_token should be provided when using GitHub Vault auth method")
-				} else {
-					m["token"] = profile.Vault.Auth.GithubToken
-					h := vgh.CLIHandler{}
-					secret, err := h.Auth(v, m)
+				if profilesCache[name].Vault.Auth.ExpireTime != "" {
+					et, err := time.Parse(time.RFC3339Nano, profilesCache[name].Vault.Auth.ExpireTime)
 					if err != nil {
-						return err
+						fmt.Errorf("Bad vault:auth:expire_time in cache for %s profile ", name)
 					}
-					fmt.Printf("export VAULT_TOKEN=%s\n", secret.Auth.ClientToken)
+					if et.Before(time.Now()) {
 
-					profileForCaching := profileStruct{}
+						m := make(map[string]string)
+						if profile.Vault.Auth.GithubMount != "" {
+							m["mount"] = profile.Vault.Auth.GithubMount
+						}
+						if profile.Vault.Auth.GithubToken == "" {
+							return fmt.Errorf("github_token should be provided when using GitHub Vault auth method")
+						} else {
+							m["token"] = profile.Vault.Auth.GithubToken
+							h := vgh.CLIHandler{}
+							secret, err := h.Auth(v, m)
+							if err != nil {
+								return err
+							}
+							fmt.Printf("export VAULT_TOKEN=%s\n", secret.Auth.ClientToken)
 
-					profileForCaching.Vault.Auth.Token = secret.Auth.ClientToken
-
-					profilesCache[name] = profileForCaching
+							profileForCaching.Vault.Auth.Token = secret.Auth.ClientToken
+							profileForCaching.Vault.Auth.ExpireTime = time.Now().Add(time.Second * time.Duration(secret.Auth.LeaseDuration)).Format(time.RFC3339Nano)
+						}
+					} else {
+						fmt.Printf("export VAULT_TOKEN=%s\n", profilesCache[name].Vault.Auth.Token)
+					}
 				}
-
 			}
-			// More Auth methods to be added here
+			// TODO: More Auth methods to be added here
 		}
 	}
 
@@ -167,6 +160,7 @@ func UseProfile(c *cli.Context) error {
 	}
 
 	if profile.Consul.Auth.Method == "vault" {
+
 		fmt.Printf("export CONSUL_HTTP_TOKEN=$(vault read -field=secret_id %s)\n", profile.Consul.Auth.CredsPath)
 
 	}
@@ -180,9 +174,30 @@ func UseProfile(c *cli.Context) error {
 	}
 
 	if profile.Nomad.Auth.Method == "vault" {
-		fmt.Printf("export NOMAD_TOKEN=$(vault read -field=secret_id %s)\n", profile.Nomad.Auth.CredsPath)
+		if profilesCache[name].Nomad.Auth.Token != "" {
+			if profilesCache[name].Nomad.Auth.ExpireTime != "" {
+				et, err := time.Parse(time.RFC3339Nano, profilesCache[name].Nomad.Auth.ExpireTime)
+				if err != nil {
+					fmt.Errorf("Bad nomad:auth:expire_time in cache for %s profile ", name)
+				}
+				if et.Before(time.Now()) {
+					r, err := readFromVault(v, profile.Nomad.Auth.CredsPath)
+					if err != nil {
+						return err
+					}
+					nomadToken := r.Data["secret_id"].(string)
+					fmt.Printf("export NOMAD_TOKEN=%s\n", nomadToken)
 
+					profileForCaching.Nomad.Auth.Token = nomadToken
+					profileForCaching.Nomad.Auth.ExpireTime = time.Now().Add(time.Second * time.Duration(r.LeaseDuration)).Format(time.RFC3339Nano)
+				} else {
+					fmt.Printf("export NOMAD_TOKEN=%s\n", profilesCache[name].Nomad.Auth.Token)
+				}
+			}
+		}
 	}
+
+	profilesCache[name] = profileForCaching
 
 	// Create a file for IO
 	cacheTemp, err := ioutil.TempFile("", "hashi_helper_cache")
@@ -206,6 +221,16 @@ func UseProfile(c *cli.Context) error {
 	encryptFile(cacheTemp.Name(), getCacheFile())
 
 	return nil
+}
+
+func readFromVault(v *vault.Client, path string) (*vault.Secret, error) {
+
+	creds, err := v.Logical().Read(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return creds, nil
 }
 
 func getCacheFile() string {
