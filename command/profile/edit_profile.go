@@ -82,7 +82,7 @@ func EditProfile(c *cli.Context) error {
 	case "code":
 		flags = append(flags, "-w")
 		flags = append(flags, "-n")
-	// More Editors should be added
+		// More Editors should be added
 	}
 
 	// append the filename
@@ -100,7 +100,7 @@ func EditProfile(c *cli.Context) error {
 		copyFileContents(getProfileFile(), getProfileFile()+".old")
 	}
 
-	if err := encryptFile(file.Name(),getProfileFile()); err != nil {
+	if err := encryptFile(file.Name(), getProfileFile()); err != nil {
 		return err
 	}
 
