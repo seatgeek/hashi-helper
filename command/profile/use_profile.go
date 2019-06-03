@@ -150,9 +150,26 @@ func UseProfile(c *cli.Context) error {
 	}
 
 	if profile.Consul.Auth.Method == "vault" {
-
-		fmt.Printf("export CONSUL_HTTP_TOKEN=$(vault read -field=secret_id %s)\n", profile.Consul.Auth.CredsPath)
-
+		if profileCache.Consul.Auth.Token != "" {
+			if profileCache.Consul.Auth.ExpireTime != "" {
+				et, err := time.Parse(time.RFC3339Nano, profileCache.Consul.Auth.ExpireTime)
+				if err != nil {
+					fmt.Errorf("Bad consul:auth:expire_time in cache for %s profile ", name)
+				}
+				if et.Before(time.Now()) {
+					profileCache.Consul, err = vaultGetConsulCreds(profile.Consul, v)
+					if err != nil {
+						fmt.Errorf("Bad reading of consul creds for %s profile ", name)
+					}
+				}
+			}
+		} else {
+			profileCache.Nomad, err = vaultGetNomadCreds(profile.Nomad, v)
+			if err != nil {
+				fmt.Errorf("Bad reading of consul creds for %s profile ", name)
+			}
+		}
+		fmt.Printf("export CONSUL_HTTP_TOKEN=%)\n", profileCache.Consul.Auth.Token)
 	}
 
 	if profile.Nomad.Server != "" {
@@ -172,10 +189,16 @@ func UseProfile(c *cli.Context) error {
 				}
 				if et.Before(time.Now()) {
 					profileCache.Nomad, err = vaultGetNomadCreds(profile.Nomad, v)
+					if err != nil {
+						fmt.Errorf("Bad reading of nomad creds for %s profile ", name)
+					}
 				}
 			}
 		} else {
 			profileCache.Nomad, err = vaultGetNomadCreds(profile.Nomad, v)
+			if err != nil {
+				fmt.Errorf("Bad reading of nomad creds for %s profile ", name)
+			}
 		}
 		fmt.Printf("export NOMAD_TOKEN=%s\n", profileCache.Nomad.Auth.Token)
 	}
@@ -216,6 +239,18 @@ func vaultGetNomadCreds(n nomadCreds, vc *vault.Client) (nomadCreds, error) {
 	n.Auth.ExpireTime = time.Now().Add(time.Second * time.Duration(r.LeaseDuration)).Format(time.RFC3339Nano)
 
 	return n, err
+}
+
+func vaultGetConsulCreds(c consulCreds, vc *vault.Client) (consulCreds, error) {
+	r, err := readFromVault(vc, c.Auth.CredsPath)
+	if err != nil {
+		return c, err
+	}
+
+	c.Auth.Token = r.Data["secret_id"].(string)
+	c.Auth.ExpireTime = time.Now().Add(time.Second * time.Duration(r.LeaseDuration)).Format(time.RFC3339Nano)
+
+	return c, err
 }
 
 func vaultLoginGitHub(v vaultCreds, vc *vault.Client) (vaultCreds, error) {
