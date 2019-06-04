@@ -58,6 +58,9 @@ type nomadCreds struct {
 // UseProfile ...
 func UseProfile(c *cli.Context) error {
 
+	var printingBuffer bytes.Buffer
+
+
 	if !c.Args().Present() {
 		return fmt.Errorf("Please provide a profile name as first argument")
 	}
@@ -101,15 +104,15 @@ func UseProfile(c *cli.Context) error {
 
 	if profile.Vault.Server != "" {
 		v.SetAddress(profile.Vault.Server)
-		fmt.Printf("export VAULT_ADDR=%s\n", profile.Vault.Server)
+		printingBuffer.WriteString(fmt.Sprintf("export VAULT_ADDR=%s\n", profile.Vault.Server))
 	}
 
 	if profile.Vault.Auth.Token != "" {
-		fmt.Printf("export VAULT_TOKEN=%s\n", profile.Vault.Auth.Token)
+		printingBuffer.WriteString(fmt.Sprintf("export VAULT_TOKEN=%s\n", profile.Vault.Auth.Token))
 	}
 
 	if profile.Vault.Auth.UnsealToken != "" {
-		fmt.Printf("export VAULT_UNSEAL_KEY=%s\n", profile.Vault.Auth.UnsealToken)
+		printingBuffer.WriteString(fmt.Sprintf("export VAULT_UNSEAL_KEY=%s\n", profile.Vault.Auth.UnsealToken))
 	}
 
 	if profile.Vault.Auth.Method != "" {
@@ -121,33 +124,33 @@ func UseProfile(c *cli.Context) error {
 					if err != nil { // if expire time  can't be parsed as time assume cache is bad and relogin
 						profileCache.Vault, err = vaultLoginGitHub(profile.Vault, v)
 						if err != nil {
-							return fmt.Errorf("can't login to Vault using github for profile %s", name)
+							return fmt.Errorf("can't login to Vault using github for profile %s - %s", name, err)
 						}
 					} else if et.Before(time.Now()) { // relogin if token is expired
 						profileCache.Vault, err = vaultLoginGitHub(profile.Vault, v)
 						if err != nil {
-							return fmt.Errorf("can't login to Vault using github for profile %s", name)
+							return fmt.Errorf("can't login to Vault using github for profile %s - %s", name, err)
 						}
 					}
 				}
 			} else { // token  is absent cache - login
 				profileCache.Vault, err = vaultLoginGitHub(profile.Vault, v)
 				if err != nil {
-					return fmt.Errorf("can't login to Vault using github for profile %s", name)
+					return fmt.Errorf("can't login to Vault using github for profile %s - %s", name, err)
 				}
 			}
 			v.SetToken(profileCache.Vault.Auth.Token)
-			fmt.Printf("export VAULT_TOKEN=%s\n", profileCache.Vault.Auth.Token)
+			printingBuffer.WriteString(fmt.Sprintf("export VAULT_TOKEN=%s\n", profileCache.Vault.Auth.Token))
 			// TODO: More Auth methods to be added here
 		}
 	}
 
 	if profile.Consul.Server != "" {
-		fmt.Printf("export CONSUL_HTTP_ADDR=%s\n", profile.Consul.Server)
+		printingBuffer.WriteString(fmt.Sprintf("export CONSUL_HTTP_ADDR=%s\n", profile.Consul.Server))
 	}
 
 	if profile.Consul.Auth.Token != "" {
-		fmt.Printf("export CONSUL_HTTP_TOKEN=%s\n", profile.Consul.Auth.Token)
+		printingBuffer.WriteString(fmt.Sprintf("export CONSUL_HTTP_TOKEN=%s\n", profile.Consul.Auth.Token))
 	}
 
 	if profile.Consul.Auth.Method == "vault" {
@@ -172,15 +175,15 @@ func UseProfile(c *cli.Context) error {
 				return fmt.Errorf("error reading Consul creds for profile %s", name)
 			}
 		}
-		fmt.Printf("export CONSUL_HTTP_TOKEN=%s\n", profileCache.Consul.Auth.Token)
+		printingBuffer.WriteString(fmt.Sprintf("export CONSUL_HTTP_TOKEN=%s\n", profileCache.Consul.Auth.Token))
 	}
 
 	if profile.Nomad.Server != "" {
-		fmt.Printf("export NOMAD_ADDR=%s\n", profile.Nomad.Server)
+		printingBuffer.WriteString(fmt.Sprintf("export NOMAD_ADDR=%s\n", profile.Nomad.Server))
 	}
 
 	if profile.Nomad.Auth.Token != "" {
-		fmt.Printf("export NOMAD_TOKEN=%s\n", profile.Nomad.Auth.Token)
+		printingBuffer.WriteString(fmt.Sprintf("export NOMAD_TOKEN=%s\n", profile.Nomad.Auth.Token))
 	}
 
 	if profile.Nomad.Auth.Method == "vault" {
@@ -205,7 +208,7 @@ func UseProfile(c *cli.Context) error {
 				return fmt.Errorf("error reading Nomad creds for profile %s", name)
 			}
 		}
-		fmt.Printf("export NOMAD_TOKEN=%s\n", profileCache.Nomad.Auth.Token)
+		printingBuffer.WriteString(fmt.Sprintf("export NOMAD_TOKEN=%s\n", profileCache.Nomad.Auth.Token))
 	}
 
 	profilesCache[name] = profileCache
@@ -213,7 +216,7 @@ func UseProfile(c *cli.Context) error {
 	// Create a file for cache update
 	cacheTempFile, err := ioutil.TempFile("", "hashi_helper_cache")
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("can't create temp file for cache generation %s", cacheTempFile.Name())
 	}
 
 	yamlReadableCache, err := yaml.Marshal(&profilesCache)
@@ -223,13 +226,16 @@ func UseProfile(c *cli.Context) error {
 
 	// Write to the file
 	if err := ioutil.WriteFile(cacheTempFile.Name(), yamlReadableCache, 600); err != nil {
-		return err
+		return fmt.Errorf("can't write to cache temp file %s", cacheTempFile.Name())
 	}
 	cacheTempFile.Close()
 
 	defer os.Remove(cacheTempFile.Name())
 
 	encryptFile(cacheTempFile.Name(), getCacheFile())
+
+	// printing everything that happend
+	fmt.Printf("%s", printingBuffer.String())
 
 	return nil
 }
@@ -315,7 +321,7 @@ func decryptFile(filePath string) ([]byte, error) {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
-	fmt.Fprintf(os.Stdout, "# Starting keybase decrypt of %s\n", filePath)
+	fmt.Fprintf(os.Stdout, "# Decrypting %s using keybase \n", filePath)
 	err := cmd.Run()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to run keybase gpg decrypt: %s - %s", err, stderr.String())
