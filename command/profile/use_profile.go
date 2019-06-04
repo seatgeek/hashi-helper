@@ -116,23 +116,24 @@ func UseProfile(c *cli.Context) error {
 		switch profile.Vault.Auth.Method {
 		case "github":
 			if profileCache.Vault.Auth.Token != "" {
-				v.SetToken(profileCache.Vault.Auth.Token)
 				if profileCache.Vault.Auth.ExpireTime != "" {
 					et, err := time.Parse(time.RFC3339Nano, profileCache.Vault.Auth.ExpireTime)
-					if err != nil {
-						fmt.Errorf("Bad vault:auth:expire_time in cache for %s profile ", name)
-					}
-					if et.Before(time.Now()) {
+					if err != nil { // if expire time  can't be parsed as time assume cache is bad and relogin
 						profileCache.Vault, err = vaultLoginGitHub(profile.Vault, v)
 						if err != nil {
-							fmt.Printf("Bad github login")
+							fmt.Printf("Bad github login for profile %s", name)
+						}
+					} else if et.Before(time.Now()) { // relogin if token is expired
+						profileCache.Vault, err = vaultLoginGitHub(profile.Vault, v)
+						if err != nil {
+							fmt.Printf("Bad github login for profile %s", name)
 						}
 					}
 				}
-			} else {
+			} else { // token  is absent cache - login
 				profileCache.Vault, err = vaultLoginGitHub(profile.Vault, v)
 				if err != nil {
-					fmt.Printf("Bad github login")
+					fmt.Printf("Bad github login for profile %s", name)
 				}
 			}
 			v.SetToken(profileCache.Vault.Auth.Token)
@@ -153,20 +154,22 @@ func UseProfile(c *cli.Context) error {
 		if profileCache.Consul.Auth.Token != "" {
 			if profileCache.Consul.Auth.ExpireTime != "" {
 				et, err := time.Parse(time.RFC3339Nano, profileCache.Consul.Auth.ExpireTime)
-				if err != nil {
-					fmt.Errorf("Bad consul:auth:expire_time in cache for %s profile ", name)
-				}
-				if et.Before(time.Now()) {
+				if err != nil { // if expire time  can't be parsed as time assume cache is bad and relogin
 					profileCache.Consul, err = vaultGetConsulCreds(profile.Consul, v)
 					if err != nil {
-						fmt.Errorf("Bad reading of consul creds for %s profile ", name)
+						fmt.Errorf("Error reading Consul creds for %s profile ", name)
+					}
+				} else if et.Before(time.Now()) { // relogin if token is expired
+					profileCache.Consul, err = vaultGetConsulCreds(profile.Consul, v)
+					if err != nil {
+						fmt.Errorf("Error reading Consul creds for %s profile ", name)
 					}
 				}
 			}
-		} else {
+		} else { // token  is absent cache - login
 			profileCache.Nomad, err = vaultGetNomadCreds(profile.Nomad, v)
 			if err != nil {
-				fmt.Errorf("Bad reading of consul creds for %s profile ", name)
+				fmt.Errorf("Error reading Consul creds for %s profile ", name)
 			}
 		}
 		fmt.Printf("export CONSUL_HTTP_TOKEN=%)\n", profileCache.Consul.Auth.Token)
@@ -184,17 +187,19 @@ func UseProfile(c *cli.Context) error {
 		if profileCache.Nomad.Auth.Token != "" {
 			if profileCache.Nomad.Auth.ExpireTime != "" {
 				et, err := time.Parse(time.RFC3339Nano, profileCache.Nomad.Auth.ExpireTime)
-				if err != nil {
-					fmt.Errorf("Bad nomad:auth:expire_time in cache for %s profile ", name)
-				}
-				if et.Before(time.Now()) {
+				if err != nil { // if expire time  can't be parsed as time assume cache is bad and relogin
+					profileCache.Nomad, err = vaultGetNomadCreds(profile.Nomad, v)
+					if err != nil {
+						fmt.Errorf("Bad reading of nomad creds for %s profile ", name)
+					}
+				} else if et.Before(time.Now()) { // relogin if token is expired
 					profileCache.Nomad, err = vaultGetNomadCreds(profile.Nomad, v)
 					if err != nil {
 						fmt.Errorf("Bad reading of nomad creds for %s profile ", name)
 					}
 				}
 			}
-		} else {
+		} else { // token  is absent cache - login
 			profileCache.Nomad, err = vaultGetNomadCreds(profile.Nomad, v)
 			if err != nil {
 				fmt.Errorf("Bad reading of nomad creds for %s profile ", name)
@@ -205,26 +210,26 @@ func UseProfile(c *cli.Context) error {
 
 	profilesCache[name] = profileCache
 
-	// Create a file for IO
-	cacheTemp, err := ioutil.TempFile("", "hashi_helper_cache")
+	// Create a file for cache update
+	cacheTempFile, err := ioutil.TempFile("", "hashi_helper_cache")
 	if err != nil {
 		panic(err)
 	}
 
-	y, err := yaml.Marshal(&profilesCache)
+	yamlReadableCache, err := yaml.Marshal(&profilesCache)
 	if err != nil {
-		fmt.Errorf("bugga")
+		fmt.Errorf("Cache generation failed")
 	}
 
 	// Write to the file
-	if err := ioutil.WriteFile(cacheTemp.Name(), y, 600); err != nil {
+	if err := ioutil.WriteFile(cacheTempFile.Name(), yamlReadableCache, 600); err != nil {
 		panic(err)
 	}
-	cacheTemp.Close()
+	cacheTempFile.Close()
 
-	defer os.Remove(cacheTemp.Name())
+	defer os.Remove(cacheTempFile.Name())
 
-	encryptFile(cacheTemp.Name(), getCacheFile())
+	encryptFile(cacheTempFile.Name(), getCacheFile())
 
 	return nil
 }
