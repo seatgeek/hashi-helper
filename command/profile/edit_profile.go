@@ -1,4 +1,4 @@
-package vault
+package profile
 
 import (
 	"io"
@@ -6,14 +6,14 @@ import (
 	"os"
 	"os/exec"
 
-	cli "gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // EditProfile ...
 func EditProfile(c *cli.Context) error {
 	filePath := getProfileFile()
 
-	file, err := ioutil.TempFile("", "vault")
+	file, err := ioutil.TempFile("", "hashi_helper_profile")
 	if err != nil {
 		return err
 	}
@@ -25,7 +25,7 @@ func EditProfile(c *cli.Context) error {
 	if _, err := os.Stat(filePath); err == nil {
 		backup = true
 
-		b, err := getProfileConfig()
+		b, err := decryptFile(filePath)
 		if err != nil {
 			return err
 		}
@@ -35,10 +35,37 @@ func EditProfile(c *cli.Context) error {
 # Sample config (yaml)
 #
 # profile_name_1:
-#  server: http://<ip>:8200 	  	# optional
-#  consul_server: http://<ip>:8500  # optional
-#  token: <your token>			  	# optional
-#  unseal_token: <your token>		# optional
+#   vault:
+#     server: http://active.vault.service.consul:8200
+#     auth:
+#         token: <your vault token>
+#         unseal_token: <your unseal token>
+#   consul:
+#     server: http://consul.service.consul:8500
+#     auth:
+#         token: <your consul token>
+#   nomad:
+#     server: http://nomad.service.consul:4646
+#     auth:
+#         token: <your nomad token>
+#
+# profile_name_2:
+#   vault:
+#     server: http://active.vault.service.consul:8200
+#     auth:
+#         method: github
+#         github_token: <your github token>
+#   consul:
+#     server: http://consul.service.consul:8500
+#     auth:
+#       method: vault
+#       creds_path: consul/creds/administrator
+#   nomad:
+#     server: http://nomad.service.consul:4646
+#     auth:
+#       method: vault
+#       creds_path: nomad/creds/administrator
+
 `)
 		file.Write(b)
 	}
@@ -55,6 +82,7 @@ func EditProfile(c *cli.Context) error {
 	case "code":
 		flags = append(flags, "-w")
 		flags = append(flags, "-n")
+		// More Editors should be added
 	}
 
 	// append the filename
@@ -72,11 +100,8 @@ func EditProfile(c *cli.Context) error {
 		copyFileContents(getProfileFile(), getProfileFile()+".old")
 	}
 
-	// encrypt the file
-	encryptCmd := exec.Command("keybase", "pgp", "encrypt", "--infile", file.Name(), "--outfile", getProfileFile())
-	encryptErr := encryptCmd.Run()
-	if encryptErr != nil {
-		return encryptErr
+	if err := encryptFile(file.Name(), getProfileFile()); err != nil {
+		return err
 	}
 
 	return nil
