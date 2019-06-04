@@ -172,7 +172,7 @@ func UseProfile(c *cli.Context) error {
 				fmt.Errorf("Error reading Consul creds for %s profile ", name)
 			}
 		}
-		fmt.Printf("export CONSUL_HTTP_TOKEN=%)\n", profileCache.Consul.Auth.Token)
+		fmt.Printf("export CONSUL_HTTP_TOKEN=%s\n", profileCache.Consul.Auth.Token)
 	}
 
 	if profile.Nomad.Server != "" {
