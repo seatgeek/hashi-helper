@@ -84,10 +84,10 @@ func FindToken(c *cli.Context) error {
 				log.Infof("  accessor           : %s", token.Data["accessor"])
 
 				if token.Data["meta"] != nil {
-						for k, v := range token.Data["meta"].(map[string]interface{}) {
-							log.Infof("  meta[%s] %s: %v", k, strings.Repeat(" ", max(0, 12-len(k))), v)
-						}
+					for k, v := range token.Data["meta"].(map[string]interface{}) {
+						log.Infof("  meta[%s] %s: %v", k, strings.Repeat(" ", max(0, 12-len(k))), v)
 					}
+				}
 
 				log.Info("")
 
