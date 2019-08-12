@@ -86,7 +86,7 @@ func (c *Config) parseVaultMountStanza(list *ast.ObjectList, environment *Enviro
 	for _, mountAST := range list.Items {
 		x := mountAST.Val.(*ast.ObjectType).List
 
-		valid := []string{"config", "role", "type", "path", "max_lease_ttl", "default_lease_ttl", "force_no_cache"}
+		valid := []string{"config", "role", "type", "path", "max_lease_ttl", "default_lease_ttl", "force_no_cache", "description"}
 		if err := c.checkHCLKeys(x, valid); err != nil {
 			return err
 		}
@@ -148,6 +148,19 @@ func (c *Config) parseVaultMountStanza(list *ast.ObjectList, environment *Enviro
 			} else if len(forceNoCacheAST.Items) > 1 {
 				return fmt.Errorf("You can only specify force_no_cache once per mount in %s -> %s", environment.Name, mountName)
 			}
+			description := ""
+			descriptionAST := x.Filter("description")
+			if len(descriptionAST.Items) == 1 {
+				v := descriptionAST.Items[0].Val.(*ast.LiteralType).Token.Value()
+				switch t := v.(type) {
+				default:
+					return fmt.Errorf("unexpected type %T for %s -> %s -> description", environment.Name, mountName, t)
+				case string:
+					description = v.(string)
+				}
+			} else if len(descriptionAST.Items) > 1 {
+				return fmt.Errorf("You can only specify description once per mount in %s -> %s", environment.Name, mountName)
+			}
 
 			mount = &Mount{
 				Name:            mountName,
@@ -156,6 +169,7 @@ func (c *Config) parseVaultMountStanza(list *ast.ObjectList, environment *Enviro
 				MaxLeaseTTL:     mountMaxLeaseTTL,
 				DefaultLeaseTTL: mountDefaultLeaseTTL,
 				ForceNoCache:    mountForceNoCache,
+				Description:     description,
 			}
 		}
 
