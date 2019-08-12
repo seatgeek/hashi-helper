@@ -194,7 +194,7 @@ func (c *Config) parseMountConfig(list *ast.ObjectList) ([]*MountConfig, error) 
 
 	for _, mountConfigAST := range list.Items {
 		if len(mountConfigAST.Keys) < 1 {
-			return nil, fmt.Errorf("Missing mount role name in line %+v", mountConfigAST.Keys[0].Pos())
+			return nil, fmt.Errorf("Missing mount role name in mount config stanza")
 		}
 
 		var m map[string]interface{}
@@ -218,7 +218,7 @@ func (c *Config) parseMountConfig(list *ast.ObjectList) ([]*MountConfig, error) 
 func (c *Config) parseMountRole(list *ast.ObjectList, mount *Mount) error {
 	for _, config := range list.Items {
 		if len(config.Keys) < 1 {
-			return fmt.Errorf("Missing mount role name in line %+v", config.Keys[0].Pos())
+			return fmt.Errorf("Missing mount role name in mount config stanza")
 		}
 
 		var m map[string]interface{}
