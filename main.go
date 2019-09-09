@@ -172,6 +172,13 @@ func main() {
 			},
 		},
 		{
+			Name:  "vault-push-audit",
+			Usage: "Write audit configuration to remote Vault instance",
+			Action: func(c *cli.Context) error {
+				return vaultCommand.AuditPush(c)
+			},
+		},
+		{
 			Name:  "vault-push-mounts",
 			Usage: "Write vault mounts to remote Vault instance",
 			Action: func(c *cli.Context) error {

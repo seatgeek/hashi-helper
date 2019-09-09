@@ -26,6 +26,7 @@ type Config struct {
 	VaultMounts       VaultMounts
 	VaultPolicies     VaultPolicies
 	VaultSecrets      VaultSecrets
+	VaultAudits       VaultAudits
 }
 
 // NewConfigFromCLI will take a CLI context and create config from it

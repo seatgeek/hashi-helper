@@ -121,12 +121,17 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 
 			// check for valid keys inside an environment stanza
 			x := envAST.Val.(*ast.ObjectType).List
-			valid := []string{"application", "auth", "policy", "mount", "secret", "secrets", "service", "kv"}
+			valid := []string{"application", "auth", "audit", "policy", "mount", "secret", "secrets", "service", "kv"}
 			if err := c.checkHCLKeys(x, valid); err != nil {
 				return err
 			}
 
 			env := c.Environments.getOrSet(&Environment{Name: envName})
+
+			c.logger.Debug("Scanning for audit{}")
+			if err := c.parseVaultAuditStanza(x.Filter("audit"), env); err != nil {
+				return err
+			}
 
 			c.logger.Debug("Scanning for application{}")
 			if err := c.parseApplicationStanza(x.Filter("application"), env); err != nil {
