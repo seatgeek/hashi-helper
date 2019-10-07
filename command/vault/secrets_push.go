@@ -30,9 +30,14 @@ func SecretsPushWithConfig(c *cli.Context, config *config.Config) error {
 		return fmt.Errorf("Could not find any environment with name %s in configuration", env)
 	}
 
+	writeConfig := make(map[string]string)
+	if prefix := c.String("prefix"); prefix != "" {
+		writeConfig["only-prefix"] = prefix
+	}
+
 	engine := helper.SecretWriter{}
 	for _, secret := range config.VaultSecrets {
-		err := engine.WriteSecret(secret)
+		err := engine.WriteSecret(secret, writeConfig)
 		if err != nil {
 			log.Fatal(err)
 		}

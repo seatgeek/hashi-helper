@@ -17,7 +17,7 @@ type SecretWriter struct {
 }
 
 // WriteSecret ...
-func (w SecretWriter) WriteSecret(secret *config.Secret) error {
+func (w SecretWriter) WriteSecret(secret *config.Secret, config map[string]string) error {
 	var path string
 
 	// @TODO Make a dedicated type for writing non-secrets !
@@ -27,6 +27,11 @@ func (w SecretWriter) WriteSecret(secret *config.Secret) error {
 		path = fmt.Sprintf("secret/%s/%s", secret.Application.Name, secret.Path)
 	} else {
 		path = fmt.Sprintf("secret/%s", secret.Path)
+	}
+
+	if prefix, ok := config["only-prefix"]; ok && !strings.HasPrefix(path, prefix) {
+		log.Infof("Skipping %s, does not match prefix %s", path, prefix)
+		return nil
 	}
 
 	log.Info(path)

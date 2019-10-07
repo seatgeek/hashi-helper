@@ -160,6 +160,12 @@ func main() {
 		{
 			Name:  "vault-push-secrets",
 			Usage: "Write local secrets to remote Vault instance",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "prefix",
+					Usage: "Only push secrets with this prefix",
+				},
+			},
 			Action: func(c *cli.Context) error {
 				return vaultCommand.SecretsPush(c)
 			},
