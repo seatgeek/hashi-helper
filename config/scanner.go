@@ -68,7 +68,13 @@ func (s *scanner) scanDirectory(directory string) error {
 			if err != nil {
 				return err
 			}
-			fi, err = os.Lstat(directory + "/" + linkpath)
+			fullPath := ""
+			if filepath.IsAbs(linkpath) {
+				fullPath = linkpath
+			} else {
+				fullPath = directory + "/" + linkpath
+			}
+			fi, err = os.Lstat(fullPath)
 			if err != nil {
 				return err
 			}
