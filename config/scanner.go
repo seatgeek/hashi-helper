@@ -64,11 +64,11 @@ func (s *scanner) scanDirectory(directory string) error {
 		pathName := path.Clean(directory + "/" + fi.Name())
 
 		if fi.Mode() & os.ModeSymlink == os.ModeSymlink {
-			linkpath, err := os.Readlink(directory + fi.Name())
+			linkpath, err := os.Readlink(directory + "/" + fi.Name())
 			if err != nil {
 				return err
 			}
-			fi, err = os.Lstat(linkpath)
+			fi, err = os.Lstat(directory + "/" + linkpath)
 			if err != nil {
 				return err
 			}
