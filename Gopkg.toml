@@ -24,4 +24,4 @@
 
 [[constraint]]
   name = "github.com/pkg/errors"
-  revision = "059132a15dd08d6704c67711dae0cf35ab991756"
+  version = "^0.9.0"
