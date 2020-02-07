@@ -80,7 +80,8 @@ environment "prod" "stag" {
 						Port:    1337,
 						Address: "127.0.0.1",
 						Meta: map[string]string{
-							"meta_key": "meta_value",
+							"meta_key_1": "meta_value_1",
+							"meta_key_2": "meta_value_2",
 						},
 					},
 					Check: &api.AgentCheck{
@@ -102,8 +103,47 @@ environment "*" {
 		port    = 1337
 
 		meta {
-			meta_key = "meta_value"
+			meta_key_1 = "meta_value_1"
+			meta_key_2 = "meta_value_2"
 		}
+	}
+}`,
+		},
+		{
+			name:             "parse service{} with empty meta",
+			env:              "perf",
+			seenEnvironments: []string{"perf"},
+			seenServices: ConsulServices{
+				{
+					Address: "127.0.0.1",
+					Node:    "test",
+					Service: &api.AgentService{
+						ID:      "test",
+						Service: "test",
+						Tags:    []string{},
+						Port:    1337,
+						Address: "127.0.0.1",
+						Meta:    map[string]string{},
+					},
+					Check: &api.AgentCheck{
+						Node:        "test",
+						CheckID:     "service:test",
+						Name:        "test",
+						Status:      "passing",
+						Notes:       "created by hashi-helper",
+						ServiceID:   "test",
+						ServiceName: "test",
+					},
+				},
+			},
+			content: `
+environment "*" {
+	service "test" {
+		address = "127.0.0.1"
+		node    = "test"
+		port    = 1337
+
+		meta {}
 	}
 }`,
 		},
