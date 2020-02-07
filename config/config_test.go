@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -17,8 +18,8 @@ func TestConfig_ParseContent(t *testing.T) {
 		seenApplications []string
 		seenSecrets      []string
 		seenServices     ConsulServices
-		wantParseErr     bool
-		wantProcessErr   bool
+		parserErr        error
+		processErr       error
 	}{
 		// wildcard and named environment mixed, should expose the seen environment
 		// as the "test" since "*" matches that
@@ -28,7 +29,6 @@ func TestConfig_ParseContent(t *testing.T) {
 			seenEnvironments: []string{"test"},
 			seenApplications: []string{"seatgeek"},
 			seenSecrets:      []string{"very-secret"},
-			wantParseErr:     false,
 			content: `
 environment "*" {
 	application "seatgeek" {
@@ -44,7 +44,6 @@ environment "*" {
 			seenEnvironments: []string{"prod"},
 			seenApplications: []string{"seatgeek"},
 			seenSecrets:      []string{"very-secret"},
-			wantParseErr:     false,
 			content: `
 environment "prod" "stag" {
 	application "seatgeek" {
@@ -55,9 +54,8 @@ environment "prod" "stag" {
 }`,
 		},
 		{
-			name:         "parse multi with _no_ match",
-			env:          "perf",
-			wantParseErr: false,
+			name: "parse multi with _no_ match",
+			env:  "perf",
 			content: `
 environment "prod" "stag" {
 	application "seatgeek" {
@@ -96,7 +94,6 @@ environment "prod" "stag" {
 					},
 				},
 			},
-			wantParseErr: false,
 			content: `
 environment "*" {
 	service "test" {
@@ -114,8 +111,7 @@ environment "*" {
 			name:             "parse service{} with 2 meta should fail",
 			env:              "perf",
 			seenEnvironments: []string{"perf"},
-			wantParseErr:     false,
-			wantProcessErr:   true,
+			processErr:       fmt.Errorf("You can only specify meta{} once at -"),
 			content: `
 environment "*" {
 	service "test" {
@@ -159,7 +155,6 @@ environment "*" {
 					},
 				},
 			},
-			wantParseErr: false,
 			content: `
 environment "*" {
 	service "test" {
@@ -178,15 +173,15 @@ environment "*" {
 			}
 
 			got, err := c.parseContent(tt.content, "test.hcl")
-			if tt.wantParseErr {
-				require.Error(t, err)
+			if tt.parserErr != nil {
+				require.EqualError(t, err, tt.parserErr.Error())
 			} else {
 				require.NoError(t, err)
 			}
 
 			err2 := c.processContent(got, "test.hcl")
-			if tt.wantProcessErr {
-				require.Error(t, err2)
+			if tt.processErr != nil {
+				require.EqualError(t, err2, tt.processErr.Error())
 			} else {
 				require.NoError(t, err2)
 			}
