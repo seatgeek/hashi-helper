@@ -30,13 +30,13 @@ func TestConfig_ParseContent(t *testing.T) {
 			seenApplications: []string{"seatgeek"},
 			seenSecrets:      []string{"very-secret"},
 			content: `
-environment "*" {
-	application "seatgeek" {
-		secret "very-secret" {
-			value = "hello world"
-		}
-	}
-}`,
+			environment "*" {
+				application "seatgeek" {
+					secret "very-secret" {
+						value = "hello world"
+					}
+				}
+			}`,
 		},
 		{
 			name:             "parse multi with match",
@@ -45,25 +45,25 @@ environment "*" {
 			seenApplications: []string{"seatgeek"},
 			seenSecrets:      []string{"very-secret"},
 			content: `
-environment "prod" "stag" {
-	application "seatgeek" {
-		secret "very-secret" {
-			value = "hello world"
-		}
-	}
-}`,
+			environment "prod" "stag" {
+				application "seatgeek" {
+					secret "very-secret" {
+						value = "hello world"
+					}
+				}
+			}`,
 		},
 		{
 			name: "parse multi with _no_ match",
 			env:  "perf",
 			content: `
-environment "prod" "stag" {
-	application "seatgeek" {
-		secret "very-secret" {
-			value = "hello world"
-		}
-	}
-}`,
+			environment "prod" "stag" {
+				application "seatgeek" {
+					secret "very-secret" {
+						value = "hello world"
+					}
+				}
+			}`,
 		},
 		{
 			name:             "parse service{} with meta",
@@ -96,18 +96,18 @@ environment "prod" "stag" {
 				},
 			},
 			content: `
-environment "*" {
-	service "test" {
-		address = "127.0.0.1"
-		node    = "test"
-		port    = 1337
+			environment "*" {
+				service "test" {
+					address = "127.0.0.1"
+					node    = "test"
+					port    = 1337
 
-		meta {
-			meta_key_1 = "meta_value_1"
-			meta_key_2 = "meta_value_2"
-		}
-	}
-}`,
+					meta {
+						meta_key_1 = "meta_value_1"
+						meta_key_2 = "meta_value_2"
+					}
+				}
+			}`,
 		},
 		{
 			name:             "parse service{} with empty meta",
@@ -137,15 +137,15 @@ environment "*" {
 				},
 			},
 			content: `
-environment "*" {
-	service "test" {
-		address = "127.0.0.1"
-		node    = "test"
-		port    = 1337
+			environment "*" {
+				service "test" {
+					address = "127.0.0.1"
+					node    = "test"
+					port    = 1337
 
-		meta {}
-	}
-}`,
+					meta {}
+				}
+			}`,
 		},
 		{
 			name:             "process service{} with 2 meta should fail",
@@ -153,21 +153,21 @@ environment "*" {
 			seenEnvironments: []string{"perf"},
 			processErr:       fmt.Errorf("You can only specify meta{} once at -"),
 			content: `
-environment "*" {
-	service "test" {
-		address = "127.0.0.1"
-		node    = "test"
-		port    = 1337
+			environment "*" {
+				service "test" {
+					address = "127.0.0.1"
+					node    = "test"
+					port    = 1337
 
-		meta {
-			meta_key = "meta_value"
-		}
+					meta {
+						meta_key = "meta_value"
+					}
 
-		meta {
-			meta_key_2 = "meta_value_2"
-		}
-	}
-}`,
+					meta {
+						meta_key_2 = "meta_value_2"
+					}
+				}
+			}`,
 		},
 		{
 			name:             "parse service{} with no meta",
@@ -196,13 +196,13 @@ environment "*" {
 				},
 			},
 			content: `
-environment "*" {
-	service "test" {
-		address = "127.0.0.1"
-		node    = "test"
-		port    = 1337
-	}
-}`,
+			environment "*" {
+				service "test" {
+					address = "127.0.0.1"
+					node    = "test"
+					port    = 1337
+				}
+			}`,
 		},
 	}
 
