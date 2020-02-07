@@ -60,7 +60,6 @@ func UseProfile(c *cli.Context) error {
 
 	var printingBuffer bytes.Buffer
 
-
 	if !c.Args().Present() {
 		return fmt.Errorf("Please provide a profile name as first argument")
 	}

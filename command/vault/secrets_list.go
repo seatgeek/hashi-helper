@@ -53,7 +53,7 @@ func secretListRemote(c *cli.Context) error {
 
 	log.Println()
 	for _, secret := range secrets {
-		log.Infof("%s @ %s: %s", secret.Application, secret.Environment, secret.Path)
+		log.Infof("%s @ %s: %s", secret.Application.Name, secret.Environment.Name, secret.Path)
 	}
 
 	return nil
@@ -67,7 +67,7 @@ func printDetailedSecrets(paths config.VaultSecrets, concurrency int) {
 
 	for _, secret := range secrets {
 		log.Println()
-		log.Infof("%s @ %s: %s", secret.Application, secret.Environment, secret.Path)
+		log.Infof("%s @ %s: %s", secret.Application.Name, secret.Environment.Name, secret.Path)
 
 		for k, v := range secret.VaultSecret.Data {
 			switch vv := v.(type) {
