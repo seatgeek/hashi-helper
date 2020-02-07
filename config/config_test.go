@@ -108,7 +108,7 @@ environment "*" {
 }`,
 		},
 		{
-			name:             "parse service{} with 2 meta should fail",
+			name:             "process service{} with 2 meta should fail",
 			env:              "perf",
 			seenEnvironments: []string{"perf"},
 			processErr:       fmt.Errorf("You can only specify meta{} once at -"),
@@ -124,7 +124,7 @@ environment "*" {
 		}
 
 		meta {
-			meta_key = "meta_value"
+			meta_key_2 = "meta_value_2"
 		}
 	}
 }`,
