@@ -2,19 +2,6 @@
 
 
 [[projects]]
-  digest = "1:a69ab3f1445ffd4815add4bd31ba05b65b3b9fec1ade5057d5d717f30e6efd6d"
-  name = "github.com/SermoDigital/jose"
-  packages = [
-    ".",
-    "crypto",
-    "jws",
-    "jwt",
-  ]
-  pruneopts = "UT"
-  revision = "f6df55f235c24f236d11dbcf665249a59ac2021f"
-  version = "1.1"
-
-[[projects]]
   digest = "1:c47f4964978e211c6e566596ec6246c329912ea92e9bb99c00798bb4564c5b09"
   name = "github.com/armon/go-radix"
   packages = ["."]
@@ -216,7 +203,7 @@
   version = "v0.8.1"
 
 [[projects]]
-  digest = "1:66b341316d7b4fe01377f1f0d59207ac38bcc8a4e50030969eb67f7738899122"
+  digest = "1:cb674cb2eab4d8c39b3f37b7c3c56f3fe9090772f4ca0dcbdfa8a3bf29c6c004"
   name = "github.com/hashicorp/vault"
   packages = [
     "api",
@@ -224,6 +211,7 @@
     "helper/certutil",
     "helper/compressutil",
     "helper/consts",
+    "helper/cryptoutil",
     "helper/errutil",
     "helper/hclutil",
     "helper/jsonutil",
@@ -248,8 +236,8 @@
     "version",
   ]
   pruneopts = "UT"
-  revision = "a59ffa4a0f09bbf198241fe6793a96722789b639"
-  version = "v0.11.5"
+  revision = "f08b88029d959e1318746b188fecaad54468230b"
+  version = "v1.1.5"
 
 [[projects]]
   branch = "master"
@@ -354,9 +342,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:38f553aff0273ad6f367cb0a0f8b6eecbaef8dc6cb8b50e57b6a81c1d5b1e332"
+  digest = "1:44a74804a5c12a2e26f5bf59765a567ddab15d19ac409fefc0d3af2173833a33"
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
+  packages = [
+    "blake2b",
+    "ed25519",
+    "ed25519/internal/edwards25519",
+    "pbkdf2",
+    "ssh/terminal",
+  ]
   pruneopts = "UT"
   revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
 
@@ -390,9 +384,10 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0c7cb58af944f9690af91474a75371eecfe54c1ce3771a8dc08924430ee785d3"
+  digest = "1:401fc17cbc8a7c6ac25639d63c110385b2a04fab2911d9bad13366771b6e4df6"
   name = "golang.org/x/sys"
   packages = [
+    "cpu",
     "unix",
     "windows",
   ]
@@ -496,6 +491,19 @@
   pruneopts = "UT"
   revision = "869adfc8d5a43efc0d05780ad109106f457f51e4"
   version = "v1.21.0"
+
+[[projects]]
+  digest = "1:06296d3eb9f1a43b4a27167de57207f9ac1d5f312bac118dc72ee12493c5ee89"
+  name = "gopkg.in/square/go-jose.v2"
+  packages = [
+    ".",
+    "cipher",
+    "json",
+    "jwt",
+  ]
+  pruneopts = "UT"
+  revision = "4ef0f1b175ccd65472d154e1207c4d7b8102545f"
+  version = "v2.4.1"
 
 [[projects]]
   digest = "1:b24d38b282bacf9791408a080f606370efa3d364e4b5fd9ba0f7b87786d3b679"
