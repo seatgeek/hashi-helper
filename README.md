@@ -742,6 +742,12 @@ environment "production" {
 
     # Optional list of tags
     tags    = ["master", "replica"]
+
+    # Optional meta keys
+    meta {
+      my_key      = "my_value"
+      another_key = "another value"
+    }
   }
 }
 ```

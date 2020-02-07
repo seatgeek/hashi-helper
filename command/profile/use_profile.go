@@ -270,19 +270,19 @@ func vaultLoginGitHub(v vaultCreds, vc *vault.Client) (vaultCreds, error) {
 	}
 	if v.Auth.GithubToken == "" {
 		return v, fmt.Errorf("github_token should be provided when using GitHub Vault auth method")
-	} else {
-		m["token"] = v.Auth.GithubToken
-		h := vgh.CLIHandler{}
-		secret, err := h.Auth(vc, m)
-		if err != nil {
-			return v, err
-		}
-
-		v.Auth.Token = secret.Auth.ClientToken
-		v.Auth.ExpireTime = time.Now().Add(time.Second * time.Duration(secret.Auth.LeaseDuration)).Format(time.RFC3339Nano)
-
-		return v, nil
 	}
+
+	m["token"] = v.Auth.GithubToken
+	h := vgh.CLIHandler{}
+	secret, err := h.Auth(vc, m)
+	if err != nil {
+		return v, err
+	}
+
+	v.Auth.Token = secret.Auth.ClientToken
+	v.Auth.ExpireTime = time.Now().Add(time.Second * time.Duration(secret.Auth.LeaseDuration)).Format(time.RFC3339Nano)
+
+	return v, nil
 }
 
 func readFromVault(v *vault.Client, path string) (*vault.Secret, error) {

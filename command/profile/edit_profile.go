@@ -100,11 +100,7 @@ func EditProfile(c *cli.Context) error {
 		copyFileContents(getProfileFile(), getProfileFile()+".old")
 	}
 
-	if err := encryptFile(file.Name(), getProfileFile()); err != nil {
-		return err
-	}
-
-	return nil
+	return encryptFile(file.Name(), getProfileFile())
 }
 
 // copyFileContents copies the contents of the file named src to the file named

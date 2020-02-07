@@ -79,7 +79,7 @@ func (e *VaultSecrets) GetOrSet(secret *Secret) *Secret {
 }
 
 func (e *VaultSecrets) List() []string {
-	res := []string{}
+	var res []string
 
 	for _, sec := range *e {
 		res = append(res, sec.Path)

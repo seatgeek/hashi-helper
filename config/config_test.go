@@ -1,9 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/consul/api"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,63 +17,195 @@ func TestConfig_ParseContent(t *testing.T) {
 		seenEnvironments []string
 		seenApplications []string
 		seenSecrets      []string
-		wantErr          bool
+		seenServices     ConsulServices
+		parserErr        error
+		processErr       error
 	}{
 		// wildcard and named environment mixed, should expose the seen environment
 		// as the "test" since "*" matches that
 		{
-			name: "parse simple",
-			env:  "test",
-			content: `
-environment "*" {
-	application "seatgeek" {
-		secret "very-secret" {
-			value = "hello world"
-		}
-	}
-}`,
+			name:             "parse simple",
+			env:              "test",
 			seenEnvironments: []string{"test"},
 			seenApplications: []string{"seatgeek"},
 			seenSecrets:      []string{"very-secret"},
-
-			wantErr: false,
-		},
-		//
-		{
-			name: "parse multi with match",
-			env:  "prod",
 			content: `
-environment "prod" "stag" {
-	application "seatgeek" {
-		secret "very-secret" {
-			value = "hello world"
-		}
-	}
-}`,
+			environment "*" {
+				application "seatgeek" {
+					secret "very-secret" {
+						value = "hello world"
+					}
+				}
+			}`,
+		},
+		{
+			name:             "parse multi with match",
+			env:              "prod",
 			seenEnvironments: []string{"prod"},
 			seenApplications: []string{"seatgeek"},
 			seenSecrets:      []string{"very-secret"},
-
-			wantErr: false,
+			content: `
+			environment "prod" "stag" {
+				application "seatgeek" {
+					secret "very-secret" {
+						value = "hello world"
+					}
+				}
+			}`,
 		},
 		{
 			name: "parse multi with _no_ match",
 			env:  "perf",
 			content: `
-environment "prod" "stag" {
-	application "seatgeek" {
-		secret "very-secret" {
-			value = "hello world"
-		}
-	}
-}`,
-			seenEnvironments: []string{},
-			seenApplications: []string{},
-			seenSecrets:      []string{},
+			environment "prod" "stag" {
+				application "seatgeek" {
+					secret "very-secret" {
+						value = "hello world"
+					}
+				}
+			}`,
+		},
+		{
+			name:             "parse service{} with meta",
+			env:              "perf",
+			seenEnvironments: []string{"perf"},
+			seenServices: ConsulServices{
+				{
+					Address: "127.0.0.1",
+					Node:    "test",
+					Service: &api.AgentService{
+						ID:      "test",
+						Service: "test",
+						Tags:    []string{},
+						Port:    1337,
+						Address: "127.0.0.1",
+						Meta: map[string]string{
+							"meta_key_1": "meta_value_1",
+							"meta_key_2": "meta_value_2",
+						},
+					},
+					Check: &api.AgentCheck{
+						Node:        "test",
+						CheckID:     "service:test",
+						Name:        "test",
+						Status:      "passing",
+						Notes:       "created by hashi-helper",
+						ServiceID:   "test",
+						ServiceName: "test",
+					},
+				},
+			},
+			content: `
+			environment "*" {
+				service "test" {
+					address = "127.0.0.1"
+					node    = "test"
+					port    = 1337
 
-			wantErr: false,
+					meta {
+						meta_key_1 = "meta_value_1"
+						meta_key_2 = "meta_value_2"
+					}
+				}
+			}`,
+		},
+		{
+			name:             "parse service{} with empty meta",
+			env:              "perf",
+			seenEnvironments: []string{"perf"},
+			seenServices: ConsulServices{
+				{
+					Address: "127.0.0.1",
+					Node:    "test",
+					Service: &api.AgentService{
+						ID:      "test",
+						Service: "test",
+						Tags:    []string{},
+						Port:    1337,
+						Address: "127.0.0.1",
+						Meta:    map[string]string{},
+					},
+					Check: &api.AgentCheck{
+						Node:        "test",
+						CheckID:     "service:test",
+						Name:        "test",
+						Status:      "passing",
+						Notes:       "created by hashi-helper",
+						ServiceID:   "test",
+						ServiceName: "test",
+					},
+				},
+			},
+			content: `
+			environment "*" {
+				service "test" {
+					address = "127.0.0.1"
+					node    = "test"
+					port    = 1337
+
+					meta {}
+				}
+			}`,
+		},
+		{
+			name:             "process service{} with 2 meta should fail",
+			env:              "perf",
+			seenEnvironments: []string{"perf"},
+			processErr:       fmt.Errorf("You can only specify meta{} once at -"),
+			content: `
+			environment "*" {
+				service "test" {
+					address = "127.0.0.1"
+					node    = "test"
+					port    = 1337
+
+					meta {
+						meta_key = "meta_value"
+					}
+
+					meta {
+						meta_key_2 = "meta_value_2"
+					}
+				}
+			}`,
+		},
+		{
+			name:             "parse service{} with no meta",
+			env:              "perf",
+			seenEnvironments: []string{"perf"},
+			seenServices: ConsulServices{
+				{
+					Address: "127.0.0.1",
+					Node:    "test",
+					Service: &api.AgentService{
+						ID:      "test",
+						Service: "test",
+						Tags:    []string{},
+						Port:    1337,
+						Address: "127.0.0.1",
+					},
+					Check: &api.AgentCheck{
+						Node:        "test",
+						CheckID:     "service:test",
+						Name:        "test",
+						Status:      "passing",
+						Notes:       "created by hashi-helper",
+						ServiceID:   "test",
+						ServiceName: "test",
+					},
+				},
+			},
+			content: `
+			environment "*" {
+				service "test" {
+					address = "127.0.0.1"
+					node    = "test"
+					port    = 1337
+				}
+			}`,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
@@ -79,15 +213,15 @@ environment "prod" "stag" {
 			}
 
 			got, err := c.parseContent(tt.content, "test.hcl")
-			if tt.wantErr {
-				require.Error(t, err)
+			if tt.parserErr != nil {
+				require.EqualError(t, err, tt.parserErr.Error())
 			} else {
 				require.NoError(t, err)
 			}
 
 			err2 := c.processContent(got, "test.hcl")
-			if tt.wantErr {
-				require.Error(t, err2)
+			if tt.processErr != nil {
+				require.EqualError(t, err2, tt.processErr.Error())
 			} else {
 				require.NoError(t, err2)
 			}
@@ -95,6 +229,7 @@ environment "prod" "stag" {
 			require.Equal(t, tt.seenEnvironments, c.Environments.list())
 			require.Equal(t, tt.seenApplications, c.Applications.list())
 			require.Equal(t, tt.seenSecrets, c.VaultSecrets.List())
+			require.Equal(t, tt.seenServices, c.ConsulServices.List())
 		})
 	}
 }
