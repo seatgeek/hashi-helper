@@ -10,7 +10,7 @@ services:
 
 cache:
   directories:
-    - vendor/
+    - $GOPATH/pkg/mod
 
 env:
   global:
