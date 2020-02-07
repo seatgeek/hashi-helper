@@ -69,7 +69,7 @@ func (a *Applications) getOrSet(application *Application) *Application {
 }
 
 func (a *Applications) list() []string {
-	res := []string{}
+	var res []string
 
 	for _, app := range *a {
 		res = append(res, app.Name)

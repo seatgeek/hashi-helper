@@ -72,7 +72,7 @@ func (e *Environments) getOrSet(environment *Environment) *Environment {
 }
 
 func (e *Environments) list() []string {
-	res := []string{}
+	var res []string
 
 	for _, env := range *e {
 		res = append(res, env.Name)

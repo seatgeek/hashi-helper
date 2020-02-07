@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
@@ -31,6 +32,10 @@ func (cs *ConsulServices) add(service *ConsulService) {
 	*cs = append(*cs, service)
 }
 
+func (cs *ConsulServices) List() ConsulServices {
+	return *cs
+}
+
 func (c *Config) parseConsulServiceStanza(list *ast.ObjectList, environment *Environment) error {
 	if len(list.Items) == 0 {
 		return nil
@@ -41,7 +46,7 @@ func (c *Config) parseConsulServiceStanza(list *ast.ObjectList, environment *Env
 	for _, serviceAST := range list.Items {
 		x := serviceAST.Val.(*ast.ObjectType).List
 
-		valid := []string{"id", "address", "node", "port", "tags"}
+		valid := []string{"id", "address", "node", "port", "tags", "meta"}
 		if err := c.checkHCLKeys(x, valid); err != nil {
 			return err
 		}
@@ -85,6 +90,13 @@ func (c *Config) parseConsulServiceStanza(list *ast.ObjectList, environment *Env
 			}
 		}
 
+		var m map[string]string
+		if serviceMetaObj := x.Filter("meta").Items; len(serviceMetaObj) > 0 {
+			if err := hcl.DecodeObject(&m, serviceMetaObj[0].Val); err != nil {
+				return err
+			}
+		}
+
 		service := &ConsulService{
 			Node:    node,
 			Address: address,
@@ -94,6 +106,7 @@ func (c *Config) parseConsulServiceStanza(list *ast.ObjectList, environment *Env
 				Port:    port,
 				Service: serviceName,
 				Tags:    tags,
+				Meta:    m,
 			},
 			Check: &api.AgentCheck{
 				CheckID:     fmt.Sprintf("service:%s", serviceID),
