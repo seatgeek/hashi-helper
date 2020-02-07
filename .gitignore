@@ -1,4 +1,12 @@
-vendor/
-!vendor/vendor.json
-conf.d/
+# Files
+.gitignore
+ci.sh
+LICENSE
+Makefile
+README.md
+
+# Folders
+.git/
 build/
+conf.d/
+examples/

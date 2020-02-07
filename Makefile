@@ -12,16 +12,13 @@ $(BUILD_DIR):
 
 .PHONY: install
 install:
-ifeq (, $(shell which dep))
-	@echo "=> installing 'dep'"
-	go get github.com/golang/dep/cmd/dep
-endif
-	@echo "=> installing dependencies"
-	@dep ensure -v -vendor-only
+	@echo "=> go mod download"
+	@go mod download
 
 .PHONY: build
 build: install
-	go install
+	@echo "==> go install"
+	@go install
 
 .PHONY: ci
 ci: install
