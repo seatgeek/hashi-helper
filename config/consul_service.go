@@ -92,6 +92,10 @@ func (c *Config) parseConsulServiceStanza(list *ast.ObjectList, environment *Env
 
 		var m map[string]string
 		if serviceMetaObj := x.Filter("meta").Items; len(serviceMetaObj) > 0 {
+			if len(serviceMetaObj) > 1 {
+				return fmt.Errorf("You can only specify meta{} once")
+			}
+
 			if err := hcl.DecodeObject(&m, serviceMetaObj[0].Val); err != nil {
 				return err
 			}

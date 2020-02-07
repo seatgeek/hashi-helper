@@ -17,7 +17,8 @@ func TestConfig_ParseContent(t *testing.T) {
 		seenApplications []string
 		seenSecrets      []string
 		seenServices     ConsulServices
-		wantErr          bool
+		wantParseErr     bool
+		wantProcessErr   bool
 	}{
 		// wildcard and named environment mixed, should expose the seen environment
 		// as the "test" since "*" matches that
@@ -27,7 +28,7 @@ func TestConfig_ParseContent(t *testing.T) {
 			seenEnvironments: []string{"test"},
 			seenApplications: []string{"seatgeek"},
 			seenSecrets:      []string{"very-secret"},
-			wantErr:          false,
+			wantParseErr:     false,
 			content: `
 environment "*" {
 	application "seatgeek" {
@@ -37,14 +38,13 @@ environment "*" {
 	}
 }`,
 		},
-		//
 		{
 			name:             "parse multi with match",
 			env:              "prod",
 			seenEnvironments: []string{"prod"},
 			seenApplications: []string{"seatgeek"},
 			seenSecrets:      []string{"very-secret"},
-			wantErr:          false,
+			wantParseErr:     false,
 			content: `
 environment "prod" "stag" {
 	application "seatgeek" {
@@ -55,9 +55,9 @@ environment "prod" "stag" {
 }`,
 		},
 		{
-			name:    "parse multi with _no_ match",
-			env:     "perf",
-			wantErr: false,
+			name:         "parse multi with _no_ match",
+			env:          "perf",
+			wantParseErr: false,
 			content: `
 environment "prod" "stag" {
 	application "seatgeek" {
@@ -96,13 +96,36 @@ environment "prod" "stag" {
 					},
 				},
 			},
-			wantErr: false,
+			wantParseErr: false,
 			content: `
 environment "*" {
 	service "test" {
 		address = "127.0.0.1"
 		node    = "test"
 		port    = 1337
+
+		meta {
+			meta_key = "meta_value"
+		}
+	}
+}`,
+		},
+		{
+			name:             "parse service{} with 2 meta should fail",
+			env:              "perf",
+			seenEnvironments: []string{"perf"},
+			wantParseErr:     false,
+			wantProcessErr:   true,
+			content: `
+environment "*" {
+	service "test" {
+		address = "127.0.0.1"
+		node    = "test"
+		port    = 1337
+
+		meta {
+			meta_key = "meta_value"
+		}
 
 		meta {
 			meta_key = "meta_value"
@@ -136,7 +159,7 @@ environment "*" {
 					},
 				},
 			},
-			wantErr: false,
+			wantParseErr: false,
 			content: `
 environment "*" {
 	service "test" {
@@ -155,14 +178,14 @@ environment "*" {
 			}
 
 			got, err := c.parseContent(tt.content, "test.hcl")
-			if tt.wantErr {
+			if tt.wantParseErr {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
 			}
 
 			err2 := c.processContent(got, "test.hcl")
-			if tt.wantErr {
+			if tt.wantProcessErr {
 				require.Error(t, err2)
 			} else {
 				require.NoError(t, err2)
@@ -172,7 +195,6 @@ environment "*" {
 			require.Equal(t, tt.seenApplications, c.Applications.list())
 			require.Equal(t, tt.seenSecrets, c.VaultSecrets.List())
 			require.Equal(t, tt.seenServices, c.ConsulServices.List())
-
 		})
 	}
 }
