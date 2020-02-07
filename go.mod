@@ -11,7 +11,7 @@ require (
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-querystring v1.0.0
-	github.com/hashicorp/consul v1.4.0
+	github.com/hashicorp/consul v1.6.3
 	github.com/hashicorp/errwrap v1.0.0
 	github.com/hashicorp/go-cleanhttp v0.5.0
 	github.com/hashicorp/go-hclog v0.9.2
