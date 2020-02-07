@@ -14,7 +14,6 @@ cache:
 
 env:
   global:
-    - DOCKER_BUILDKIT=1
     - CGO_ENABLED=0
     - GOBUILD="linux-amd64 windows-amd64 darwin-amd64"
     # DOCKER_USER
