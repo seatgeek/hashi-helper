@@ -38,7 +38,6 @@ dist: install
 .PHONY: docker
 docker:
 	@echo "=> build and push Docker image ..."
-	@docker login -u $(DOCKER_USER) -p $(DOCKER_PASS)
 	docker build -f Dockerfile -t seatgeek/hashi-helper:$(COMMIT) .
 	docker tag seatgeek/hashi-helper:$(COMMIT) seatgeek/hashi-helper:$(TAG)
 	docker push seatgeek/hashi-helper:$(TAG)
