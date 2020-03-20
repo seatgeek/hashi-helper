@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/errwrap v1.0.0
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/hcl v1.0.0
-	github.com/hashicorp/vault v1.3.2
+	github.com/hashicorp/vault v1.3.4
 	github.com/hashicorp/vault/api v1.0.5-0.20200117231345-460d63e36490
 	github.com/hashicorp/vault/sdk v0.1.14-0.20200121232954-73f411823aa0
 	github.com/mitchellh/go-homedir v1.1.0
