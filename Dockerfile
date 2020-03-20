@@ -7,7 +7,7 @@ FROM golang:1.13.7 as builder
 WORKDIR /root/go/src/github.com/seatgeek/hashi-helper
 
 # Disable CGO
-ENV CGO_ENABLED=0
+ENV CGO_ENABLED=1
 
 # Copy go mod and sum files
 COPY go.mod go.sum ./
