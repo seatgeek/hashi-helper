@@ -22,6 +22,8 @@ func AuthPush(c *cli.Context) error {
 
 // AuthPushWithConfig ...
 func AuthPushWithConfig(c *cli.Context, config *config.Config) error {
+	log.Info("Pushing Vault Auth")
+
 	env := c.GlobalString("environment")
 	if env == "" {
 		return fmt.Errorf("Pushing auth backends require a 'environment' value (--environment or ENV[ENVIRONMENT])")

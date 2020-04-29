@@ -21,6 +21,8 @@ func MountsPush(c *cli.Context) error {
 
 // MountsPushWithConfig ...
 func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
+	log.Info("Pushing Vault Mounts")
+
 	env := c.GlobalString("environment")
 	if env == "" {
 		return fmt.Errorf("Pushing mounts require a 'environment' value (--environment or ENV[ENVIRONMENT])")

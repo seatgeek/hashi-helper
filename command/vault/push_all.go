@@ -2,6 +2,7 @@ package vault
 
 import (
 	cfg "github.com/seatgeek/hashi-helper/config"
+	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -17,6 +18,8 @@ func PushAll(cli *cli.Context) error {
 
 // PushAllWithConfig ...
 func PushAllWithConfig(cli *cli.Context, config *cfg.Config) error {
+	log.Info("Pushing all configuration")
+
 	if err := AuditPushWithConfig(cli, config); err != nil {
 		return err
 	}
