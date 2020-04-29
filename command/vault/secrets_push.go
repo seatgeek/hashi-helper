@@ -41,7 +41,7 @@ func SecretsPushWithConfig(c *cli.Context, config *config.Config) error {
 	for _, secret := range config.VaultSecrets {
 		err := engine.WriteSecret(secret, writeConfig)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 	}
 

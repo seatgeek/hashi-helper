@@ -51,7 +51,7 @@ func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
 			log.Printf("Creating mount %s", mountLogicalName)
 			err := client.Sys().Mount(mount.Name, mount.MountInput())
 			if err != nil {
-				log.Fatal(err)
+				log.Panic(err)
 			}
 		} else {
 			log.Printf("Mount %s already exist", mountLogicalName)
@@ -66,7 +66,7 @@ func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
 
 			s, err := client.Logical().Write(configPath, config.Data)
 			if err != nil {
-				log.Fatal(err)
+				log.Panic(err)
 			}
 
 			printRemoteSecretWarnings(s)
@@ -85,7 +85,7 @@ func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
 
 			s, err := client.Logical().Write(rolePath, role.Data)
 			if err != nil {
-				log.Fatal(err)
+				log.Panic(err)
 			}
 
 			printRemoteSecretWarnings(s)

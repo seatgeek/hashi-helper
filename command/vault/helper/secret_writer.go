@@ -44,7 +44,7 @@ func (w SecretWriter) getClient() *api.Client {
 	if w.client == nil {
 		client, err := api.NewClient(nil)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 		w.client = client
 	}

@@ -52,7 +52,7 @@ func AuthPushWithConfig(c *cli.Context, config *config.Config) error {
 			log.Printf("Creating auth backend %s", auth.Name)
 			err := client.Sys().EnableAuth(auth.Name, auth.Type, auth.Description)
 			if err != nil {
-				log.Fatal(err)
+				log.Panic(err)
 			}
 		} else {
 			log.Printf("Auth backend %s already exist", auth.Name)
@@ -67,7 +67,7 @@ func AuthPushWithConfig(c *cli.Context, config *config.Config) error {
 
 			s, err := client.Logical().Write(configPath, config.Data)
 			if err != nil {
-				log.Fatal(err)
+				log.Panic(err)
 			}
 
 			printRemoteSecretWarnings(s)
@@ -86,7 +86,7 @@ func AuthPushWithConfig(c *cli.Context, config *config.Config) error {
 
 			s, err := client.Logical().Write(rolePath, role.Data)
 			if err != nil {
-				log.Fatal(err)
+				log.Panic(err)
 			}
 
 			printRemoteSecretWarnings(s)

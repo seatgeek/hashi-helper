@@ -48,7 +48,7 @@ func PoliciesPushWithConfig(c *cli.Context, config *config.Config) error {
 
 		err := client.Sys().PutPolicy(policyName, policyContent)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 	}
 
