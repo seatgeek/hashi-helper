@@ -21,6 +21,8 @@ func AuditPush(c *cli.Context) error {
 
 // AuditPushWithConfig ...
 func AuditPushWithConfig(c *cli.Context, config *config.Config) error {
+	log.Info("Pushing Vault Audit")
+
 	env := c.GlobalString("environment")
 	if env == "" {
 		return fmt.Errorf("Pushing auth backends require a 'environment' value (--environment or ENV[ENVIRONMENT])")

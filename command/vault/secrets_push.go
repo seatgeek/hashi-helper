@@ -2,10 +2,10 @@ package vault
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/seatgeek/hashi-helper/command/vault/helper"
 	"github.com/seatgeek/hashi-helper/config"
+	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -21,6 +21,8 @@ func SecretsPush(c *cli.Context) error {
 
 // SecretsPushWithConfig ...
 func SecretsPushWithConfig(c *cli.Context, config *config.Config) error {
+	log.Info("Pushing Vault Secrets")
+
 	env := c.GlobalString("environment")
 	if env == "" {
 		return fmt.Errorf("Secret writer requires a environment value (--environment or ENV[ENVIRONMENT])")
@@ -39,7 +41,7 @@ func SecretsPushWithConfig(c *cli.Context, config *config.Config) error {
 	for _, secret := range config.VaultSecrets {
 		err := engine.WriteSecret(secret, writeConfig)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 	}
 

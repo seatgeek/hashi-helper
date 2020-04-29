@@ -132,51 +132,60 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 			if err := c.parseVaultAuditStanza(x.Filter("audit"), env); err != nil {
 				return err
 			}
+			c.logger.Debug("Done")
 
 			c.logger.Debug("Scanning for application{}")
 			if err := c.parseApplicationStanza(x.Filter("application"), env); err != nil {
 				return err
 			}
+			c.logger.Debug("Done")
 
 			c.logger.Debug("Scanning for vault auth{}")
 			if err := c.parseVaultAuthStanza(x.Filter("auth"), env); err != nil {
 				return err
 			}
+			c.logger.Debug("Done")
 
 			c.logger.Debug("Scanning for vault secret{}")
 			if err := c.parseVaultSecretStanza(x.Filter("secret"), env, nil); err != nil {
 				return err
 			}
+			c.logger.Debug("Done")
 
 			c.logger.Debug("Scanning for vault secrets{}")
 			if err := c.parseVaultSecretsStanza(x.Filter("secrets"), env, nil); err != nil {
 				return err
 			}
+			c.logger.Debug("Done")
 
 			c.logger.Debug("Scanning for vault policy{}")
 			if err := c.parseVaultPolicyStanza(x.Filter("policy"), env, nil); err != nil {
 				return err
 			}
+			c.logger.Debug("Done")
 
 			c.logger.Debug("Scanning for vault mount{}")
 			if err := c.parseVaultMountStanza(x.Filter("mount"), env); err != nil {
 				return err
 			}
+			c.logger.Debug("Done")
 
 			c.logger.Debug("Scanning for consul service{}")
 			if err := c.parseConsulServiceStanza(x.Filter("service"), env); err != nil {
 				return err
 			}
+			c.logger.Debug("Done")
 
 			c.logger.Debug("Scanning for consul kv{}")
 			if err := c.parseConsulKVStanza(x.Filter("kv"), env, nil); err != nil {
 				return err
 			}
+			c.logger.Debug("Done")
 
+			c.logger.Debugf("Adding env %s to state", env.Name)
 			c.Environments.add(env)
+			c.logger.Debug("Done")
 		}
-
-		// spew.Dump(c)
 	}
 
 	return nil

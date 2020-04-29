@@ -21,6 +21,8 @@ func PoliciesPush(c *cli.Context) error {
 
 // PoliciesPushWithConfig ...
 func PoliciesPushWithConfig(c *cli.Context, config *config.Config) error {
+	log.Info("Pushing Vault Policies")
+
 	env := c.GlobalString("environment")
 	if env == "" {
 		return fmt.Errorf("Pushing policies require a 'environment' value (--environment or ENV[ENVIRONMENT])")
@@ -46,7 +48,7 @@ func PoliciesPushWithConfig(c *cli.Context, config *config.Config) error {
 
 		err := client.Sys().PutPolicy(policyName, policyContent)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 	}
 

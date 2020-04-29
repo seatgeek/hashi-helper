@@ -21,6 +21,8 @@ func MountsPush(c *cli.Context) error {
 
 // MountsPushWithConfig ...
 func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
+	log.Info("Pushing Vault Mounts")
+
 	env := c.GlobalString("environment")
 	if env == "" {
 		return fmt.Errorf("Pushing mounts require a 'environment' value (--environment or ENV[ENVIRONMENT])")
@@ -49,7 +51,7 @@ func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
 			log.Printf("Creating mount %s", mountLogicalName)
 			err := client.Sys().Mount(mount.Name, mount.MountInput())
 			if err != nil {
-				log.Fatal(err)
+				log.Panic(err)
 			}
 		} else {
 			log.Printf("Mount %s already exist", mountLogicalName)
@@ -64,7 +66,7 @@ func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
 
 			s, err := client.Logical().Write(configPath, config.Data)
 			if err != nil {
-				log.Fatal(err)
+				log.Panic(err)
 			}
 
 			printRemoteSecretWarnings(s)
@@ -83,7 +85,7 @@ func MountsPushWithConfig(c *cli.Context, config *config.Config) error {
 
 			s, err := client.Logical().Write(rolePath, role.Data)
 			if err != nil {
-				log.Fatal(err)
+				log.Panic(err)
 			}
 
 			printRemoteSecretWarnings(s)
