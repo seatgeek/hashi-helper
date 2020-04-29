@@ -182,7 +182,7 @@ func (c *Config) processEnvironments(list *ast.ObjectList) error {
 			}
 			c.logger.Debug("Done")
 
-			c.logger.Debug("Adding env %s to state", env.Name)
+			c.logger.Debugf("Adding env %s to state", env.Name)
 			c.Environments.add(env)
 			c.logger.Debug("Done")
 		}
