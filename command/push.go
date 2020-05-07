@@ -14,11 +14,11 @@ func PushAll(cli *cli.Context) error {
 		return err
 	}
 
+	// Consul
+	return consul.PushAllWithConfig(cli, config)
+
 	// Vault
 	if err := vault.PushAllWithConfig(cli, config); err != nil {
 		return err
 	}
-
-	// Consul
-	return consul.PushAllWithConfig(cli, config)
 }
