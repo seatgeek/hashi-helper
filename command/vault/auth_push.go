@@ -91,6 +91,20 @@ func AuthPushWithConfig(c *cli.Context, config *config.Config) error {
 
 			printRemoteSecretWarnings(s)
 		}
+
+		// Auth maps
+
+		for _, amap := range auth.Maps {
+			mapPath := fmt.Sprintf("auth/%s/map/%s", auth.Name, amap.Name)
+			log.Printf("  Writing auth backend role: %s", mapPath)
+
+			s, err := client.Logical().Write(mapPath, amap.Data)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			printRemoteSecretWarnings(s)
+		}
 	}
 
 	return nil

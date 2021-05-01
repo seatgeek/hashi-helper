@@ -19,6 +19,7 @@ type Auth struct {
 	MaxLeaseTTL     string
 	Config          []*AuthConfig
 	Roles           []*AuthRole
+	Maps	        []*AuthMap
 }
 
 // AuthInput ...
@@ -51,6 +52,12 @@ type AuthRole struct {
 	Data map[string]interface{}
 }
 
+// AuthRole ...
+type AuthMap struct {
+	Name string
+	Data map[string]interface{}
+}
+
 func (c *Config) parseVaultAuthStanza(list *ast.ObjectList, environment *Environment) error {
 	if len(list.Items) == 0 {
 		return nil
@@ -61,7 +68,7 @@ func (c *Config) parseVaultAuthStanza(list *ast.ObjectList, environment *Environ
 	for _, authAST := range list.Items {
 		x := authAST.Val.(*ast.ObjectType).List
 
-		valid := []string{"config", "role", "type", "path"}
+		valid := []string{"config", "role", "type", "path", "map"}
 		if err := c.checkHCLKeys(x, valid); err != nil {
 			return err
 		}
@@ -103,6 +110,16 @@ func (c *Config) parseVaultAuthStanza(list *ast.ObjectList, environment *Environ
 			}
 
 			auth.Roles = roles
+		}
+
+		mapAST := x.Filter("map")
+		if len(mapAST.Items) > 0 {
+			maps, err := c.parseAuthMap(mapAST)
+			if err != nil {
+				return err
+			}
+
+			auth.Maps = maps
 		}
 
 		c.VaultAuths.Add(auth)
@@ -161,4 +178,30 @@ func (c *Config) parseAuthRole(list *ast.ObjectList) ([]*AuthRole, error) {
 	}
 
 	return roles, nil
+}
+
+func (c *Config) parseAuthMap(list *ast.ObjectList) ([]*AuthMap, error) {
+	maps := make([]*AuthMap, 0)
+
+	for _, config := range list.Items {
+		if len(config.Keys) < 1 {
+			return nil, fmt.Errorf("Missing auth map name in line %+v", config.Keys[0].Pos())
+		}
+
+		var m map[string]interface{}
+		if err := hcl.DecodeObject(&m, config.Val); err != nil {
+			return nil, err
+		}
+
+		var amap AuthMap
+		amap.Name = config.Keys[0].Token.Value().(string)
+
+		if err := mapstructure.WeakDecode(m, &amap.Data); err != nil {
+			return nil, err
+		}
+
+		maps = append(maps, &amap)
+	}
+
+	return maps, nil
 }
