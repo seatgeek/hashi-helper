@@ -1,7 +1,7 @@
 #
 # Build Go binaries
 #
-FROM golang:1.13.7 as builder
+FROM golang:1.17 as builder
 
 # Define the build path
 WORKDIR /root/go/src/github.com/seatgeek/hashi-helper
