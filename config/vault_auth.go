@@ -19,7 +19,7 @@ type Auth struct {
 	MaxLeaseTTL     string
 	Config          []*AuthConfig
 	Roles           []*AuthRole
-	Maps	        []*AuthMap
+	Maps            []*AuthMap
 }
 
 // AuthInput ...

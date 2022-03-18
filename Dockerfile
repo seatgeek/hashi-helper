@@ -24,7 +24,7 @@ RUN go build -o /bin/hashi-helper
 #
 # Runtime container
 #
-FROM ubuntu:bionic
+FROM ubuntu:focal
 
 # Copy the binary from builder
 COPY --from=builder /bin/hashi-helper /hashi-helper
