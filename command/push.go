@@ -15,7 +15,7 @@ func PushAll(cli *cli.Context) error {
 	}
 
 	// Consul
-	if err :=  consul.PushAllWithConfig(cli, config); err !=nil {
+	if err := consul.PushAllWithConfig(cli, config); err != nil {
 		return err
 	}
 

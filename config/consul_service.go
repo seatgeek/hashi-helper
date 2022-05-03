@@ -36,7 +36,7 @@ func (cs *ConsulServices) List() ConsulServices {
 	return *cs
 }
 
-func (c *Config) parseConsulServiceStanza(list *ast.ObjectList, environment *Environment) error {
+func (c *Config) parseConsulServiceStanza(list *ast.ObjectList, _ *Environment) error {
 	if len(list.Items) == 0 {
 		return nil
 	}
