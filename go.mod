@@ -15,7 +15,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.7.0
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.7.1
 	gopkg.in/urfave/cli.v1 v1.20.0
 	gopkg.in/yaml.v2 v2.2.8
 )
@@ -58,4 +58,5 @@ require (
 	google.golang.org/genproto v0.0.0-20190801165951-fa694d86fc64 // indirect
 	google.golang.org/grpc v1.22.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
