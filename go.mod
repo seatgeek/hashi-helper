@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/hashicorp/consul/api v1.12.0
+	github.com/hashicorp/consul/api v1.13.1
 	github.com/hashicorp/errwrap v1.0.0
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/hcl v1.0.0
@@ -51,7 +51,7 @@ require (
 	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392 // indirect
 	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1 // indirect
 	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a // indirect
-	golang.org/x/sys v0.0.0-20220318055525-2edf467146b5 // indirect
+	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
 	golang.org/x/text v0.3.6 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/appengine v1.6.0 // indirect
