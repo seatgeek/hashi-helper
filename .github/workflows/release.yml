@@ -62,7 +62,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Release to Docker Hub
+      - name: Release tag to Docker Hub
         env:
           TAG: ${{ github.event.release.tag_name }}
+        run: GIT_COMMIT=$GITHUB_SHA make docker
+      - name: Release latest to Docker Hub
+        env:
+          TAG: latest
         run: GIT_COMMIT=$GITHUB_SHA make docker
