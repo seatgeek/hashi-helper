@@ -22,6 +22,8 @@ jobs:
         run: make -j ci
       - name: build
         run: GOBUILD="linux-amd64 linux-arm64 windows-amd64 darwin-amd64" make -j build
+      - name: docker-build
+        run: make -j docker-build
       - name: artifacts Linux amd64
         uses: actions/upload-artifact@v2
         with:
