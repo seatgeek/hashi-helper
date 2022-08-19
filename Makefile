@@ -5,7 +5,7 @@ GET_GOOS         = $(word 1,$(subst -, ,$1))
 GOBUILD         ?= $(shell go env GOOS)-$(shell go env GOARCH)
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 VETARGS?         =-all
-GIT_COMMIT      := $(shell git describe --tags)
+GIT_COMMIT      ?= $(shell git describe --tags)
 GIT_DIRTY       := $(if $(shell git status --porcelain),+CHANGES)
 GO_LDFLAGS      := "-X main.Version=$(GIT_COMMIT)$(GIT_DIRTY)"
 
