@@ -23,7 +23,7 @@ jobs:
       - name: build
         run: GOBUILD="linux-amd64 linux-arm64 windows-amd64 darwin-amd64" make -j build
       - name: docker-build
-        run: make -j docker-build
+        run: GIT_COMMIT=$GITHUB_SHA make -j docker-build
       - name: artifacts Linux amd64
         uses: actions/upload-artifact@v2
         with:
