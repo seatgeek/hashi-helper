@@ -33,11 +33,15 @@ $(BINARIES): $(BUILD_DIR)/hashi-helper-%: $(BUILD_DIR)
 	GOOS=$(call GET_GOOS,$*) GOARCH=$(call GET_GOARCH,$*) CGO_ENABLED=0 go build -o $@ -ldflags $(GO_LDFLAGS)
 
 .PHONY: docker
-docker: build
-	@echo "=> build and push Docker image ..."
-	docker build -f Dockerfile -t seatgeek/hashi-helper:$(GIT_COMMIT) .
+docker: docker-build
+	@echo "=> push Docker image ..."
 	docker tag seatgeek/hashi-helper:$(GIT_COMMIT) seatgeek/hashi-helper:$(TAG)
 	docker push seatgeek/hashi-helper:$(TAG)
+
+.PHONY: docker
+docker-build:
+	@echo "=> build and push Docker image ..."
+	docker build -f Dockerfile -t seatgeek/hashi-helper:$(GIT_COMMIT) .
 
 .PHONY: dist
 dist: install
