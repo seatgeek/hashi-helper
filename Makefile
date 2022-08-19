@@ -35,8 +35,8 @@ $(BINARIES): $(BUILD_DIR)/hashi-helper-%: $(BUILD_DIR)
 .PHONY: docker
 docker: build
 	@echo "=> build and push Docker image ..."
-	docker build -f Dockerfile -t seatgeek/hashi-helper:$(COMMIT) .
-	docker tag seatgeek/hashi-helper:$(COMMIT) seatgeek/hashi-helper:$(TAG)
+	docker build -f Dockerfile -t seatgeek/hashi-helper:$(GIT_COMMIT) .
+	docker tag seatgeek/hashi-helper:$(GIT_COMMIT) seatgeek/hashi-helper:$(TAG)
 	docker push seatgeek/hashi-helper:$(TAG)
 
 .PHONY: dist
