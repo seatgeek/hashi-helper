@@ -65,4 +65,4 @@ jobs:
       - name: Release to Docker Hub
         env:
           TAG: ${{ github.event.release.tag_name }}
-        run: make docker
+        run: GIT_COMMIT=$GITHUB_SHA make docker
