@@ -2,6 +2,7 @@ package vault
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/vault/api"
 	"github.com/seatgeek/hashi-helper/config"
@@ -54,6 +55,9 @@ func AuditPushWithConfig(c *cli.Context, config *config.Config) error {
 
 			printRemoteSecretWarnings(s)
 		}
+
+		// Give Vault a little bit of time to complete the DELETE operation above
+		time.Sleep(1 * time.Second)
 
 		s, err := client.Logical().Write(path, audit.ToMap())
 		if err != nil {
