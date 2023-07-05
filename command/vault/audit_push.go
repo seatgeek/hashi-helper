@@ -2,11 +2,12 @@ package vault
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/vault/api"
 	"github.com/seatgeek/hashi-helper/config"
 	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
-	"time"
 )
 
 // AuditPush ...
