@@ -2,12 +2,11 @@ package vault
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/hashicorp/vault/api"
 	"github.com/seatgeek/hashi-helper/config"
 	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v1"
+	"time"
 )
 
 // AuditPush ...
@@ -53,11 +52,11 @@ func AuditPushWithConfig(c *cli.Context, config *config.Config) error {
 				log.Fatal(err)
 			}
 
+			// Give Vault a little bit of time to complete the DELETE operation above
+			time.Sleep(1 * time.Second)
+
 			printRemoteSecretWarnings(s)
 		}
-
-		// Give Vault a little bit of time to complete the DELETE operation above
-		time.Sleep(1 * time.Second)
 
 		s, err := client.Logical().Write(path, audit.ToMap())
 		if err != nil {
